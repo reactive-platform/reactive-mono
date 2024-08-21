@@ -6,7 +6,7 @@
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <AssemblyName>Reactive.SDK</AssemblyName>
-        <RootNamespace>Reactive.SDK</RootNamespace>
+        <RootNamespace>Reactive.Components</RootNamespace>
     </PropertyGroup>
     <Import Project="..\reactive-ui\ReactiveUI.ExternalBuild.targets" />
 </Project>
