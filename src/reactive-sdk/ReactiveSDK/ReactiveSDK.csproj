@@ -8,5 +8,10 @@
         <AssemblyName>Reactive.SDK</AssemblyName>
         <RootNamespace>Reactive.Components</RootNamespace>
     </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="UnityEngine.TMPro">
+            <HintPath>$(UnityAssembliesDir)\..\Unity.TextMeshPro.dll</HintPath>
+        </Reference>
+    </ItemGroup>
     <Import Project="..\reactive-ui\ReactiveUI.ExternalBuild.targets" />
 </Project>
