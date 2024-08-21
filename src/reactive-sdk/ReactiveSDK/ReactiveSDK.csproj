@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net481</TargetFramework>
+        <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
+        <UnityAssembliesDir>$(LocalRefsDir)</UnityAssembliesDir>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <AssemblyName>Reactive.SDK</AssemblyName>
+        <RootNamespace>Reactive.SDK</RootNamespace>
+    </PropertyGroup>
+    <Import Project="..\reactive-ui\ReactiveUI.ExternalBuild.targets" />
+</Project>
