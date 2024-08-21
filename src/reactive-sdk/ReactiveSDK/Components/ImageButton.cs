@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Reactive.Components {
-    internal class ImageButton : ButtonBase {
+    [PublicAPI]
+    public class ImageButton : ButtonBase {
         public new ICollection<ILayoutItem> Children => base.Children;
 
         public Image Image { get; private set; } = null!;

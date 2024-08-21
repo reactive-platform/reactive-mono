@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿using JetBrains.Annotations;
+using UnityEngine;
 
 namespace Reactive.Components {
-    internal class Image : DrivingReactiveComponent {
+    [PublicAPI]
+    public class Image : DrivingReactiveComponent {
         public Sprite? Sprite {
             get => _image.sprite;
             set {
