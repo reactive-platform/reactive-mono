@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public class Image : DrivingReactiveComponent {
+    public class Image : DrivingReactiveComponent, IColoredComponent {
         public Sprite? Sprite {
             get => _image.sprite;
             set {

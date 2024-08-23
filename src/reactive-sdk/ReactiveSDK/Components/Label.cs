@@ -109,17 +109,6 @@ namespace Reactive.Components {
             }
         }
 
-        public float Skew {
-            get => FontStyle.HasFlag(FontStyles.Italic) ? 1f : 0f;
-            set {
-                if (value > 0f) {
-                    FontStyle |= FontStyles.Italic;
-                } else {
-                    FontStyle &= ~FontStyles.Italic;
-                }
-            }
-        }
-
         protected override float? DesiredHeight => _text.preferredHeight;
         protected override float? DesiredWidth => _text.preferredWidth;
 

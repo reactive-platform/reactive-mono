@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public class ButtonBase : DrivingReactiveComponentBase {
+    public class ButtonBase : DrivingReactiveComponentBase, IClickableComponent, IStatedComponent {
         #region UI Properties
 
         public bool Interactable {
@@ -22,14 +22,35 @@ namespace Reactive.Components {
         public bool Latching {
             get => _latching;
             set {
+                if (value == _latching) return;
                 _latching = value;
                 NotifyPropertyChanged();
             }
         }
 
-        public bool Active => _active && Interactable;
+        public bool Active {
+            get => _active;
+            set {
+                if (value == _active) return;
+                _active = value;
+                SetStateEnabled(ActiveState, value);
+                NotifyPropertyChanged();
+                StateChangedEvent?.Invoke(value);
+            }
+        }
 
         public Action? ClickEvent { get; set; }
+        public Action<bool>? StateChangedEvent { get; set; }
+
+        event Action? IClickableComponent.ClickEvent {
+            add => ClickEvent += value;
+            remove => ClickEvent -= value;
+        }
+
+        event Action<bool>? IStatedComponent.StateChangedEvent {
+            add => StateChangedEvent += value;
+            remove => StateChangedEvent -= value;
+        }
 
         private bool _interactable;
         private bool _latching;
@@ -39,11 +60,11 @@ namespace Reactive.Components {
 
         #region States
 
-        public static ComponentState DisabledState = "disabled";
+        public static ComponentState ActiveState = "active";
         public static ComponentState NonInteractableState = "non-interactable";
 
         protected override IEnumerable<ComponentState> ExtraStates { get; } = new[] {
-            DisabledState,
+            ActiveState,
             NonInteractableState
         };
 
@@ -60,14 +81,14 @@ namespace Reactive.Components {
         public void Click(bool state = false, bool notifyListeners = false, bool force = false) {
             if (!_interactable) return;
             if (_latching) {
-                if (!force && state == _active) return;
-                _active = state;
+                if (!force && state == Active) return;
+                Active = state;
             } else {
-                _active = true;
+                Active = true;
             }
             HandleButtonClick(notifyListeners);
             if (!_latching) {
-                _active = false;
+                Active = false;
             }
         }
 
@@ -87,13 +108,13 @@ namespace Reactive.Components {
         #region Callbacks
 
         protected override void OnPointerDown(PointerEventData data) {
-            _active = !_latching || !_active;
+            Active = !_latching || !_active;
             HandleButtonClick(true);
         }
 
         protected override void OnPointerUp(PointerEventData data) {
             if (!_latching) {
-                _active = false;
+                Active = false;
             }
         }
 
