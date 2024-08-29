@@ -3,5 +3,5 @@
 namespace Reactive.Components;
 
 public interface IStatedComponent {
-    event Action<bool> StateChangedEvent;
+    event Action<bool>? StateChangedEvent;
 }
