@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public abstract class ButtonBase : DrivingReactiveComponentBase, IClickableComponent, IStatedComponent, IInteractableComponent {
+    public abstract class ButtonBase : DrivingReactiveComponentBase, IInteractableComponent {
         #region UI Properties
         
         public bool Interactable {
@@ -43,16 +43,6 @@ namespace Reactive.Components {
         
         public Action? OnClick { get; set; }
         public Action<bool>? OnStateChanged { get; set; }
-
-        event Action? IClickableComponent.ClickEvent {
-            add => OnClick += value;
-            remove => OnClick -= value;
-        }
-
-        event Action<bool>? IStatedComponent.StateChangedEvent {
-            add => OnStateChanged += value;
-            remove => OnStateChanged -= value;
-        }
 
         private bool _interactable;
         private bool _latching;
