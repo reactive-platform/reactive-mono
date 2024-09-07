@@ -5,7 +5,7 @@
         <UnityAssembliesDir>$(LocalRefsDir)</UnityAssembliesDir>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
-        <AssemblyName>Reactive.SDK</AssemblyName>
+        <AssemblyName>Reactive.Components</AssemblyName>
         <RootNamespace>Reactive.Components</RootNamespace>
     </PropertyGroup>
     <Import Project="..\ReactiveSDK.Unity.targets" />
