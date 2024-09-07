@@ -2,7 +2,7 @@
 using TMPro;
 using UnityEngine;
 
-namespace Reactive.Components {
+namespace Reactive.Components.Basic {
     [PublicAPI]
     public class Label : ReactiveComponent {
         public string Text {

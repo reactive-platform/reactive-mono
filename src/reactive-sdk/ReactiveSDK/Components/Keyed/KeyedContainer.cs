@@ -53,10 +53,6 @@ namespace Reactive.Components {
 
         protected override void OnInitialize() {
             _items.ItemAddedEvent += HandleItemAdded;
-            _dummyView = new Label {
-                Text = "Unfortunately monke have nothing to show here"
-            };
-            _dummyView.WithRectExpand().Use(ContentTransform);
         }
 
         #endregion

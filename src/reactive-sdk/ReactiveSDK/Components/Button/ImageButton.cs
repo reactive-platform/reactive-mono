@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace Reactive.Components {
+namespace Reactive.Components.Basic {
     [PublicAPI]
     public class ImageButton : ColoredButton, IChildrenProvider{
         #region UI Props

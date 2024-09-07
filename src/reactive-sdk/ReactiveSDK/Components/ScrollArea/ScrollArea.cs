@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Reactive.Components {
+namespace Reactive.Components.Basic {
     public enum ScrollOrientation {
         Vertical = 1,
         Horizontal = 0

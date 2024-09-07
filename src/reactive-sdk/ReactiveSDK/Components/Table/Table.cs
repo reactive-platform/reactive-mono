@@ -3,7 +3,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace Reactive.Components {
+namespace Reactive.Components.Basic {
     public enum SelectionMode {
         None,
         Single,
@@ -379,6 +379,7 @@ namespace Reactive.Components {
             var cell = _cellsPool.Spawn();
             _cellSize = cell.ContentTransform.rect.size;
             _scrollArea.ScrollSize = CellSize;
+            _scrollArea.ScrollContent = new Dummy().Bind(ref _scrollContent);
             ScrollbarScrollSize = 4;
             _cellsPool.Despawn(cell);
             _scrollArea.ScrollPosChangedEvent += HandlePosChanged;

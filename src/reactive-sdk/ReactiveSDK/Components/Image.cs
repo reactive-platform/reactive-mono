@@ -1,7 +1,7 @@
 ﻿using JetBrains.Annotations;
 using UnityEngine;
 
-namespace Reactive.Components {
+namespace Reactive.Components.Basic {
     [PublicAPI]
     public class Image : DrivingReactiveComponent {
         public Sprite? Sprite {
