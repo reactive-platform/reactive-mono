@@ -351,14 +351,16 @@ namespace Reactive.Components.Basic {
         private RectTransform _viewport = null!;
         private ScrollArea _scrollArea = null!;
 
+        protected virtual ScrollArea ConstructScrollArea() {
+            return new ScrollArea();
+        }
+
         protected sealed override GameObject Construct() {
             //constructing
             var content = new Dummy {
                 Children = {
                     //area
-                    new ScrollArea {
-                            ScrollContent = new Dummy().Bind(ref _scrollContent)
-                        }
+                    ConstructScrollArea()
                         .WithRectExpand()
                         .Bind(ref _viewport)
                         .Bind(ref _scrollArea),
