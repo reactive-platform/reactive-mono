@@ -6,7 +6,7 @@
     </PropertyGroup>
     <ItemGroup>
 		 <Reference Include="ReactiveSDK">
-            <HintPath>$(ReactiveSDKDir)\bin\$(Configuration)\$(TargetFramework)\ReactiveSDK.dll</HintPath>
+            <HintPath>$(ReactiveSDKDir)\bin\$(Configuration)\$(TargetFramework)\Reactive.Components.dll</HintPath>
         </Reference>
     </ItemGroup>
     <Target Name="BuildReactiveSDK" BeforeTargets="PrepareForBuild">
