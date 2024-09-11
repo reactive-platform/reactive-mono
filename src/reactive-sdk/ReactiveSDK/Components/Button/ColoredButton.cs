@@ -27,28 +27,18 @@ namespace Reactive.Components {
 
         #region Color
 
+        protected GraphicState GraphicState => GraphicState.None
+            .AddIf(GraphicState.NonInteractable, !Interactable)
+            .AddIf(GraphicState.Hovered, IsHovered)
+            .AddIf(GraphicState.Pressed, IsPressed)
+            .AddIf(GraphicState.Active, Active);
+        
         protected void UpdateColor() {
             ApplyColor(GetColor(Colors));
         }
 
-        protected Color GetColor(IColorSet? colorSet) {
-            if (colorSet == null) {
-                return Color.clear;
-            }
-            GraphicState state = 0;
-            if (!Interactable) {
-                state |= GraphicState.NonInteractable;
-            }
-            if (IsHovered) {
-                state |= GraphicState.Hovered;
-            }
-            if (IsPressed) {
-                state |= GraphicState.Pressed;
-            }
-            if (Active) {
-                state |= GraphicState.Active;
-            }
-            return colorSet.GetColor(state);
+        protected virtual Color GetColor(IColorSet? colorSet) {
+            return colorSet?.GetColor(GraphicState) ?? Color.clear;
         }
 
         protected override void OnButtonStateChange() {
