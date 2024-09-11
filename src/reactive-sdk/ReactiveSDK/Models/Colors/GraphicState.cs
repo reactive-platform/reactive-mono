@@ -1,15 +1,12 @@
-namespace Reactive.Components {
-    public struct GraphicState {
-        public GraphicState(bool hovered, bool pressed, bool active, bool interactable) {
-            Hovered = hovered;
-            Pressed = pressed;
-            Active = active;
-            Interactable = interactable;
-        }
+using System;
 
-        public bool Hovered;
-        public bool Pressed;
-        public bool Active;
-        public bool Interactable;
+namespace Reactive.Components {
+    [Flags]
+    public enum GraphicState {
+        None = 0,
+        NonInteractable = 1,
+        Hovered = 2,
+        Active = 4,
+        Pressed = 8
     }
 }

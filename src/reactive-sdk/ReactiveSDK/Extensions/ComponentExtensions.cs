@@ -12,8 +12,8 @@ public static class ComponentExtensions {
         this T button,
         Color color
     ) where T : ColoredButton {
-        button.Colors = new StateColorSet {
-            DisabledColor = color.ColorWithAlpha(0.25f),
+        button.Colors = new SimpleColorSet {
+            NotInteractableColor = color.ColorWithAlpha(0.25f),
             HoveredColor = color.ColorWithAlpha(0.7f),
             Color = color.ColorWithAlpha(0.4f),
         };

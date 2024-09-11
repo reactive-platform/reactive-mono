@@ -35,14 +35,21 @@ namespace Reactive.Components {
             if (colorSet == null) {
                 return Color.clear;
             }
-            var state = new GraphicState {
-                Active = Active,
-                Interactable = Interactable,
-                Hovered = IsHovered
-            };
+            GraphicState state = 0;
+            if (!Interactable) {
+                state |= GraphicState.NonInteractable;
+            }
+            if (IsHovered) {
+                state |= GraphicState.Hovered;
+            }
+            if (IsPressed) {
+                state |= GraphicState.Pressed;
+            }
+            if (Active) {
+                state |= GraphicState.Active;
+            }
             return colorSet.GetColor(state);
         }
-
 
         protected override void OnButtonStateChange() {
             UpdateColor();

@@ -1,72 +1,37 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Reactive.Components {
-    /// <summary>
-    /// A standard color set.
-    /// </summary>
     [PublicAPI]
     public class StateColorSet : IColorSet {
-        public Color ActiveColor {
-            get => _activeColor;
-            set {
-                _activeColor = value;
-                SetUpdatedEvent?.Invoke();
-            }
-        }
-
-        public Color HoveredColor {
-            get => _hoveredColor;
-            set {
-                _hoveredColor = value;
-                SetUpdatedEvent?.Invoke();
-            }
-        }
-
-        public Color DisabledColor {
-            get => _disabledColor;
-            set {
-                _disabledColor = value;
-                SetUpdatedEvent?.Invoke();
-            }
-        }
-
-        public Color Color {
-            get => _color;
-            set {
-                _color = value;
-                SetUpdatedEvent?.Invoke();
-            }
-        }
-
-        public Color? HoveredActiveColor {
-            get => _hoveredActiveColor;
-            set {
-                _hoveredActiveColor = value;
-                SetUpdatedEvent?.Invoke();
-            }
-        }
-
-        private Color _disabledColor;
-        private Color _activeColor;
-        private Color _hoveredColor;
-        private Color _color;
-        private Color? _hoveredActiveColor;
+        public ICollection<KeyValuePair<GraphicState, Color>> States => StatesDict;
+        public Dictionary<GraphicState, Color> StatesDict { get; } = new();
 
         public event Action? SetUpdatedEvent;
 
         public Color GetColor(GraphicState state) {
-            if (state.Hovered) {
-                return state.Active ? _hoveredActiveColor.GetValueOrDefault(ActiveColor) : _hoveredColor;
+            return StatesDict.TryGetValue(state, out var result) ? result : Color.clear;
+        }
+
+        public void SetStateColor(GraphicState graphicState, Color color) {
+            StatesDict[graphicState] = color;
+            SetUpdatedEvent?.Invoke();
+        }
+
+        public void ApplyColorMod(GraphicState baseState, params (GraphicState, Func<Color, Color>)[] mods) {
+            if (!StatesDict.TryGetValue(baseState, out var baseColor)) return;
+
+            foreach (var (state, modFunc) in mods) {
+                if (StatesDict.ContainsKey(state)) {
+                    StatesDict[state] = modFunc(StatesDict[state]);
+                } else {
+                    StatesDict[state] = modFunc(baseColor);
+                }
             }
-            if (state.Active) {
-                return _activeColor;
-            }
-            if (!state.Interactable) {
-                return _disabledColor;
-            }
-            return _color;
+
+            SetUpdatedEvent?.Invoke();
         }
     }
 }
