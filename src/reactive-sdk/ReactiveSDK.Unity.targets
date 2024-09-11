@@ -1,7 +1,7 @@
 <Project>
 	<ItemGroup>
         <Reference Include="UnityEngine.TMPro">
-            <HintPath>$(UnityAssembliesDir)\..\Unity.TextMeshPro.dll</HintPath>
+            <HintPath>$(UnityAssembliesDir)\Unity.TextMeshPro.dll</HintPath>
         </Reference>
     </ItemGroup>
 </Project>
