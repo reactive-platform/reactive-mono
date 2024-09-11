@@ -38,6 +38,11 @@ namespace Reactive.Components {
             }
         }
 
+        public bool RaycastTarget {
+            get => _pointerEventsHandler.enabled;
+            set => _pointerEventsHandler.enabled = value;
+        }
+
         public bool IsHovered => _pointerEventsHandler.IsHovered;
         public bool IsPressed => _pointerEventsHandler.IsPressed;
         
