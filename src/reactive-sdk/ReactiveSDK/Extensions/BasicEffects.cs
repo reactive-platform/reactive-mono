@@ -20,6 +20,10 @@ public static class BasicEffects {
             static x => x.IsHovered,
             x => value.Value = x ? hoverScale : baseScale
         );
+        comp.WithEffect(
+            value,
+            static (x, y) => x.ContentTransform.localScale = y
+        );
         return comp;
     }
 
