@@ -9,12 +9,14 @@ public static class BasicEffects {
         this T comp,
         Vector3 baseScale,
         Vector3 hoverScale,
-        Optional<AnimationDuration> duration = default
+        Optional<AnimationDuration> duration = default,
+        AnimationCurve? curve = null
     ) where T : ButtonBase {
         var value = ValueUtils.RememberAnimatedVector(
             comp,
             baseScale,
-            duration.GetValueOrDefault("200ms")
+            duration.GetValueOrDefault("200ms"),
+            curve
         );
         comp.WithListener(
             static x => x.IsHovered,
@@ -31,13 +33,15 @@ public static class BasicEffects {
         this T comp,
         float baseScale,
         float hoverScale,
-        Optional<AnimationDuration> duration = default
+        Optional<AnimationDuration> duration = default,
+        AnimationCurve? curve = null
     ) where T : ButtonBase {
         return WithScaleAnimation(
             comp,
             Vector3.one * baseScale,
             Vector3.one * hoverScale,
-            duration
+            duration,
+            curve
         );
     }
 }
