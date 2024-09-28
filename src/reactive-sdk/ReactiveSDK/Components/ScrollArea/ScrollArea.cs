@@ -216,6 +216,7 @@ namespace Reactive.Components.Basic {
         }
 
         protected override void OnRectDimensionsChanged() {
+            if (_scrollContent == null) return;
             RefreshContentPos(true);
         }
 
