@@ -49,7 +49,7 @@ namespace Reactive.Components {
         public Action? OnClick { get; set; }
         public Action<bool>? OnStateChanged { get; set; }
 
-        private bool _interactable;
+        private bool _interactable = true;
         private bool _latching;
         private bool _active;
 
