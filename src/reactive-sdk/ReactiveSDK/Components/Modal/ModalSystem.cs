@@ -128,10 +128,10 @@ namespace Reactive.Components {
         }
 
         private void RefreshBlocker(int offset = -1) {
-            _blockerGo.SetActive(HasActiveModal);
+            Blocker.SetActive(HasActiveModal);
             if (!HasActiveModal) return;
             var modalIndex = ReactiveActiveModal!.ContentTransform.GetSiblingIndex();
-            _blocker.SetSiblingIndex(modalIndex + offset);
+            _blockerRect.SetSiblingIndex(modalIndex + offset);
         }
 
         private void HandleModalClosed(IModal modal, bool finished) {
@@ -171,24 +171,21 @@ namespace Reactive.Components {
 
         #region Construct
 
+        protected GameObject Blocker { get; private set; } = null!;
+        protected Canvas ModalCanvas { get; private set; } = null!;
+        
         private Button _blockerButton = null!;
-        private GameObject _blockerGo = null!;
-        private RectTransform _blocker = null!;
+        private RectTransform _blockerRect = null!;
 
         protected override void Construct(RectTransform rectTransform) {
             var go = rectTransform.gameObject;
-            //canvas
-            var canvas = go.AddComponent<Canvas>();
-            canvas.additionalShaderChannels |=
-                AdditionalCanvasShaderChannels.Tangent |
-                AdditionalCanvasShaderChannels.TexCoord2;
-            //blocker
-            _blockerGo = new GameObject("Blocker");
-            _blockerButton = _blockerGo.AddComponent<Button>();
-            _blocker = _blockerGo.AddComponent<RectTransform>();
-            _blocker.SetParent(rectTransform, false);
+            ModalCanvas = go.AddComponent<Canvas>();
+            Blocker = new GameObject("Blocker");
+            _blockerButton = Blocker.AddComponent<Button>();
+            _blockerRect = Blocker.AddComponent<RectTransform>();
+            _blockerRect.SetParent(rectTransform, false);
             _blockerButton.onClick.AddListener(HandleBlockerClicked);
-            _blocker.WithRectExpand();
+            _blockerRect.WithRectExpand();
         }
 
         private void HandleBlockerClicked() {
