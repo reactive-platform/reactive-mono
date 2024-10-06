@@ -268,6 +268,7 @@ namespace Reactive.Components.Basic {
                 PlaceCell(cell.ContentTransform, i);
                 _cachedIndexes[cell] = i;
             }
+            _selectionRefreshNeeded = false;
             //despawning redundant cells
             for (i -= _visibleCellsStartIndex; i < _cellsPool.SpawnedComponents.Count; i++) {
                 var cell = _cellsPool.SpawnedComponents.Last();
