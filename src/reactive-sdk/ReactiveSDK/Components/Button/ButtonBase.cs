@@ -73,8 +73,9 @@ namespace Reactive.Components {
         }
 
         private void HandleButtonClick(bool notifyListeners) {
-            if (Latching) Active = !Active;
+            if (Latching) _active = !_active;
             if (!notifyListeners) return;
+            NotifyPropertyChanged(nameof(Active));
             OnClick?.Invoke();
             OnStateChanged?.Invoke(Latching ? Active : default);
         }
