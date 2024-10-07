@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-namespace Reactive.Components {
+namespace Reactive.Components.Basic {
     [PublicAPI]
     public class ModalSystem : ReactiveComponent {
         #region OpenModal
@@ -174,14 +174,14 @@ namespace Reactive.Components {
         protected GameObject Blocker { get; private set; } = null!;
         protected Canvas ModalCanvas { get; private set; } = null!;
         
-        private Button _blockerButton = null!;
+        private UnityEngine.UI.Button _blockerButton = null!;
         private RectTransform _blockerRect = null!;
 
         protected override void Construct(RectTransform rectTransform) {
             var go = rectTransform.gameObject;
             ModalCanvas = go.AddComponent<Canvas>();
             Blocker = new GameObject("Blocker");
-            _blockerButton = Blocker.AddComponent<Button>();
+            _blockerButton = Blocker.AddComponent<UnityEngine.UI.Button>();
             _blockerRect = Blocker.AddComponent<RectTransform>();
             _blockerRect.SetParent(rectTransform, false);
             _blockerButton.onClick.AddListener(HandleBlockerClicked);
