@@ -7,25 +7,30 @@ using UnityEngine.UI;
 
 namespace Reactive.Components.Basic {
     [PublicAPI]
-    public class ModalSystem : ReactiveComponent {
+    public class ModalSystem : ModalSystem<ModalSystem> { }
+}
+
+namespace Reactive.Components {
+    [PublicAPI]
+    public class ModalSystem<T> : ReactiveComponent where T : ModalSystem<T>, new() {
         #region OpenModal
 
-        public static void PresentModal<T>(
-            T modal,
+        public static void PresentModal<TModal>(
+            TModal modal,
             Transform screen,
             bool animated = true,
             bool interruptAll = false
-        ) where T : IModal, IReactiveComponent {
+        ) where TModal : IModal, IReactiveComponent {
             var modalSystem = BorrowOrInstantiateModalSystem(screen);
             PresentModalInternal(modalSystem, modal, animated, interruptAll);
         }
 
-        private static void PresentModalInternal<T>(
-            ModalSystem system,
-            T modal,
+        private static void PresentModalInternal<TModal>(
+            ModalSystem<T> system,
+            TModal modal,
             bool animated,
             bool interruptAll
-        ) where T : IModal, IReactiveComponent {
+        ) where TModal : IModal, IReactiveComponent {
             if (interruptAll) {
                 InterruptAllEvent?.Invoke();
             }
@@ -36,9 +41,9 @@ namespace Reactive.Components.Basic {
 
         #region ModalSystem Pool
 
-        private static readonly ReactivePool<Transform, ModalSystem> systemsPool = new() { DetachOnDespawn = false };
+        private static readonly ReactivePool<Transform, ModalSystem<T>> systemsPool = new() { DetachOnDespawn = false };
 
-        private static ModalSystem BorrowOrInstantiateModalSystem(Transform viewController) {
+        private static ModalSystem<T> BorrowOrInstantiateModalSystem(Transform viewController) {
             var system = systemsPool.Get(viewController);
             system.Use(viewController.transform);
             return system;
@@ -88,7 +93,7 @@ namespace Reactive.Components.Basic {
         private bool _firstInvocation;
         private IModal? _activeModal;
 
-        private void PresentModal<T>(T modal, bool animated) where T : IModal, IReactiveComponent {
+        private void PresentModal<TModal>(TModal modal, bool animated) where TModal : IModal, IReactiveComponent {
             //showing modal system if needed
             if (HasActiveModal) {
                 _activeModal!.Pause();
@@ -173,15 +178,15 @@ namespace Reactive.Components.Basic {
 
         protected GameObject Blocker { get; private set; } = null!;
         protected Canvas ModalCanvas { get; private set; } = null!;
-        
-        private UnityEngine.UI.Button _blockerButton = null!;
+
+        private Button _blockerButton = null!;
         private RectTransform _blockerRect = null!;
 
         protected override void Construct(RectTransform rectTransform) {
             var go = rectTransform.gameObject;
             ModalCanvas = go.AddComponent<Canvas>();
             Blocker = new GameObject("Blocker");
-            _blockerButton = Blocker.AddComponent<UnityEngine.UI.Button>();
+            _blockerButton = Blocker.AddComponent<Button>();
             _blockerRect = Blocker.AddComponent<RectTransform>();
             _blockerRect.SetParent(rectTransform, false);
             _blockerButton.onClick.AddListener(HandleBlockerClicked);
