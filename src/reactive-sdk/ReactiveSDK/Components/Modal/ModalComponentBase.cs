@@ -1,6 +1,5 @@
 using System;
 using JetBrains.Annotations;
-using UnityEngine;
 
 namespace Reactive.Components {
     [PublicAPI]
@@ -85,14 +84,6 @@ namespace Reactive.Components {
 
         protected override void OnInitialize() {
             Enabled = false;
-            OpenAnimator = Animate<ModalComponentBase>(
-                (x, y) => x.ContentTransform.localScale = y * Vector3.one,
-                "200ms"
-            );
-            CloseAnimator = Animate<ModalComponentBase>(
-                (x, y) => x.ContentTransform.localScale = (1f - y) * Vector3.one,
-                "200ms"
-            );
         }
 
         #endregion
