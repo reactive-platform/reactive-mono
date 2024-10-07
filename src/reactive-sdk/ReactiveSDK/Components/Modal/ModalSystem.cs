@@ -41,16 +41,16 @@ namespace Reactive.Components {
 
         #region ModalSystem Pool
 
-        private static readonly ReactivePool<Transform, ModalSystem<T>> systemsPool = new() { DetachOnDespawn = false };
+        private static readonly ReactivePool<Transform, T> systemsPool = new() { DetachOnDespawn = false };
 
-        private static ModalSystem<T> BorrowOrInstantiateModalSystem(Transform viewController) {
+        private static T BorrowOrInstantiateModalSystem(Transform viewController) {
             var system = systemsPool.Get(viewController);
             system.Use(viewController.transform);
             return system;
         }
 
         private void ReleaseModalSystem() {
-            systemsPool.Despawn(this);
+            systemsPool.Despawn((T)this);
         }
 
         #endregion
@@ -68,7 +68,7 @@ namespace Reactive.Components {
         protected override void OnDestroy() {
             SceneManager.activeSceneChanged -= OnActiveSceneChanged;
             InterruptAllEvent -= InterruptAll;
-            systemsPool.Despawn(this);
+            systemsPool.Despawn((T)this);
         }
 
         private void OnActiveSceneChanged(Scene from, Scene to) {
