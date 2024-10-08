@@ -7,7 +7,7 @@ namespace Reactive.Components {
     [PublicAPI]
     public abstract class ButtonBase : DrivingReactiveComponentBase, IInteractableComponent {
         #region UI Properties
-        
+
         public bool Interactable {
             get => _interactable;
             set {
@@ -45,7 +45,7 @@ namespace Reactive.Components {
 
         public bool IsHovered => _pointerEventsHandler.IsHovered;
         public bool IsPressed => _pointerEventsHandler.IsPressed;
-        
+
         public Action? OnClick { get; set; }
         public Action<bool>? OnStateChanged { get; set; }
 
@@ -73,11 +73,16 @@ namespace Reactive.Components {
         }
 
         private void HandleButtonClick(bool notifyListeners) {
-            if (Latching) _active = !_active;
+            if (Latching) {
+                _active = !_active;
+            }
+            OnButtonStateChange();
             if (!notifyListeners) return;
-            NotifyPropertyChanged(nameof(Active));
             OnClick?.Invoke();
-            OnStateChanged?.Invoke(Latching ? Active : default);
+            if (Latching) {
+                NotifyPropertyChanged(nameof(Active));
+                OnStateChanged?.Invoke(Latching ? Active : default);
+            }
         }
 
         protected virtual void OnButtonStateChange() { }
@@ -86,7 +91,7 @@ namespace Reactive.Components {
         #endregion
 
         #region Setup
-        
+
         private PointerEventsHandler _pointerEventsHandler = null!;
 
         protected override void Construct(RectTransform rectTransform) {
@@ -105,17 +110,16 @@ namespace Reactive.Components {
             OnButtonStateChange();
             NotifyPropertyChanged(nameof(IsHovered));
         }
-        
+
         private void OnPointerDown(PointerEventsHandler _, PointerEventData data) {
-            Active = !_latching || !_active;
+            if (Latching) {
+                Active = !_active;
+            }
             HandleButtonClick(true);
             NotifyPropertyChanged(nameof(IsPressed));
         }
 
         private void OnPointerUp(PointerEventsHandler _, PointerEventData data) {
-            if (!_latching) {
-                Active = false;
-            }
             NotifyPropertyChanged(nameof(IsPressed));
         }
 
