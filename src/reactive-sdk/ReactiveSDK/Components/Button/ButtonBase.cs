@@ -67,15 +67,12 @@ namespace Reactive.Components {
             if (!Interactable) return;
             if (Latching) {
                 if (!force && state == _active) return;
-                _active = !state;
+                _active = state;
             }
             HandleButtonClick(notifyListeners);
         }
 
         private void HandleButtonClick(bool notifyListeners) {
-            if (Latching) {
-                _active = !_active;
-            }
             OnButtonStateChange();
             if (!notifyListeners) return;
             OnClick?.Invoke();
@@ -113,7 +110,7 @@ namespace Reactive.Components {
 
         private void OnPointerDown(PointerEventsHandler _, PointerEventData data) {
             if (Latching) {
-                Active = !_active;
+                _active = !_active;
             }
             HandleButtonClick(true);
             NotifyPropertyChanged(nameof(IsPressed));
