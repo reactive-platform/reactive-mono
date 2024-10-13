@@ -64,6 +64,7 @@ namespace Reactive.Components {
                 OpenAnimator.StartAnimation(this, false);
                 ModalOpenedEvent?.Invoke(this, false);
             } else {
+                ModalOpenedEvent?.Invoke(this, false);
                 ModalOpenedEvent?.Invoke(this, true);
             }
         }
@@ -78,6 +79,7 @@ namespace Reactive.Components {
                 ModalClosedEvent?.Invoke(this, false);
             } else {
                 Enabled = false;
+                ModalClosedEvent?.Invoke(this, false);
                 ModalClosedEvent?.Invoke(this, true);
             }
         }
