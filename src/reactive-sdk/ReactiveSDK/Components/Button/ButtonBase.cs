@@ -104,11 +104,13 @@ namespace Reactive.Components {
         #region Callbacks
 
         private void OnPointerEnterOrExit(PointerEventsHandler _, PointerEventData data) {
+            if (!Interactable) return;
             OnButtonStateChange();
             NotifyPropertyChanged(nameof(IsHovered));
         }
 
         private void OnPointerDown(PointerEventsHandler _, PointerEventData data) {
+            if (!Interactable) return;
             if (Latching) {
                 _active = !_active;
             }
@@ -117,6 +119,7 @@ namespace Reactive.Components {
         }
 
         private void OnPointerUp(PointerEventsHandler _, PointerEventData data) {
+            if (!Interactable) return;
             NotifyPropertyChanged(nameof(IsPressed));
         }
 
