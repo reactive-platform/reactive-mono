@@ -49,7 +49,7 @@ namespace Reactive.Components {
             modal.OpenAnimator = ValueUtils.Animate<ModalComponentBase>(
                 modal,
                 static (x, y) => x.ContentTransform.localScale = y * Vector3.one,
-                duration.GetValueOrDefault(0.2f),
+                duration.GetValueOrDefault(200.ms()),
                 curve
             );
             return modal;
@@ -63,7 +63,7 @@ namespace Reactive.Components {
             modal.CloseAnimator = ValueUtils.Animate<ModalComponentBase>(
                 modal,
                 static (x, y) => x.ContentTransform.localScale = (1 - y) * Vector3.one,
-                duration.GetValueOrDefault(0.2f),
+                duration.GetValueOrDefault(200.ms()),
                 curve
             );
             return modal;
