@@ -16,8 +16,8 @@ public static class BasicEffects {
         var value = ValueUtils.RememberAnimatedVector(
             comp,
             baseScale,
-            lerpFactor,
             duration.GetValueOrDefault("200ms"),
+            lerpFactor,
             curve
         );
         comp.WithListener(
