@@ -9,12 +9,14 @@ public static class BasicEffects {
         this T comp,
         Vector3 baseScale,
         Vector3 hoverScale,
+        float lerpFactor = 10f,
         Optional<AnimationDuration> duration = default,
         AnimationCurve? curve = null
     ) where T : ButtonBase {
         var value = ValueUtils.RememberAnimatedVector(
             comp,
             baseScale,
+            lerpFactor,
             duration.GetValueOrDefault("200ms"),
             curve
         );
@@ -33,6 +35,7 @@ public static class BasicEffects {
         this T comp,
         float baseScale,
         float hoverScale,
+        float lerpFactor = 10f,
         Optional<AnimationDuration> duration = default,
         AnimationCurve? curve = null
     ) where T : ButtonBase {
@@ -40,6 +43,7 @@ public static class BasicEffects {
             comp,
             Vector3.one * baseScale,
             Vector3.one * hoverScale,
+            lerpFactor,
             duration,
             curve
         );
