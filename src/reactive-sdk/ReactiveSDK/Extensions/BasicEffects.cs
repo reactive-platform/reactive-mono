@@ -15,7 +15,7 @@ public static class BasicEffects {
         var value = ValueUtils.RememberAnimatedVector(
             comp,
             baseScale,
-            duration.GetValueOrDefault(200.ms()),
+            duration.GetValueOrDefault(10.fact()),
             curve
         );
         comp.WithListener(
