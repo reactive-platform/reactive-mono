@@ -43,12 +43,27 @@ namespace Reactive.Components {
             set => _pointerEventsHandler.enabled = value;
         }
 
-        public bool IsHovered => _pointerEventsHandler.IsHovered;
-        public bool IsPressed => _pointerEventsHandler.IsPressed;
+        public bool IsHovered {
+            get => _isHovered;
+            private set {
+                _isHovered = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool IsPressed {
+            get => _isPressed;
+            private set {
+                _isPressed = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         public Action? OnClick { get; set; }
         public Action<bool>? OnStateChanged { get; set; }
 
+        private bool _isPressed;
+        private bool _isHovered;
         private bool _interactable = true;
         private bool _latching;
         private bool _active;
@@ -95,18 +110,24 @@ namespace Reactive.Components {
             _pointerEventsHandler = rectTransform.gameObject.AddComponent<PointerEventsHandler>();
             _pointerEventsHandler.PointerDownEvent += OnPointerDown;
             _pointerEventsHandler.PointerUpEvent += OnPointerUp;
-            _pointerEventsHandler.PointerEnterEvent += OnPointerEnterOrExit;
-            _pointerEventsHandler.PointerExitEvent += OnPointerEnterOrExit;
+            _pointerEventsHandler.PointerEnterEvent += OnPointerEnter;
+            _pointerEventsHandler.PointerExitEvent += OnPointerExit;
         }
 
         #endregion
 
         #region Callbacks
 
-        private void OnPointerEnterOrExit(PointerEventsHandler _, PointerEventData data) {
-            if (!Interactable) return;
+        private void OnPointerExit(PointerEventsHandler _, PointerEventData data) {
+            if (!Interactable && !IsHovered) return;
+            IsHovered = false;
             OnButtonStateChange();
-            NotifyPropertyChanged(nameof(IsHovered));
+        }
+
+        private void OnPointerEnter(PointerEventsHandler _, PointerEventData data) {
+            if (!Interactable) return;
+            IsHovered = true;
+            OnButtonStateChange();
         }
 
         private void OnPointerDown(PointerEventsHandler _, PointerEventData data) {
@@ -114,13 +135,14 @@ namespace Reactive.Components {
             if (Latching) {
                 _active = !_active;
             }
+            IsPressed = true;
             HandleButtonClick(true);
-            NotifyPropertyChanged(nameof(IsPressed));
         }
 
         private void OnPointerUp(PointerEventsHandler _, PointerEventData data) {
-            if (!Interactable) return;
-            NotifyPropertyChanged(nameof(IsPressed));
+            if (!Interactable && !IsPressed) return;
+            IsPressed = false;
+            OnButtonStateChange();
         }
 
         #endregion
