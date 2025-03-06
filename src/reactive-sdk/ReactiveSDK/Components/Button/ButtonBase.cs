@@ -121,6 +121,7 @@ namespace Reactive.Components {
         private void OnPointerExit(PointerEventsHandler _, PointerEventData data) {
             if (!Interactable && !IsHovered) return;
             IsHovered = false;
+            IsPressed = false;
             OnButtonStateChange();
         }
 
