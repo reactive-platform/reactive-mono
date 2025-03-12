@@ -45,11 +45,7 @@ namespace Reactive.Components {
 
         private static T BorrowOrInstantiateModalSystem(Transform viewController) {
             var system = systemsPool.Get(viewController);
-            system.Use(viewController.transform.parent);
-            
-            var index = viewController.transform.GetSiblingIndex();
-            system.ContentTransform.SetSiblingIndex(index + 1);
-            
+            system.Use(viewController.transform);
             return system;
         }
 
