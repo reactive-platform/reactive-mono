@@ -15,7 +15,7 @@ namespace Reactive.Components {
         }
 
         public event Action<TKey, TValue>? ItemAddedEvent;
-        public event Action<TKey>? ItemRemovedEvent;
+        public event Action<TKey, TValue>? ItemRemovedEvent;
         public event Action? AllItemsRemovedEvent;
 
         private readonly Dictionary<TKey, TValue> _dictionary;
@@ -26,7 +26,14 @@ namespace Reactive.Components {
 
         public TValue this[TKey key] {
             get => _dictionary[key];
-            set => _dictionary[key] = value;
+            set {
+                if (_dictionary.TryGetValue(key, out var oldValue)) {
+                    ItemRemovedEvent?.Invoke(key, oldValue);
+                }
+                
+                _dictionary[key] = value;
+                ItemAddedEvent?.Invoke(key, value);
+            }
         }
 
         ICollection<TKey> IDictionary<TKey, TValue>.Keys => _dictionary.Keys;
@@ -48,9 +55,13 @@ namespace Reactive.Components {
         }
 
         public bool Remove(TKey key) {
-            var result = _dictionary.Remove(key);
-            ItemRemovedEvent?.Invoke(key);
-            return result;
+            if (!_dictionary.TryGetValue(key, out var value)) {
+                return false;
+            }
+            
+            _dictionary.Remove(key);
+            ItemRemovedEvent?.Invoke(key, value);
+            return true;
         }
 
         public void Clear() {
@@ -68,11 +79,11 @@ namespace Reactive.Components {
         }
 
         void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) {
-            throw new NotImplementedException();
+            ((ICollection<KeyValuePair<TKey, TValue>>)_dictionary).CopyTo(array, arrayIndex);
         }
 
         bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item) {
-            throw new NotImplementedException();
+            return Remove(item.Key);
         }
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() => _dictionary.GetEnumerator();

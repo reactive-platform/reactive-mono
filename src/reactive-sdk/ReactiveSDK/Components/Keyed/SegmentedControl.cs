@@ -97,7 +97,7 @@ namespace Reactive.Components {
             NotifyPropertyChanged(nameof(Items));
         }
 
-        private void HandleItemRemoved(TKey key) {
+        private void HandleItemRemoved(TKey key, TParam param) {
             DespawnCell(key);
             NotifyPropertyChanged(nameof(Items));
         }

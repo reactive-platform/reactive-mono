@@ -3,15 +3,19 @@ using JetBrains.Annotations;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public class KeyedContainer<TKey> : ReactiveComponent {
+    public class KeyedContainer<TKey> : DrivingReactiveComponent {
         #region Setup
 
         public IReactiveComponent? DummyView {
             get => _dummyView;
             set {
-                _dummyView?.Use(null);
+                if (_dummyView != null) {
+                    Children.Remove(_dummyView);
+                }
                 _dummyView = value;
-                _dummyView?.WithRectExpand().Use(ContentTransform);
+                if (_dummyView != null) {
+                    Children.Add(_dummyView);
+                }
             }
         }
 
@@ -53,6 +57,7 @@ namespace Reactive.Components {
 
         protected override void OnInitialize() {
             _items.ItemAddedEvent += HandleItemAdded;
+            _items.ItemRemovedEvent += HandleItemRemoved;
         }
 
         #endregion
@@ -63,12 +68,20 @@ namespace Reactive.Components {
             Select(key);
         }
 
-        private void HandleItemAdded(TKey key, IReactiveComponent component) {
-            component.WithRectExpand().Use(ContentTransform);
+        private void HandleItemRemoved(TKey key, IReactiveComponent component) {
+            Children.Remove(component);
             component.Enabled = false;
-            if (_selectedComponent != null) return;
-            HandleSelectedKeyChanged(key);
         }
+
+        private void HandleItemAdded(TKey key, IReactiveComponent component) {
+            Children.Add(component);
+            component.Enabled = false;
+
+            if (_selectedComponent == null) {
+                HandleSelectedKeyChanged(key);
+            }
+        }
+
 
         #endregion
     }
