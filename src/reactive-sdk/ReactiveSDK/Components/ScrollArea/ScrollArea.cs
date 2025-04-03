@@ -106,14 +106,31 @@ namespace Reactive.Components.Basic {
             }
         }
 
+        public bool HideScrollbarWhenNothingToScroll {
+            get => _hideScrollbarWhenNothingToScroll;
+            set {
+                _hideScrollbarWhenNothingToScroll = value;
+                RefreshScrollbar();
+            }
+        }
+
+        private bool _hideScrollbarWhenNothingToScroll = true;
         private IScrollbar? _scrollbar;
 
         private void RefreshScrollbar() {
-            if (_scrollbar == null || _contentTransform == null) return;
+            if (_scrollbar == null || _contentTransform == null) {
+                return;
+            }
+
             _scrollbar.PageHeight = ScrollPageSize / ContentSize;
             _scrollbar.Progress = ContentPos / ScrollMaxSize;
+
             _scrollbar.CanScrollDown = Math.Abs(_destinationPos - ScrollMaxSize) > 0.01f;
             _scrollbar.CanScrollUp = _destinationPos > 0.01f;
+
+            if (_hideScrollbarWhenNothingToScroll) {
+                _scrollbar.SetActive(ContentSize > ScrollPageSize);
+            }
         }
 
         #endregion
