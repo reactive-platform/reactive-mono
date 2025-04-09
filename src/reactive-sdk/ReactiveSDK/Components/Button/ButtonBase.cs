@@ -114,6 +114,10 @@ namespace Reactive.Components {
             _pointerEventsHandler.PointerExitEvent += OnPointerExit;
         }
 
+        protected override void OnDisable() {
+            OnPointerExit(null!, null!);
+        }
+
         #endregion
 
         #region Callbacks
