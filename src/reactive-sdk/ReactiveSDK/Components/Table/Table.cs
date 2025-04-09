@@ -270,7 +270,8 @@ namespace Reactive.Components.Basic {
             }
             _selectionRefreshNeeded = false;
             //despawning redundant cells
-            for (i -= _visibleCellsStartIndex; i < _cellsPool.SpawnedComponents.Count; i++) {
+            i -= _visibleCellsStartIndex;
+            while (_cellsPool.SpawnedComponents.Count > i) {
                 var cell = _cellsPool.SpawnedComponents.Last();
                 cell.CellAskedToChangeSelectionEvent -= HandleCellWantsToChangeSelection;
                 _cellsPool.Despawn(cell);
