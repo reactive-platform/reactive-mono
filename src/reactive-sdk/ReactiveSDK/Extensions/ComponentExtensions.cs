@@ -70,7 +70,7 @@ public static class ComponentExtensions {
     #region Other
 
     [Pure]
-    public static T In<T>(this ILayoutItem comp) where T : DrivingReactiveComponent, new() {
+    public static T In<T>(this ILayoutItem comp) where T : ILayoutDriver, new() {
         return new T {
             Children = { comp.WithRectExpand() }
         };

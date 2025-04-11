@@ -185,6 +185,9 @@ namespace Reactive.Components {
         protected override void Construct(RectTransform rectTransform) {
             var go = rectTransform.gameObject;
             ModalCanvas = go.AddComponent<Canvas>();
+            ModalCanvas.sortingOrder = 10;
+            ModalCanvas.overrideSorting = true;
+
             Blocker = new GameObject("Blocker");
             _blockerButton = Blocker.AddComponent<Button>();
             _blockerRect = Blocker.AddComponent<RectTransform>();

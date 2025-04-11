@@ -7,7 +7,7 @@ namespace Reactive.Components {
     public interface ISharedModal : IModal { }
     
     [PublicAPI]
-    public class SharedModal<T> : ISharedModal, IReactiveComponent, ILayoutItem where T : class, IModal, IReactiveComponent, new() {
+    public class SharedModal<T> : ISharedModal, IReactiveComponent where T : class, IModal, IReactiveComponent, new() {
         #region Pool
 
         public bool BuildImmediate {
@@ -101,14 +101,20 @@ namespace Reactive.Components {
             return other == this;
         }
 
+
         public ILayoutDriver? LayoutDriver { get; set; }
         public ILayoutModifier? LayoutModifier { get; set; }
-        public float? DesiredHeight => null;
-        public float? DesiredWidth => null;
+
         public bool WithinLayout { get; set; }
         public event Action<ILayoutItem>? ModifierUpdatedEvent;
 
-        public void ApplyTransforms(Action<RectTransform> applicator) { }
+        public RectTransform BeginApply() {
+            throw new NotImplementedException();
+        }
+        
+        public void EndApply() {
+            throw new NotImplementedException();
+        }
 
         #endregion
 

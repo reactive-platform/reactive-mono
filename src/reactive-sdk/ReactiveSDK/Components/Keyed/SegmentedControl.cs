@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using Reactive.Yoga;
+using UnityEngine;
 
 namespace Reactive.Components {
     /// <typeparam name="TKey">An item key</typeparam>
     /// <typeparam name="TParam">A param to be passed with key to provide additional info</typeparam>
     /// <typeparam name="TCell">A cell component</typeparam>
     [PublicAPI]
-    public class SegmentedControl<TKey, TParam, TCell> : DrivingReactiveComponentBase, IKeyedControlComponent<TKey, TParam>
+    public class SegmentedControl<TKey, TParam, TCell> : ReactiveComponent, IKeyedControlComponent<TKey, TParam>
         where TCell : IReactiveComponent, ILayoutItem, IKeyedControlComponentCell<TKey, TParam>, new() {
         #region SegmentedControl
 
@@ -18,7 +19,10 @@ namespace Reactive.Components {
         public TKey SelectedKey {
             get => _selectedKey ?? throw new InvalidOperationException("Key cannot be acquired when Items is empty");
             private set {
-                if (value!.Equals(_selectedKey)) return;
+                if (value!.Equals(_selectedKey)) {
+                    return;
+                }
+                
                 _selectedKey = value;
                 SelectedKeyChangedEvent?.Invoke(value);
                 NotifyPropertyChanged();
@@ -26,24 +30,32 @@ namespace Reactive.Components {
         }
 
         public FlexDirection Direction {
-            set => this.AsFlexGroup(direction: value);
+            get => _layoutController.FlexDirection;
+            set => _layoutController.FlexDirection = value;
         }
 
         public event Action<TKey>? SelectedKeyChangedEvent;
 
         private readonly ReactivePool<TKey, TCell> _cells = new();
         private readonly ObservableDictionary<TKey, TParam> _items = new();
+        
+        private YogaLayoutController _layoutController = null!;
+        private Layout _layout = null!;
         private TCell? _selectedCell;
         private TKey? _selectedKey;
 
         private void SpawnCell(TKey key) {
             var cell = _cells.Spawn(key);
+            
             cell.AsFlexItem(grow: 1f);
             cell.Init(key, Items[key]);
             cell.CellAskedToBeSelectedEvent += HandleCellAskedToBeSelected;
-            Children.Add(cell);
+            
+            _layout.Children.Add(cell);
+            
             CellConstructCallback?.Invoke(cell);
             OnCellConstruct(cell);
+            
             if (_selectedCell == null) {
                 Select(Items.Keys.First());
             }
@@ -53,9 +65,11 @@ namespace Reactive.Components {
             if (_selectedKey?.Equals(key) ?? false) {
                 _selectedCell!.OnCellStateChange(false);
             }
+            
             var cell = _cells.SpawnedComponents[key];
             cell.CellAskedToBeSelectedEvent -= HandleCellAskedToBeSelected;
-            Children.Remove(cell);
+            
+            _layout.Children.Remove(cell);
             _cells.Despawn(cell);
         }
 
@@ -74,6 +88,10 @@ namespace Reactive.Components {
             Direction = FlexDirection.Row;
             _items.ItemAddedEvent += HandleItemAdded;
             _items.ItemRemovedEvent += HandleItemRemoved;
+        }
+
+        protected override GameObject Construct() {
+            return new Layout().AsFlexGroup().Bind(ref _layout).Use();
         }
 
         #endregion

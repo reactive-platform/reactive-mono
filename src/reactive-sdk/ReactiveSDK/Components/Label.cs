@@ -1,10 +1,11 @@
 ﻿using JetBrains.Annotations;
+using Reactive.Yoga;
 using TMPro;
 using UnityEngine;
 
 namespace Reactive.Components.Basic {
     [PublicAPI]
-    public class Label : ReactiveComponent {
+    public class Label : ReactiveComponent, ILeafLayoutItem {
         public string Text {
             get => _text.text;
             set {
@@ -109,9 +110,6 @@ namespace Reactive.Components.Basic {
             }
         }
 
-        protected override float? DesiredHeight => _text.preferredHeight;
-        protected override float? DesiredWidth => _text.preferredWidth;
-
         private TextMeshProUGUI _text = null!;
 
         protected override void Construct(RectTransform rect) {
@@ -127,6 +125,22 @@ namespace Reactive.Components.Basic {
 
         protected override void OnStart() {
             RefreshLayout();
+        }
+
+        public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+            var measuredWidth = widthMode == MeasureMode.Undefined ? Mathf.Infinity : width;
+            var measuredHeight = heightMode == MeasureMode.Undefined ? Mathf.Infinity : height;
+
+            // Set the preferred width, forcing recalculation
+            _text.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, measuredWidth);
+            _text.ForceMeshUpdate();
+
+            var textSize = _text.GetPreferredValues(measuredWidth, measuredHeight);
+
+            return new() {
+                x = widthMode == MeasureMode.Exactly ? width : Mathf.Min(textSize.x, measuredWidth),
+                y = heightMode == MeasureMode.Exactly ? height : Mathf.Min(textSize.y, measuredHeight)
+            };
         }
     }
 }

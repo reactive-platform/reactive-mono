@@ -1,9 +1,7 @@
-﻿using JetBrains.Annotations;
-using UnityEngine;
+﻿using System;
+using JetBrains.Annotations;
 
 namespace Reactive.Components {
-    [PublicAPI]
-    public class Dummy : DrivingReactiveComponent {
-        protected override void Construct(RectTransform rect) { }
-    }
+    [PublicAPI, Obsolete("Use Layout instead")]
+    public class Dummy : ReactiveComponent;
 }

@@ -359,7 +359,7 @@ namespace Reactive.Components.Basic {
 
         protected sealed override GameObject Construct() {
             //constructing
-            var content = new Dummy {
+            var content = new Layout {
                 Children = {
                     //area
                     ConstructScrollArea()
@@ -380,16 +380,19 @@ namespace Reactive.Components.Basic {
             //initializing here instead of OnInitialize to leave it for inheritors
             EmptyLabel = label;
             RefreshEmptyText();
+            
             var cell = _cellsPool.Spawn();
             _cellSize = cell.ContentTransform.rect.size;
             _scrollArea.ScrollSize = CellSize;
-            _scrollArea.ScrollContent = new Dummy().Bind(ref _scrollContent);
+            _scrollArea.ScrollContent = new ReactiveComponent().Bind(ref _scrollContent);
+            
             ScrollbarScrollSize = 4;
             _cellsPool.Despawn(cell);
+            
             _scrollArea.ScrollPosChangedEvent += HandlePosChanged;
             _scrollArea.ScrollDestinationPosChangedEvent += HandleDestinationPosChanged;
             _scrollArea.ScrollWithJoystickFinishedEvent += HandleJoystickScrollFinished;
-            //returning
+
             return content.Use();
         }
 

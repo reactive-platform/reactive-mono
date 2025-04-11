@@ -212,11 +212,13 @@ namespace Reactive.Components.Basic {
 
         protected override GameObject Construct() {
             //container
-            return new Image {
-                Sprite = ReactiveResources.TransparentPixel,
+            return new ImageLayout {
+                Image = {
+                    Sprite = ReactiveResources.TransparentPixel,
+                },
                 Children = {
                     //viewport
-                    new Dummy {
+                    new ReactiveComponent {
                         Name = "Viewport",
                         ContentTransform = {
                             pivot = new(1f, 1f)
