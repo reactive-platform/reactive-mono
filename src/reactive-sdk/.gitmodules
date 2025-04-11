@@ -1,3 +1,4 @@
 [submodule "reactive-ui"]
 	path = reactive-ui
 	url = https://github.com/reactive-platform/reactive-ui
+	branch = layout-rework
