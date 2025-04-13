@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Reactive.Components.Basic {
     [PublicAPI]
-    public class Label : ReactiveComponent, ILeafLayoutItem {
+    public class Label : ReactiveComponent, IComponentHolder<Label>, ILeafLayoutItem {
         public string Text {
             get => _text.text;
             set {
@@ -110,6 +110,8 @@ namespace Reactive.Components.Basic {
             }
         }
 
+        Label IComponentHolder<Label>.Component => this;
+
         private TextMeshProUGUI _text = null!;
 
         protected override void Construct(RectTransform rect) {
@@ -142,5 +144,6 @@ namespace Reactive.Components.Basic {
                 y = heightMode == MeasureMode.Exactly ? height : Mathf.Min(textSize.y, measuredHeight)
             };
         }
+
     }
 }

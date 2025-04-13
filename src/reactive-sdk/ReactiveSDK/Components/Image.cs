@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Reactive.Components.Basic {
     [PublicAPI]
-    public class Image : ReactiveComponent, ILeafLayoutItem, IGraphic {
+    public class Image : ReactiveComponent, IComponentHolder<Image>, ILeafLayoutItem, IGraphic {
         public Sprite? Sprite {
             get => _image.sprite;
             set {
@@ -74,6 +74,8 @@ namespace Reactive.Components.Basic {
             get => _image.raycastTarget;
             set => _image.raycastTarget = value;
         }
+
+        Image IComponentHolder<Image>.Component => this;
         
         private UnityEngine.UI.Image _image = null!;
 
@@ -105,5 +107,6 @@ namespace Reactive.Components.Basic {
                 y = heightMode == MeasureMode.Exactly ? height : Mathf.Min(measuredHeight, height)
             };
         }
+
     }
 }
