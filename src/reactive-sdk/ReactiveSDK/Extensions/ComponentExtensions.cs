@@ -75,6 +75,16 @@ public static class ComponentExtensions {
             Children = { comp.WithRectExpand() }
         };
     }
+    
+    public static T Bind<T, TBind>(this T holder, ref TBind variable) where T : IComponentHolder<TBind>, IReactiveComponent {
+        variable = holder.Component;
+        return holder;
+    }
+        
+    public static T Export<T, TExport>(this T holder, out TExport variable) where T : IComponentHolder<TExport>, IReactiveComponent {
+        variable = holder.Component;
+        return holder;
+    }
 
     #endregion
 }
