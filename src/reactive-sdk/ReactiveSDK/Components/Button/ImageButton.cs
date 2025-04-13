@@ -3,10 +3,11 @@ using UnityEngine;
 
 namespace Reactive.Components.Basic {
     [PublicAPI]
-    public class ImageButton : ColoredButton {
+    public class ImageButton : ColoredButton, IComponentHolder<Image> {
         #region UI Components
 
         public Image Image { get; private set; } = null!;
+        Image IComponentHolder<Image>.Component => Image;
 
         #endregion
 
