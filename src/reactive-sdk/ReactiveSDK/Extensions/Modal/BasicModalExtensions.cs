@@ -14,10 +14,13 @@ namespace Reactive.Components.Basic {
 
         #region WithModal
 
-        public static T WithModal<T, TModal>(this T comp, TModal modal, bool animated = true)
-            where T : ButtonBase where TModal : IModal, IReactiveComponent {
+        public static T WithModal<T, TModal>(this T holder, TModal modal, bool animated = true)
+            where T : IComponentHolder<ButtonBase>
+            where TModal : IModal, IReactiveComponent {
+            var comp = holder.Component;
             comp.OnClick += () => modal.Present(comp.ContentTransform, animated);
-            return comp;
+
+            return holder;
         }
 
         #endregion

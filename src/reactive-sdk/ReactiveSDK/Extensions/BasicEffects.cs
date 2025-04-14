@@ -6,12 +6,14 @@ namespace Reactive.Components;
 [PublicAPI]
 public static class BasicEffects {
     public static T WithScaleAnimation<T>(
-        this T comp,
+        this T holder,
         Vector3 baseScale,
         Vector3 hoverScale,
         Optional<AnimationDuration> duration = default,
         AnimationCurve? curve = null
-    ) where T : ButtonBase {
+    ) where T : IComponentHolder<ButtonBase> {
+        var comp = holder.Component;
+        
         var value = ValueUtils.RememberAnimatedVector(
             comp,
             baseScale,
@@ -26,7 +28,8 @@ public static class BasicEffects {
             value,
             static (x, y) => x.ContentTransform.localScale = y
         );
-        return comp;
+
+        return holder;
     }
 
     public static T WithScaleAnimation<T>(
@@ -35,7 +38,7 @@ public static class BasicEffects {
         float hoverScale,
         Optional<AnimationDuration> duration = default,
         AnimationCurve? curve = null
-    ) where T : ButtonBase {
+    ) where T : IComponentHolder<ButtonBase> {
         return WithScaleAnimation(
             comp,
             Vector3.one * baseScale,
