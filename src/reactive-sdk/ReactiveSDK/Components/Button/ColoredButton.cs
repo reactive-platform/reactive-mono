@@ -27,7 +27,7 @@ namespace Reactive.Components {
 
         #region Color
 
-        protected GraphicState GraphicState => GraphicState.None
+        public GraphicState GraphicState => GraphicState.None
             .AddIf(GraphicState.NonInteractable, !Interactable)
             .AddIf(GraphicState.Hovered, Interactable && IsHovered)
             .AddIf(GraphicState.Pressed, Interactable && IsPressed)
