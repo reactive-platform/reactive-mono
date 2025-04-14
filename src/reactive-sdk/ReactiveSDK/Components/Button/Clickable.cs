@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace Reactive.Components.Components.Button;
+namespace Reactive.Components;
 
 /// <summary>
 /// A dummy button without graphic content. Will work only with a Graphic component inside it.
