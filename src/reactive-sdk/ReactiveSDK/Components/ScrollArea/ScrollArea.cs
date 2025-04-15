@@ -212,10 +212,8 @@ namespace Reactive.Components.Basic {
 
         protected override GameObject Construct() {
             //container
-            return new ImageLayout {
-                Image = {
-                    Sprite = ReactiveResources.TransparentPixel,
-                },
+            return new Background {
+                Sprite = ReactiveResources.TransparentPixel,
                 Children = {
                     //viewport
                     new ReactiveComponent {
