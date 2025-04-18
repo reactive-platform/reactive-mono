@@ -10,8 +10,22 @@ namespace Reactive.Components {
     /// <typeparam name="TParam">A param to be passed with key to provide additional info</typeparam>
     /// <typeparam name="TCell">A cell component</typeparam>
     [PublicAPI]
-    public class SegmentedControl<TKey, TParam, TCell> : ReactiveComponent, IKeyedControlComponent<TKey, TParam>
+    public class SegmentedControl<TKey, TParam, TCell> : ReactiveComponent, ILayoutDriver, IKeyedControlComponent<TKey, TParam>
         where TCell : IReactiveComponent, ILayoutItem, IKeyedControlComponentCell<TKey, TParam>, new() {
+        #region Driver Adapter
+
+        ICollection<ILayoutItem> ILayoutDriver.Children => _layout.Children; 
+        ILayoutController? ILayoutDriver.LayoutController {
+            get => _layout.LayoutController;
+            set => _layout.LayoutController = value;
+        }
+        
+        void ILayoutDriver.RecalculateLayout() {
+            _layout.RecalculateLayout();
+        }
+
+        #endregion
+        
         #region SegmentedControl
 
         public IDictionary<TKey, TParam> Items => _items;
@@ -29,17 +43,11 @@ namespace Reactive.Components {
             }
         }
 
-        public FlexDirection Direction {
-            get => _layoutController.FlexDirection;
-            set => _layoutController.FlexDirection = value;
-        }
-
         public event Action<TKey>? SelectedKeyChangedEvent;
 
         private readonly ReactivePool<TKey, TCell> _cells = new();
         private readonly ObservableDictionary<TKey, TParam> _items = new();
         
-        private YogaLayoutController _layoutController = null!;
         private Layout _layout = null!;
         private TCell? _selectedCell;
         private TKey? _selectedKey;
@@ -85,7 +93,6 @@ namespace Reactive.Components {
         #region Setup
 
         protected override void OnInitialize() {
-            Direction = FlexDirection.Row;
             _items.ItemAddedEvent += HandleItemAdded;
             _items.ItemRemovedEvent += HandleItemRemoved;
         }

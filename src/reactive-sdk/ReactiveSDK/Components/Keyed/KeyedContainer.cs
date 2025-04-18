@@ -4,7 +4,21 @@ using UnityEngine;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public class KeyedContainer<TKey> : ReactiveComponent {
+    public class KeyedContainer<TKey> : ReactiveComponent, ILayoutDriver {
+        #region Driver Adapter
+
+        ICollection<ILayoutItem> ILayoutDriver.Children => _layout.Children; 
+        ILayoutController? ILayoutDriver.LayoutController {
+            get => _layout.LayoutController;
+            set => _layout.LayoutController = value;
+        }
+        
+        void ILayoutDriver.RecalculateLayout() {
+            _layout.RecalculateLayout();
+        }
+
+        #endregion
+
         #region Setup
 
         public IReactiveComponent? DummyView {
