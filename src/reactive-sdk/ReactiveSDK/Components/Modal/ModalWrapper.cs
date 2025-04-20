@@ -40,6 +40,10 @@ namespace Reactive.Components {
             return Component.Use(null);
         }
 
+        protected override void OnInitialize() {
+            Enabled = false;
+        }
+
         #endregion
     }
 }

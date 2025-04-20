@@ -4,25 +4,20 @@ using UnityEngine;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public interface ISharedModal : IModal { }
-    
+    public interface ISharedModal : IModal;
+
     [PublicAPI]
     public class SharedModal<T> : ISharedModal, IReactiveComponent where T : class, IModal, IReactiveComponent, new() {
         #region Pool
 
-        public bool BuildImmediate {
-            // ReSharper disable once ValueParameterNotUsed
-            set {
-                if (value) {
-                    modals.Preload(1);
-                }
-            }
-        }
-        
         public T Modal => _modal ?? throw new InvalidOperationException();
 
         private static readonly ReactivePool<T> modals = new();
         private T? _modal;
+
+        public void BuildImmediate() {
+            modals.Preload(1);
+        }
 
         private void SpawnModal() {
             if (_modal != null) return;
@@ -97,21 +92,31 @@ namespace Reactive.Components {
 
         #region LayoutItem
 
-        public bool Equals(ILayoutItem other) {
-            return other == this;
+        public ILayoutDriver? LayoutDriver {
+            get => null;
+            set { }
         }
-
-
-        public ILayoutDriver? LayoutDriver { get; set; }
-        public ILayoutModifier? LayoutModifier { get; set; }
+        
+        public ILayoutModifier? LayoutModifier {
+            get => null;
+            set { }
+        }
 
         public bool WithinLayout { get; set; }
         public event Action<ILayoutItem>? ModifierUpdatedEvent;
 
+        public int GetLayoutItemHashCode() {
+            return GetHashCode();
+        }
+        
+        public bool EqualsToLayoutItem(ILayoutItem item) {
+            return false;
+        }
+
         public RectTransform BeginApply() {
             throw new NotImplementedException();
         }
-        
+
         public void EndApply() {
             throw new NotImplementedException();
         }

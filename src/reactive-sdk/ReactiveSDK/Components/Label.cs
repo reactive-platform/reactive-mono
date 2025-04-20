@@ -116,7 +116,7 @@ namespace Reactive.Components.Basic {
 
         protected override void Construct(RectTransform rect) {
             _text = rect.gameObject.AddComponent<TextMeshProUGUI>();
-            _text.RegisterDirtyLayoutCallback(RefreshLayout);
+            _text.RegisterDirtyLayoutCallback(ScheduleLayoutRecalculation);
         }
 
         protected override void OnInitialize() {
@@ -126,7 +126,7 @@ namespace Reactive.Components.Basic {
         }
 
         protected override void OnStart() {
-            RefreshLayout();
+            ScheduleLayoutRecalculation();
         }
 
         public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
