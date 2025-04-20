@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
 using Reactive.Yoga;
 using TMPro;
 using UnityEngine;
@@ -116,7 +117,7 @@ namespace Reactive.Components.Basic {
 
         protected override void Construct(RectTransform rect) {
             _text = rect.gameObject.AddComponent<TextMeshProUGUI>();
-            _text.RegisterDirtyLayoutCallback(ScheduleLayoutRecalculation);
+            _text.RegisterDirtyLayoutCallback(RequestLeafRecalculation);
         }
 
         protected override void OnInitialize() {
@@ -126,8 +127,10 @@ namespace Reactive.Components.Basic {
         }
 
         protected override void OnStart() {
-            ScheduleLayoutRecalculation();
+            RequestLeafRecalculation();
         }
+        
+        public event Action<ILeafLayoutItem>? LeafLayoutUpdatedEvent;
 
         public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
             var measuredWidth = widthMode == MeasureMode.Undefined ? Mathf.Infinity : width;
@@ -145,5 +148,9 @@ namespace Reactive.Components.Basic {
             };
         }
 
+        private void RequestLeafRecalculation() {
+            LeafLayoutUpdatedEvent?.Invoke(this);
+            ScheduleLayoutRecalculation();
+        }
     }
 }

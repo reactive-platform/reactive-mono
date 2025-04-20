@@ -103,7 +103,9 @@ namespace Reactive.Components {
         }
 
         public bool WithinLayout { get; set; }
+        
         public event Action<ILayoutItem>? ModifierUpdatedEvent;
+        public event Action<ILayoutItem>? StateUpdatedEvent;
 
         public int GetLayoutItemHashCode() {
             return GetHashCode();

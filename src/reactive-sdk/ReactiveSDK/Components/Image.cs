@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
 using Reactive.Yoga;
 using UnityEngine;
 
@@ -83,6 +84,8 @@ namespace Reactive.Components.Basic {
             _image = rect.gameObject.AddComponent<UnityEngine.UI.Image>();
         }
 
+        public event Action<ILeafLayoutItem>? LeafLayoutUpdatedEvent;
+        
         public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
             var nativeSize = _image.sprite.rect.size;
 
@@ -107,6 +110,5 @@ namespace Reactive.Components.Basic {
                 y = heightMode == MeasureMode.Exactly ? height : Mathf.Min(measuredHeight, height)
             };
         }
-
     }
 }
