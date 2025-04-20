@@ -126,7 +126,7 @@ namespace Reactive.Components.Basic {
             }
         }
 
-        IReadOnlyList<TItem> ITableComponent<TItem>.Items {
+        IReadOnlyList<TItem> ITable<TItem>.Items {
             get {
                 lock (_itemsLocker) {
                     return _items;

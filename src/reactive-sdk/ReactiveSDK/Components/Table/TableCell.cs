@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public abstract class TableComponentCell<TItem> : ReactiveComponent, ITableCell<TItem> {
+    public abstract class TableCell<TItem> : ReactiveComponent, ITableCell<TItem> {
         #region TableCell
 
         event Action<ITableCell<TItem>, bool>? ITableCell<TItem>.CellAskedToChangeSelectionEvent {

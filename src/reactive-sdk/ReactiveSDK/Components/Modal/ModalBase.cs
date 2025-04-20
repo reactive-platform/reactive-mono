@@ -14,7 +14,7 @@ namespace Reactive.Components {
     }
 
     [PublicAPI]
-    public abstract class ModalComponentBase : ReactiveComponent, IModal {
+    public abstract class ModalBase : ReactiveComponent, IModal {
         #region Abstraction
 
         protected virtual bool AllowExternalClose => true;
@@ -28,8 +28,8 @@ namespace Reactive.Components {
 
         #region Modal
 
-        public IObjectAnimator<ModalComponentBase>? CloseAnimator { get; set; }
-        public IObjectAnimator<ModalComponentBase>? OpenAnimator { get; set; }
+        public IObjectAnimator<ModalBase>? CloseAnimator { get; set; }
+        public IObjectAnimator<ModalBase>? OpenAnimator { get; set; }
 
         protected bool IsOpened { get; private set; }
         protected bool IsPaused { get; private set; }

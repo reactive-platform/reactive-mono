@@ -34,7 +34,7 @@ namespace Reactive.Components {
             }
         }
 
-        public IKeyedControlComponent<TKey>? Control {
+        public IKeyedControl<TKey>? Control {
             get => _control;
             set {
                 if (_control != null) {
@@ -51,7 +51,7 @@ namespace Reactive.Components {
 
         private readonly ObservableDictionary<TKey, IReactiveComponent> _items = new();
         private Layout _layout = null!;
-        private IKeyedControlComponent<TKey>? _control;
+        private IKeyedControl<TKey>? _control;
         private IReactiveComponent? _selectedComponent;
         private IReactiveComponent? _dummyView;
 

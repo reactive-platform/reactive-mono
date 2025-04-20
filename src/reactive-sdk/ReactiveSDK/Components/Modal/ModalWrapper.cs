@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public class ModalWrapper<T> : ModalComponentBase where T : IReactiveComponent, new() {
+    public class ModalWrapper<T> : ModalBase where T : IReactiveComponent, new() {
         #region UI Props
 
         public T Component { get; } = new();

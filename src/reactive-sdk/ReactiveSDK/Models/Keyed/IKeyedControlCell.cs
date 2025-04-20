@@ -1,7 +1,7 @@
 using System;
 
 namespace Reactive.Components {
-    public interface IKeyedControlComponentCell<TKey, in TParam> : IKeyedControlComponentCellBase<TKey, TParam> {
+    public interface IKeyedControlCell<TKey, in TParam> : IKeyedControlCellBase<TKey, TParam> {
         event Action<TKey>? CellAskedToBeSelectedEvent;
 
         void OnCellStateChange(bool selected);

@@ -10,8 +10,8 @@ namespace Reactive.Components {
     /// <typeparam name="TParam">A param to be passed with key to provide additional info</typeparam>
     /// <typeparam name="TCell">A cell component</typeparam>
     [PublicAPI]
-    public class SegmentedControl<TKey, TParam, TCell> : ReactiveComponent, ILayoutDriver, IKeyedControlComponent<TKey, TParam>
-        where TCell : IReactiveComponent, ILayoutItem, IKeyedControlComponentCell<TKey, TParam>, new() {
+    public class SegmentedControl<TKey, TParam, TCell> : ReactiveComponent, ILayoutDriver, IKeyedControl<TKey, TParam>
+        where TCell : IReactiveComponent, ILayoutItem, IKeyedControlCell<TKey, TParam>, new() {
         #region Driver Adapter
 
         ICollection<ILayoutItem> ILayoutDriver.Children => _layout.Children; 
