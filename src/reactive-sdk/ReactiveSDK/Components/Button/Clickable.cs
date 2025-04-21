@@ -22,6 +22,10 @@ public class Clickable : ButtonBase, ILayoutDriver {
         _layout.RecalculateLayout();
     }
 
+    public new void ScheduleLayoutRecalculation() {
+        _layout.ScheduleLayoutRecalculation();
+    }
+
     #endregion
 
     private Layout _layout = null!;

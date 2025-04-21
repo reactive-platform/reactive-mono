@@ -14,18 +14,23 @@ namespace Reactive.Components {
         where TCell : IReactiveComponent, ILayoutItem, IKeyedControlCell<TKey, TParam>, new() {
         #region Driver Adapter
 
-        ICollection<ILayoutItem> ILayoutDriver.Children => _layout.Children; 
+        ICollection<ILayoutItem> ILayoutDriver.Children => _layout.Children;
+
         ILayoutController? ILayoutDriver.LayoutController {
             get => _layout.LayoutController;
             set => _layout.LayoutController = value;
         }
-        
+
         void ILayoutDriver.RecalculateLayout() {
             _layout.RecalculateLayout();
         }
 
+        void ILayoutDriver.ScheduleLayoutRecalculation() {
+            _layout.ScheduleLayoutRecalculation();
+        }
+
         #endregion
-        
+
         #region SegmentedControl
 
         public IDictionary<TKey, TParam> Items => _items;
@@ -36,7 +41,7 @@ namespace Reactive.Components {
                 if (value!.Equals(_selectedKey)) {
                     return;
                 }
-                
+
                 _selectedKey = value;
                 SelectedKeyChangedEvent?.Invoke(value);
                 NotifyPropertyChanged();
@@ -47,23 +52,23 @@ namespace Reactive.Components {
 
         private readonly ReactivePool<TKey, TCell> _cells = new();
         private readonly ObservableDictionary<TKey, TParam> _items = new();
-        
+
         private Layout _layout = null!;
         private TCell? _selectedCell;
         private TKey? _selectedKey;
 
         private void SpawnCell(TKey key) {
             var cell = _cells.Spawn(key);
-            
+
             cell.AsFlexItem(grow: 1f);
             cell.Init(key, Items[key]);
             cell.CellAskedToBeSelectedEvent += HandleCellAskedToBeSelected;
-            
+
             _layout.Children.Add(cell);
-            
+
             CellConstructCallback?.Invoke(cell);
             OnCellConstruct(cell);
-            
+
             if (_selectedCell == null) {
                 Select(Items.Keys.First());
             }
@@ -73,10 +78,10 @@ namespace Reactive.Components {
             if (_selectedKey?.Equals(key) ?? false) {
                 _selectedCell!.OnCellStateChange(false);
             }
-            
+
             var cell = _cells.SpawnedComponents[key];
             cell.CellAskedToBeSelectedEvent -= HandleCellAskedToBeSelected;
-            
+
             _layout.Children.Remove(cell);
             _cells.Despawn(cell);
         }
@@ -106,7 +111,7 @@ namespace Reactive.Components {
         #region Abstraction
 
         public Action<TCell>? CellConstructCallback { get; set; }
-        
+
         protected virtual void OnCellConstruct(TCell cell) { }
 
         #endregion

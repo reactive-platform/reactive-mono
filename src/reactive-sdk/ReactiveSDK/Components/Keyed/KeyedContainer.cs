@@ -7,14 +7,19 @@ namespace Reactive.Components {
     public class KeyedContainer<TKey> : ReactiveComponent, ILayoutDriver {
         #region Driver Adapter
 
-        ICollection<ILayoutItem> ILayoutDriver.Children => _layout.Children; 
+        ICollection<ILayoutItem> ILayoutDriver.Children => _layout.Children;
+
         ILayoutController? ILayoutDriver.LayoutController {
             get => _layout.LayoutController;
             set => _layout.LayoutController = value;
         }
-        
+
         void ILayoutDriver.RecalculateLayout() {
             _layout.RecalculateLayout();
+        }
+
+        void ILayoutDriver.ScheduleLayoutRecalculation() {
+            _layout.ScheduleLayoutRecalculation();
         }
 
         #endregion
