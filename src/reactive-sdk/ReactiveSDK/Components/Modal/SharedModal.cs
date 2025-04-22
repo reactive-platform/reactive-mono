@@ -20,17 +20,25 @@ namespace Reactive.Components {
         }
 
         private void SpawnModal() {
-            if (_modal != null) return;
+            if (_modal != null) {
+                return;
+            }
+            
             _modal = modals.Spawn();
+            _modal.Enabled = false;
+            
             _modal.ModalClosedEvent += HandleModalClosed;
             _modal.ModalOpenedEvent += HandleModalOpened;
+            
             OnSpawn();
         }
 
         private void DespawnModal() {
             _modal!.ModalClosedEvent -= HandleModalClosed;
             _modal.ModalOpenedEvent -= HandleModalOpened;
+            
             OnDespawn();
+            
             modals.Despawn(_modal);
             _modal = null;
         }
@@ -96,21 +104,21 @@ namespace Reactive.Components {
             get => null;
             set { }
         }
-        
+
         public ILayoutModifier? LayoutModifier {
             get => null;
             set { }
         }
 
         public bool WithinLayout { get; set; }
-        
+
         public event Action<ILayoutItem>? ModifierUpdatedEvent;
         public event Action<ILayoutItem>? StateUpdatedEvent;
 
         public int GetLayoutItemHashCode() {
             return GetHashCode();
         }
-        
+
         public bool EqualsToLayoutItem(ILayoutItem item) {
             return false;
         }
