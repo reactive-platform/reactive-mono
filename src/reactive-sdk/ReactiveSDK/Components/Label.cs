@@ -135,11 +135,7 @@ namespace Reactive.Components.Basic {
         public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
             var measuredWidth = widthMode == MeasureMode.Undefined ? Mathf.Infinity : width;
             var measuredHeight = heightMode == MeasureMode.Undefined ? Mathf.Infinity : height;
-
-            // Set the preferred width, forcing recalculation
-            _text.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, measuredWidth);
-            _text.ForceMeshUpdate();
-
+            
             var textSize = _text.GetPreferredValues(measuredWidth, measuredHeight);
 
             return new() {
