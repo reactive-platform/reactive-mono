@@ -60,7 +60,7 @@ namespace Reactive.Components {
         private void SpawnCell(TKey key) {
             var cell = _cells.Spawn(key);
 
-            cell.AsFlexItem(grow: 1f);
+            cell.AsFlexItem(flexGrow: 1f);
             cell.Init(key, Items[key]);
             cell.CellAskedToBeSelectedEvent += HandleCellAskedToBeSelected;
 
