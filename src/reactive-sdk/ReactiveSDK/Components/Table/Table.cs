@@ -198,7 +198,7 @@ namespace Reactive.Components.Basic {
 
         #region Cells
 
-        protected float CellSize => ScrollOrientation is ScrollOrientation.Vertical ? _cellSize.y : _cellSize.x;
+        protected virtual float CellSize => ScrollOrientation is ScrollOrientation.Vertical ? _cellSize.y : _cellSize.x;
 
         private readonly ReactivePool<TCell> _cellsPool = new() { DetachOnDespawn = false };
         private readonly Dictionary<ITableCell<TItem>, int> _cachedIndexes = new();
