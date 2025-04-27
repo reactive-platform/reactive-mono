@@ -18,14 +18,6 @@ public class Clickable : ButtonBase, ILayoutDriver {
         set => _layout.LayoutController = value;
     }
 
-    public void RecalculateLayout() {
-        _layout.RecalculateLayout();
-    }
-
-    public new void ScheduleLayoutRecalculation() {
-        _layout.ScheduleLayoutRecalculation();
-    }
-
     #endregion
 
     private Layout _layout = null!;

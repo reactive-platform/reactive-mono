@@ -14,14 +14,6 @@ namespace Reactive.Components {
             set => _layout.LayoutController = value;
         }
 
-        void ILayoutDriver.RecalculateLayout() {
-            _layout.RecalculateLayout();
-        }
-
-        void ILayoutDriver.ScheduleLayoutRecalculation() {
-            _layout.ScheduleLayoutRecalculation();
-        }
-
         #endregion
 
         #region Setup

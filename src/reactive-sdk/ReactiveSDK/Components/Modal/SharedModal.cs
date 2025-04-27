@@ -23,22 +23,22 @@ namespace Reactive.Components {
             if (_modal != null) {
                 return;
             }
-            
+
             _modal = modals.Spawn();
             _modal.Enabled = false;
-            
+
             _modal.ModalClosedEvent += HandleModalClosed;
             _modal.ModalOpenedEvent += HandleModalOpened;
-            
+
             OnSpawn();
         }
 
         private void DespawnModal() {
             _modal!.ModalClosedEvent -= HandleModalClosed;
             _modal.ModalOpenedEvent -= HandleModalOpened;
-            
+
             OnDespawn();
-            
+
             modals.Despawn(_modal);
             _modal = null;
         }
@@ -121,6 +121,14 @@ namespace Reactive.Components {
 
         public bool EqualsToLayoutItem(ILayoutItem item) {
             return false;
+        }
+
+        public void RecalculateLayoutImmediate() {
+            Modal.RecalculateLayoutImmediate();
+        }
+
+        public void ScheduleLayoutRecalculation() {
+            Modal.ScheduleLayoutRecalculation();
         }
 
         public RectTransform BeginApply() {
