@@ -28,11 +28,41 @@ namespace Reactive.Components {
 
         #region Modal
 
-        public IObjectAnimator<ModalBase>? CloseAnimator { get; set; }
-        public IObjectAnimator<ModalBase>? OpenAnimator { get; set; }
+        public ISharedAnimation? CloseAnimation {
+            get => _closeAnimation;
+            set {
+                if (_closeAnimation != null) {
+                    UnbindModule(_closeAnimation);
+                }
+                
+                _closeAnimation = value;
+                
+                if (_closeAnimation != null) {
+                    BindModule(_closeAnimation);
+                }
+            }
+        }
+
+        public ISharedAnimation? OpenAnimation {
+            get => _openAnimation;
+            set {
+                if (_openAnimation != null) {
+                    UnbindModule(_openAnimation);
+                }
+                
+                _openAnimation = value;
+                
+                if (_openAnimation != null) {
+                    BindModule(_openAnimation);
+                }
+            }
+        }
 
         protected bool IsOpened { get; private set; }
         protected bool IsPaused { get; private set; }
+
+        private ISharedAnimation? _closeAnimation;
+        private ISharedAnimation? _openAnimation;
 
         public event Action<IModal, bool>? ModalClosedEvent;
         public event Action<IModal, bool>? ModalOpenedEvent;
@@ -59,9 +89,11 @@ namespace Reactive.Components {
             IsOpened = true;
             OnOpen(false);
             Enabled = true;
-            if (OpenAnimator != null && !immediate) {
-                OpenAnimator.AnimationFinishedEvent += HandleOpenAnimationFinished;
-                OpenAnimator.StartAnimation(this, false);
+
+            if (OpenAnimation != null && !immediate) {
+                OpenAnimation.AnimationFinishedEvent += HandleOpenAnimationFinished;
+                OpenAnimation.Play();
+
                 ModalOpenedEvent?.Invoke(this, false);
             } else {
                 ModalOpenedEvent?.Invoke(this, false);
@@ -73,12 +105,15 @@ namespace Reactive.Components {
             if (!IsOpened) return;
             IsOpened = false;
             OnClose(false);
-            if (CloseAnimator != null && !immediate) {
-                CloseAnimator.AnimationFinishedEvent += HandleCloseAnimationFinished;
-                CloseAnimator.StartAnimation(this, false);
+
+            if (CloseAnimation != null && !immediate) {
+                CloseAnimation.AnimationFinishedEvent += HandleCloseAnimationFinished;
+                CloseAnimation.Play();
+
                 ModalClosedEvent?.Invoke(this, false);
             } else {
                 Enabled = false;
+
                 ModalClosedEvent?.Invoke(this, false);
                 ModalClosedEvent?.Invoke(this, true);
             }
@@ -93,13 +128,13 @@ namespace Reactive.Components {
         #region Callbacks
 
         private void HandleOpenAnimationFinished() {
-            OpenAnimator!.AnimationFinishedEvent -= HandleOpenAnimationFinished;
+            OpenAnimation!.AnimationFinishedEvent -= HandleOpenAnimationFinished;
             ModalOpenedEvent?.Invoke(this, true);
         }
 
         private void HandleCloseAnimationFinished() {
             Enabled = false;
-            CloseAnimator!.AnimationFinishedEvent -= HandleCloseAnimationFinished;
+            CloseAnimation!.AnimationFinishedEvent -= HandleCloseAnimationFinished;
             ModalClosedEvent?.Invoke(this, true);
         }
 

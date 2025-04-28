@@ -34,38 +34,60 @@ namespace Reactive.Components {
         public static T WithScaleAnimation<T>(
             this T modal,
             Optional<AnimationDuration> duration = default,
-            AnimationCurve? curve = default
+            AnimationCurve? curve = null
         ) where T : ModalBase {
             WithScaleOpenAnimation(modal, duration, curve);
             WithScaleCloseAnimation(modal, duration, curve);
             return modal;
         }
-        
+
         public static T WithScaleOpenAnimation<T>(
             this T modal,
             Optional<AnimationDuration> duration = default,
-            AnimationCurve? curve = default
+            AnimationCurve? curve = null
         ) where T : ModalBase {
-            modal.OpenAnimator = ValueUtils.Animate<ModalBase>(
-                modal,
-                static (x, y) => x.ContentTransform.localScale = y * Vector3.one,
-                duration.GetValueOrDefault(200.ms()),
-                curve
+            var scale = ValueUtils.AnimatedFloat(0f, duration.GetValueOrDefault(200.ms()), curve);
+
+            modal.OpenAnimation = AnimationUtils.Animation(
+                () => {
+                    scale.SetValueImmediate(modal.ContentTransform.localScale.x);
+                    scale.Value = 1f;
+                },
+                [scale]
             );
+
+            modal.Animate(
+                scale,
+                static (x, y) => {
+                    x.ContentTransform.localScale = y * Vector3.one;
+                }
+            );
+
             return modal;
         }
 
         public static T WithScaleCloseAnimation<T>(
             this T modal,
             Optional<AnimationDuration> duration = default,
-            AnimationCurve? curve = default
+            AnimationCurve? curve = null
         ) where T : ModalBase {
-            modal.CloseAnimator = ValueUtils.Animate<ModalBase>(
-                modal,
-                static (x, y) => x.ContentTransform.localScale = (1 - y) * Vector3.one,
-                duration.GetValueOrDefault(200.ms()),
-                curve
+            var scale = ValueUtils.AnimatedFloat(1f, duration.GetValueOrDefault(200.ms()), curve);
+
+            modal.OpenAnimation = AnimationUtils.Animation(
+                () => {
+                    scale.SetValueImmediate(modal.ContentTransform.localScale.x);
+                    scale.Value = 0f;
+                },
+                [scale]
             );
+
+            modal.Animate(
+                scale,
+                static (x, y) => {
+                    x.ContentTransform.localScale = y * Vector3.one;
+                }
+            );
+
             return modal;
         }
 
