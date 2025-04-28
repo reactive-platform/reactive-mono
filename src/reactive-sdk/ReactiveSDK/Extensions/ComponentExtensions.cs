@@ -70,10 +70,30 @@ public static class ComponentExtensions {
     #region Other
 
     [Pure]
-    public static T In<T>(this ILayoutItem comp) where T : DrivingReactiveComponent, new() {
+    public static T In<T>(this ILayoutItem comp) where T : ILayoutDriver, new() {
         return new T {
             Children = { comp.WithRectExpand() }
         };
+    }
+    
+    /// <summary>
+    /// Binds a held component to a variable. Has less priority than basic Bind.
+    /// </summary>
+    /// <param name="holder">A holder to take the component from.</param>
+    /// <param name="variable">A variable to bind to.</param>
+    public static T Bind<T, TBind>(this T holder, ref TBind variable, int _ = 0) where T : IComponentHolder<TBind>, IReactiveComponent {
+        variable = holder.Component;
+        return holder;
+    }
+        
+    /// <summary>
+    /// Exports a held component to a variable. Has less priority than basic Export.
+    /// </summary>
+    /// <param name="holder">A holder to take the component from.</param>
+    /// <param name="variable">A variable to export to.</param>
+    public static T Export<T, TExport>(this T holder, out TExport variable, int _ = 0) where T : IComponentHolder<TExport>, IReactiveComponent {
+        variable = holder.Component;
+        return holder;
     }
 
     #endregion

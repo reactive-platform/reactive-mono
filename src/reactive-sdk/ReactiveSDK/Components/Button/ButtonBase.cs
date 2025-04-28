@@ -5,8 +5,10 @@ using UnityEngine.EventSystems;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public abstract class ButtonBase : DrivingReactiveComponentBase, IInteractableComponent {
+    public abstract class ButtonBase : ReactiveComponent, IComponentHolder<ButtonBase>, IInteractableComponent {
         #region UI Properties
+
+        ButtonBase IComponentHolder<ButtonBase>.Component => this;
 
         public bool Interactable {
             get => _interactable;

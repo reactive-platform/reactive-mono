@@ -1,25 +1,37 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using UnityEngine;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public class KeyedContainer<TKey> : DrivingReactiveComponent {
+    public class KeyedContainer<TKey> : ReactiveComponent, ILayoutDriver {
+        #region Driver Adapter
+
+        ICollection<ILayoutItem> ILayoutDriver.Children => _layout.Children;
+
+        ILayoutController? ILayoutDriver.LayoutController {
+            get => _layout.LayoutController;
+            set => _layout.LayoutController = value;
+        }
+
+        #endregion
+
         #region Setup
 
         public IReactiveComponent? DummyView {
             get => _dummyView;
             set {
                 if (_dummyView != null) {
-                    Children.Remove(_dummyView);
+                    _layout.Children.Remove(_dummyView);
                 }
                 _dummyView = value;
                 if (_dummyView != null) {
-                    Children.Add(_dummyView);
+                    _layout.Children.Add(_dummyView);
                 }
             }
         }
 
-        public IKeyedControlComponent<TKey>? Control {
+        public IKeyedControl<TKey>? Control {
             get => _control;
             set {
                 if (_control != null) {
@@ -35,7 +47,8 @@ namespace Reactive.Components {
         public IDictionary<TKey, IReactiveComponent> Items => _items;
 
         private readonly ObservableDictionary<TKey, IReactiveComponent> _items = new();
-        private IKeyedControlComponent<TKey>? _control;
+        private Layout _layout = null!;
+        private IKeyedControl<TKey>? _control;
         private IReactiveComponent? _selectedComponent;
         private IReactiveComponent? _dummyView;
 
@@ -60,6 +73,10 @@ namespace Reactive.Components {
             _items.ItemRemovedEvent += HandleItemRemoved;
         }
 
+        protected override GameObject Construct() {
+            return new Layout().Bind(ref _layout).Use();
+        }
+
         #endregion
 
         #region Callbacks
@@ -69,19 +86,18 @@ namespace Reactive.Components {
         }
 
         private void HandleItemRemoved(TKey key, IReactiveComponent component) {
-            Children.Remove(component);
+            _layout.Children.Remove(component);
             component.Enabled = false;
         }
 
         private void HandleItemAdded(TKey key, IReactiveComponent component) {
-            Children.Add(component);
+            _layout.Children.Add(component);
             component.Enabled = false;
 
             if (_selectedComponent == null) {
                 HandleSelectedKeyChanged(key);
             }
         }
-
 
         #endregion
     }

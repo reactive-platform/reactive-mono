@@ -35,7 +35,7 @@ namespace Reactive.Components {
             this T modal,
             Optional<AnimationDuration> duration = default,
             AnimationCurve? curve = default
-        ) where T : ModalComponentBase {
+        ) where T : ModalBase {
             WithScaleOpenAnimation(modal, duration, curve);
             WithScaleCloseAnimation(modal, duration, curve);
             return modal;
@@ -45,8 +45,8 @@ namespace Reactive.Components {
             this T modal,
             Optional<AnimationDuration> duration = default,
             AnimationCurve? curve = default
-        ) where T : ModalComponentBase {
-            modal.OpenAnimator = ValueUtils.Animate<ModalComponentBase>(
+        ) where T : ModalBase {
+            modal.OpenAnimator = ValueUtils.Animate<ModalBase>(
                 modal,
                 static (x, y) => x.ContentTransform.localScale = y * Vector3.one,
                 duration.GetValueOrDefault(200.ms()),
@@ -59,8 +59,8 @@ namespace Reactive.Components {
             this T modal,
             Optional<AnimationDuration> duration = default,
             AnimationCurve? curve = default
-        ) where T : ModalComponentBase {
-            modal.CloseAnimator = ValueUtils.Animate<ModalComponentBase>(
+        ) where T : ModalBase {
+            modal.CloseAnimator = ValueUtils.Animate<ModalBase>(
                 modal,
                 static (x, y) => x.ContentTransform.localScale = (1 - y) * Vector3.one,
                 duration.GetValueOrDefault(200.ms()),

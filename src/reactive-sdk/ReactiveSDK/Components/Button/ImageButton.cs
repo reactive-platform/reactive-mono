@@ -1,19 +1,13 @@
-using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Reactive.Components.Basic {
     [PublicAPI]
-    public class ImageButton : ColoredButton, IChildrenProvider{
-        #region UI Props
-
-        public new ICollection<ILayoutItem> Children => base.Children;
-
-        #endregion
-
+    public class ImageButton : ColoredButton, IComponentHolder<Image> {
         #region UI Components
 
         public Image Image { get; private set; } = null!;
+        Image IComponentHolder<Image>.Component => Image;
 
         #endregion
 

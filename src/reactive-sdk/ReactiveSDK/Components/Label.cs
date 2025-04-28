@@ -1,10 +1,12 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
+using Reactive.Yoga;
 using TMPro;
 using UnityEngine;
 
 namespace Reactive.Components.Basic {
     [PublicAPI]
-    public class Label : ReactiveComponent {
+    public class Label : ReactiveComponent, IComponentHolder<Label>, ILeafLayoutItem {
         public string Text {
             get => _text.text;
             set {
@@ -109,14 +111,13 @@ namespace Reactive.Components.Basic {
             }
         }
 
-        protected override float? DesiredHeight => _text.preferredHeight;
-        protected override float? DesiredWidth => _text.preferredWidth;
+        Label IComponentHolder<Label>.Component => this;
 
         private TextMeshProUGUI _text = null!;
 
         protected override void Construct(RectTransform rect) {
             _text = rect.gameObject.AddComponent<TextMeshProUGUI>();
-            _text.RegisterDirtyLayoutCallback(RefreshLayout);
+            _text.RegisterDirtyLayoutCallback(RequestLeafRecalculation);
         }
 
         protected override void OnInitialize() {
@@ -126,7 +127,26 @@ namespace Reactive.Components.Basic {
         }
 
         protected override void OnStart() {
-            RefreshLayout();
+            RequestLeafRecalculation();
+        }
+        
+        public event Action<ILeafLayoutItem>? LeafLayoutUpdatedEvent;
+
+        public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+            var measuredWidth = widthMode == MeasureMode.Undefined ? Mathf.Infinity : width;
+            var measuredHeight = heightMode == MeasureMode.Undefined ? Mathf.Infinity : height;
+            
+            var textSize = _text.GetPreferredValues(measuredWidth, measuredHeight);
+
+            return new() {
+                x = widthMode == MeasureMode.Exactly ? width : Mathf.Min(textSize.x, measuredWidth),
+                y = heightMode == MeasureMode.Exactly ? height : Mathf.Min(textSize.y, measuredHeight)
+            };
+        }
+
+        private void RequestLeafRecalculation() {
+            LeafLayoutUpdatedEvent?.Invoke(this);
+            ScheduleLayoutRecalculation();
         }
     }
 }

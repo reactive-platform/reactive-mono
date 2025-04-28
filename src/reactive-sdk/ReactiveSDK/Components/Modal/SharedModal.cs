@@ -4,38 +4,41 @@ using UnityEngine;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public interface ISharedModal : IModal { }
-    
+    public interface ISharedModal : IModal;
+
     [PublicAPI]
-    public class SharedModal<T> : ISharedModal, IReactiveComponent, ILayoutItem where T : class, IModal, IReactiveComponent, new() {
+    public class SharedModal<T> : ISharedModal, IReactiveComponent where T : class, IModal, IReactiveComponent, new() {
         #region Pool
 
-        public bool BuildImmediate {
-            // ReSharper disable once ValueParameterNotUsed
-            set {
-                if (value) {
-                    modals.Preload(1);
-                }
-            }
-        }
-        
         public T Modal => _modal ?? throw new InvalidOperationException();
 
         private static readonly ReactivePool<T> modals = new();
         private T? _modal;
 
+        public void BuildImmediate() {
+            modals.Preload(1);
+        }
+
         private void SpawnModal() {
-            if (_modal != null) return;
+            if (_modal != null) {
+                return;
+            }
+
             _modal = modals.Spawn();
+            _modal.Enabled = false;
+
             _modal.ModalClosedEvent += HandleModalClosed;
             _modal.ModalOpenedEvent += HandleModalOpened;
+
             OnSpawn();
         }
 
         private void DespawnModal() {
             _modal!.ModalClosedEvent -= HandleModalClosed;
             _modal.ModalOpenedEvent -= HandleModalOpened;
+
             OnDespawn();
+
             modals.Despawn(_modal);
             _modal = null;
         }
@@ -97,18 +100,44 @@ namespace Reactive.Components {
 
         #region LayoutItem
 
-        public bool Equals(ILayoutItem other) {
-            return other == this;
+        public ILayoutDriver? LayoutDriver {
+            get => null;
+            set { }
         }
 
-        public ILayoutDriver? LayoutDriver { get; set; }
-        public ILayoutModifier? LayoutModifier { get; set; }
-        public float? DesiredHeight => null;
-        public float? DesiredWidth => null;
-        public bool WithinLayout { get; set; }
-        public event Action<ILayoutItem>? ModifierUpdatedEvent;
+        public ILayoutModifier? LayoutModifier {
+            get => null;
+            set { }
+        }
 
-        public void ApplyTransforms(Action<RectTransform> applicator) { }
+        public bool WithinLayout { get; set; }
+
+        public event Action<ILayoutItem>? ModifierUpdatedEvent;
+        public event Action<ILayoutItem>? StateUpdatedEvent;
+
+        public int GetLayoutItemHashCode() {
+            return GetHashCode();
+        }
+
+        public bool EqualsToLayoutItem(ILayoutItem item) {
+            return false;
+        }
+
+        public void RecalculateLayoutImmediate() {
+            Modal.RecalculateLayoutImmediate();
+        }
+
+        public void ScheduleLayoutRecalculation() {
+            Modal.ScheduleLayoutRecalculation();
+        }
+
+        public RectTransform BeginApply() {
+            throw new NotImplementedException();
+        }
+
+        public void EndApply() {
+            throw new NotImplementedException();
+        }
 
         #endregion
 

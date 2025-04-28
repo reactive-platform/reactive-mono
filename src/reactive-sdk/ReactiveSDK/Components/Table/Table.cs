@@ -126,7 +126,7 @@ namespace Reactive.Components.Basic {
             }
         }
 
-        IReadOnlyList<TItem> ITableComponent<TItem>.Items {
+        IReadOnlyList<TItem> ITable<TItem>.Items {
             get {
                 lock (_itemsLocker) {
                     return _items;
@@ -198,7 +198,7 @@ namespace Reactive.Components.Basic {
 
         #region Cells
 
-        protected float CellSize => ScrollOrientation is ScrollOrientation.Vertical ? _cellSize.y : _cellSize.x;
+        protected virtual float CellSize => ScrollOrientation is ScrollOrientation.Vertical ? _cellSize.y : _cellSize.x;
 
         private readonly ReactivePool<TCell> _cellsPool = new() { DetachOnDespawn = false };
         private readonly Dictionary<ITableCell<TItem>, int> _cachedIndexes = new();
@@ -359,7 +359,7 @@ namespace Reactive.Components.Basic {
 
         protected sealed override GameObject Construct() {
             //constructing
-            var content = new Dummy {
+            var content = new Layout {
                 Children = {
                     //area
                     ConstructScrollArea()
@@ -380,16 +380,19 @@ namespace Reactive.Components.Basic {
             //initializing here instead of OnInitialize to leave it for inheritors
             EmptyLabel = label;
             RefreshEmptyText();
+            
             var cell = _cellsPool.Spawn();
             _cellSize = cell.ContentTransform.rect.size;
             _scrollArea.ScrollSize = CellSize;
-            _scrollArea.ScrollContent = new Dummy().Bind(ref _scrollContent);
+            _scrollArea.ScrollContent = new ReactiveComponent().Bind(ref _scrollContent);
+            
             ScrollbarScrollSize = 4;
             _cellsPool.Despawn(cell);
+            
             _scrollArea.ScrollPosChangedEvent += HandlePosChanged;
             _scrollArea.ScrollDestinationPosChangedEvent += HandleDestinationPosChanged;
             _scrollArea.ScrollWithJoystickFinishedEvent += HandleJoystickScrollFinished;
-            //returning
+
             return content.Use();
         }
 

@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public abstract class KeyedControlComponentCell<TKey, TParam> : ReactiveComponent, IKeyedControlComponentCell<TKey, TParam> {
+    public abstract class KeyedControlCell<TKey, TParam> : ReactiveComponent, IKeyedControlCell<TKey, TParam> {
         protected TKey Key => _key ?? throw new UninitializedComponentException();
 
         public event Action<TKey>? CellAskedToBeSelectedEvent;

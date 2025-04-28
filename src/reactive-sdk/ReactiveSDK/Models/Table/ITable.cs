@@ -4,7 +4,7 @@ namespace Reactive.Components {
     /// <summary>
     /// Abstraction for tables
     /// </summary>
-    public interface ITableComponent {
+    public interface ITable {
         void Refresh(bool clearSelection = true);
 
         void ScrollTo(int idx, bool animated = true);
@@ -22,7 +22,7 @@ namespace Reactive.Components {
     /// Abstraction for tables with value
     /// </summary>
     /// <typeparam name="TItem">Data type</typeparam>
-    public interface ITableComponent<TItem> : ITableComponent {
+    public interface ITable<TItem> : ITable {
         IReadOnlyList<TItem> Items { get; }
 
         void ScrollTo(TItem item, bool animated = true);
@@ -36,7 +36,7 @@ namespace Reactive.Components {
     /// Abstraction for modifiable tables with value
     /// </summary>
     /// <typeparam name="TItem">Data type</typeparam>
-    public interface IModifiableTableComponent<TItem> : ITableComponent<TItem> {
+    public interface IModifiableTableComponent<TItem> : ITable<TItem> {
         new IList<TItem> Items { get; }
     }
 }
