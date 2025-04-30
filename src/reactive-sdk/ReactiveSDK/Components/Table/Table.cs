@@ -382,12 +382,16 @@ namespace Reactive.Components.Basic {
             RefreshEmptyText();
             
             var cell = _cellsPool.Spawn();
+            // To get the actual size
+            cell.RecalculateLayoutImmediate();
             _cellSize = cell.ContentTransform.rect.size;
             _scrollArea.ScrollSize = CellSize;
-            _scrollArea.ScrollContent = new ReactiveComponent().Bind(ref _scrollContent);
             
             ScrollbarScrollSize = 4;
             _cellsPool.Despawn(cell);
+            
+            _scrollArea.ScrollContent = new ReactiveComponent().Bind(ref _scrollContent);
+            _scrollContent.name = "content";
             
             _scrollArea.ScrollPosChangedEvent += HandlePosChanged;
             _scrollArea.ScrollDestinationPosChangedEvent += HandleDestinationPosChanged;
