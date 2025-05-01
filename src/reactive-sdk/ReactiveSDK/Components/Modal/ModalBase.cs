@@ -93,6 +93,7 @@ namespace Reactive.Components {
             if (OpenAnimation != null && !immediate) {
                 OpenAnimation.AnimationFinishedEvent += HandleOpenAnimationFinished;
                 OpenAnimation.Play();
+                OpenAnimation.OnUpdate();
 
                 ModalOpenedEvent?.Invoke(this, false);
             } else {
@@ -109,6 +110,7 @@ namespace Reactive.Components {
             if (CloseAnimation != null && !immediate) {
                 CloseAnimation.AnimationFinishedEvent += HandleCloseAnimationFinished;
                 CloseAnimation.Play();
+                CloseAnimation.OnUpdate();
 
                 ModalClosedEvent?.Invoke(this, false);
             } else {
