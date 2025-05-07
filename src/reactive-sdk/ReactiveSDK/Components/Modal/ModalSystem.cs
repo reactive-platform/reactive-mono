@@ -15,25 +15,16 @@ namespace Reactive.Components {
     public class ModalSystem<T> : ReactiveComponent where T : ModalSystem<T>, new() {
         #region OpenModal
 
-        public static void PresentModal<TModal>(
-            TModal modal,
-            Transform screen,
-            bool animated = true,
-            bool interruptAll = false
-        ) where TModal : IModal, IReactiveComponent {
+        public static void PresentModal(IModal modal, Transform screen, bool animated = true, bool interruptAll = false) {
             var modalSystem = BorrowOrInstantiateModalSystem(screen);
             PresentModalInternal(modalSystem, modal, animated, interruptAll);
         }
 
-        private static void PresentModalInternal<TModal>(
-            ModalSystem<T> system,
-            TModal modal,
-            bool animated,
-            bool interruptAll
-        ) where TModal : IModal, IReactiveComponent {
+        private static void PresentModalInternal(ModalSystem<T> system, IModal modal, bool animated, bool interruptAll) {
             if (interruptAll) {
                 InterruptAllEvent?.Invoke();
             }
+            
             system.PresentModal(modal, animated);
         }
 
@@ -85,42 +76,50 @@ namespace Reactive.Components {
         #endregion
 
         #region Open & Close
-        
+
         private bool HasActiveModal => _activeModal != null;
 
         private readonly Stack<IModal> _modalStack = new();
         private bool _firstInvocation;
         private IModal? _activeModal;
 
-        private void PresentModal<TModal>(TModal modal, bool animated) where TModal : IModal, IReactiveComponent {
-            //showing modal system if needed
+        private void PresentModal(IModal modal, bool animated) {
+            // Showing modal system if needed
             if (HasActiveModal) {
                 _activeModal!.Pause();
             } else {
                 ShowModalSystem();
             }
-            //adding modal to the stack
+
+            // Adding modal to the stack
             _modalStack.Push(modal);
             _activeModal = modal;
             modal.ModalClosedEvent += HandleModalClosed;
-            //showing the modal
+
+            // Showing the modal
             modal.Use(ContentTransform);
             modal.ContentTransform.SetAsLastSibling();
             modal.Open(!animated);
+
             RefreshBlocker();
         }
 
         private void CloseModal() {
-            if (!HasActiveModal || _needToHideModalSystem) return;
+            if (!HasActiveModal || _needToHideModalSystem) {
+                return;
+            }
             _firstInvocation = true;
             _activeModal!.Close(false);
         }
 
         private void CloseModalInternal() {
-            if (!HasActiveModal) return;
-            //removing current modal
+            if (!HasActiveModal) {
+                return;
+            }
+            // Removing current modal
             _modalStack.Pop();
-            //setting new active modal
+
+            // Setting new active modal
             if (_modalStack.Count > 0) {
                 _activeModal!.ModalClosedEvent -= HandleModalClosed;
                 _activeModal = _modalStack.Peek();
@@ -128,12 +127,17 @@ namespace Reactive.Components {
             } else {
                 _needToHideModalSystem = true;
             }
+
             RefreshBlocker(0);
         }
 
         private void RefreshBlocker(int offset = -1) {
             Blocker.SetActive(HasActiveModal);
-            if (!HasActiveModal) return;
+
+            if (!HasActiveModal) {
+                return;
+            }
+
             var modalIndex = _activeModal!.ContentTransform.GetSiblingIndex();
             _blockerRect.SetSiblingIndex(modalIndex + offset);
         }
@@ -143,11 +147,17 @@ namespace Reactive.Components {
                 if (!finished) return;
                 HideModalSystem();
             }
-            if (_modalStack.Count == 0) return;
+
+            if (_modalStack.Count == 0) {
+                return;
+            }
+
             var index = _modalStack.FindIndex(modal);
-            if (index == -1) return;
-            var count = index + 1;
-            for (var i = 0; i < count; i++) {
+            if (index == -1) {
+                return;
+            }
+
+            for (var i = 0; i < index + 1; i++) {
                 CloseModalInternal();
             }
             _firstInvocation = false;
@@ -189,9 +199,10 @@ namespace Reactive.Components {
 
             Blocker = new GameObject("Blocker");
             _blockerButton = Blocker.AddComponent<Button>();
+            _blockerButton.onClick.AddListener(HandleBlockerClicked);
+
             _blockerRect = Blocker.AddComponent<RectTransform>();
             _blockerRect.SetParent(rectTransform, false);
-            _blockerButton.onClick.AddListener(HandleBlockerClicked);
             _blockerRect.WithRectExpand();
         }
 
