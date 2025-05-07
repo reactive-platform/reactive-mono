@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public interface IModal {
+    public interface IModal : IReactiveComponent {
         event Action<IModal, bool>? ModalClosedEvent;
         event Action<IModal, bool>? ModalOpenedEvent;
 

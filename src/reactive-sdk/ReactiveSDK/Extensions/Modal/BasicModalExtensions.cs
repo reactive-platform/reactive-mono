@@ -6,7 +6,7 @@ namespace Reactive.Components.Basic {
     public static class BasicModalExtensions {
         #region Present
 
-        public static void Present<T>(this T comp, Transform screen, bool animated = true) where T : IModal, IReactiveComponent {
+        public static void Present(this IModal comp, Transform screen, bool animated = true) {
             ModalSystem.PresentModal(comp, screen, animated);
         }
 
@@ -14,9 +14,7 @@ namespace Reactive.Components.Basic {
 
         #region WithModal
 
-        public static T WithModal<T, TModal>(this T holder, TModal modal, bool animated = true)
-            where T : IComponentHolder<ButtonBase>
-            where TModal : IModal, IReactiveComponent {
+        public static T WithModal<T>(this T holder, IModal modal, bool animated = true) where T : IComponentHolder<ButtonBase> {
             var comp = holder.Component;
             comp.OnClick += () => modal.Present(comp.ContentTransform, animated);
 

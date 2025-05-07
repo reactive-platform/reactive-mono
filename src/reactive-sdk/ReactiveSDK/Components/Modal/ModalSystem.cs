@@ -85,8 +85,7 @@ namespace Reactive.Components {
         #endregion
 
         #region Open & Close
-
-        private IReactiveComponent? ReactiveActiveModal => _activeModal as IReactiveComponent;
+        
         private bool HasActiveModal => _activeModal != null;
 
         private readonly Stack<IModal> _modalStack = new();
@@ -135,7 +134,7 @@ namespace Reactive.Components {
         private void RefreshBlocker(int offset = -1) {
             Blocker.SetActive(HasActiveModal);
             if (!HasActiveModal) return;
-            var modalIndex = ReactiveActiveModal!.ContentTransform.GetSiblingIndex();
+            var modalIndex = _activeModal!.ContentTransform.GetSiblingIndex();
             _blockerRect.SetSiblingIndex(modalIndex + offset);
         }
 
