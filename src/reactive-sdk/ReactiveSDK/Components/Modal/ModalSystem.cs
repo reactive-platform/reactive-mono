@@ -204,6 +204,8 @@ namespace Reactive.Components {
             _blockerRect = Blocker.AddComponent<RectTransform>();
             _blockerRect.SetParent(rectTransform, false);
             _blockerRect.WithRectExpand();
+
+            go.AddComponent<CanvasGroup>().ignoreParentGroups = true;
         }
 
         private void HandleBlockerClicked() {
