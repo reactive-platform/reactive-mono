@@ -22,128 +22,35 @@ namespace Reactive.Components {
 
     [PublicAPI]
     public static class ModalAlignmentExtensions {
-        #region WithAnchor
-
         public static T WithAnchor<T>(
             this T comp,
-            IReactiveComponent anchor,
-            RelativePlacement placement,
-            Vector2? offset = null,
-            bool unbindOnceOpened = true
-        ) where T : IModal, IReactiveComponent {
-            return WithAnchor(
-                comp,
-                () => anchor,
-                () => placement,
-                offset,
-                unbindOnceOpened
-            );
-        }
-
-        public static T WithAnchor<T>(
-            this T comp,
-            IReactiveComponent anchor,
-            Func<RelativePlacement> placement,
-            Vector2? offset = null,
-            bool unbindOnceOpened = true
-        ) where T : IModal, IReactiveComponent {
-            return WithAnchor(
-                comp,
-                () => anchor,
-                placement,
-                offset,
-                unbindOnceOpened
-            );
-        }
-
-        public static T WithAnchor<T>(
-            this T comp,
-            Func<IReactiveComponent> anchor,
-            RelativePlacement placement,
-            Vector2? offset = null,
-            bool unbindOnceOpened = true
-        ) where T : IModal, IReactiveComponent {
-            return WithAnchor(
-                comp,
-                () => anchor().ContentTransform,
-                () => placement,
-                offset,
-                unbindOnceOpened
-            );
-        }
-
-        public static T WithAnchor<T>(
-            this T comp,
-            Func<IReactiveComponent> anchor,
-            Func<RelativePlacement> placement,
-            Vector2? offset = null,
-            bool unbindOnceOpened = true
-        ) where T : IModal, IReactiveComponent {
-            return WithAnchor(
-                comp,
-                () => anchor().ContentTransform,
-                placement,
-                offset,
-                unbindOnceOpened
-            );
-        }
-
-        public static T WithAnchor<T>(
-            this T comp,
-            RectTransform anchor,
-            RelativePlacement placement,
-            Vector2? offset = null,
-            bool unbindOnceOpened = true
-        ) where T : IModal, IReactiveComponent {
-            return WithAnchor(
-                comp,
-                () => anchor,
-                () => placement,
-                offset,
-                unbindOnceOpened
-            );
-        }
-
-        public static T WithAnchor<T>(
-            this T comp,
-            Func<RectTransform> anchor,
-            RelativePlacement placement,
-            Vector2? offset = null,
-            bool unbindOnceOpened = true
-        ) where T : IModal, IReactiveComponent {
-            return WithAnchor(
-                comp,
-                anchor,
-                () => placement,
-                offset,
-                unbindOnceOpened
-            );
-        }
-
-        public static T WithAnchorImmediate<T>(
-            this T comp,
-            RectTransform anchor,
-            RelativePlacement placement,
-            Vector2? offset = null
-        ) where T : IModal, IReactiveComponent {
-            return WithAnchor(
-                comp,
-                () => anchor,
-                () => placement,
-                offset,
-                false,
-                true
-            );
-        }
-
-        public static T WithAnchor<T>(
-            this T comp,
-            Func<RectTransform> anchor,
-            Func<RelativePlacement> placement,
+            Lazy<IReactiveComponent> anchor,
+            Lazy<RelativePlacement> placement,
             Vector2? offset = null,
             bool unbindOnceOpened = true,
-            bool immediate = false
-        ) where T : IModal, IReactiveComponent {
+            bool immediate = false,
+            bool allowOverflow = false
+        ) where T : IModal {
+            return WithAnchor(
+                comp,
+                (Func<RectTransform>)(() => anchor.Value.ContentTransform),
+                placement,
+                offset,
+                unbindOnceOpened,
+                immediate,
+                allowOverflow
+            );
+        }
+
+        public static T WithAnchor<T>(
+            this T comp,
+            Lazy<RectTransform> anchor,
+            Lazy<RelativePlacement> placement,
+            Vector2? offset = null,
+            bool unbindOnceOpened = true,
+            bool immediate = false,
+            bool allowOverflow = false
+        ) where T : IModal {
             if (immediate) {
                 HandleModalOpened(comp, false);
             } else {
@@ -152,22 +59,53 @@ namespace Reactive.Components {
             return comp;
 
             void HandleModalOpened(IModal modal, bool opened) {
-                var root = comp.ContentTransform.parent;
-                if (root == null) return;
+                var rect = comp.ContentTransform;
+                var root = rect.parent;
+
+                if (root == null) {
+                    return;
+                }
+
                 CalculateRelativePlacement(
                     root,
-                    anchor(),
-                    placement(),
+                    anchor,
+                    placement,
                     offset.GetValueOrDefault(new(0f, 0.5f)),
                     out var position,
                     out var pivot
                 );
+
+                // Clip the pos to prevent modal overflow
+                if (!allowOverflow && root is RectTransform rootRect) {
+                    // Translating from any pivot to 0,0
+                    var translationDelta = rootRect.pivot * rootRect.rect.size;
+                    var actualPos = position - translationDelta;
+
+                    // Clipping both x and y
+                    for (var i = 0; i < 2; i++) {
+                        actualPos[i] = CalculateClippedPos(actualPos[i], rect.rect.size[i], rect.pivot[i], rootRect.rect.size[i]);
+                    }
+
+                    position = actualPos + translationDelta;
+                }
+
                 comp.ContentTransform.localPosition = position;
                 comp.ContentTransform.pivot = pivot;
+
                 if (!immediate && unbindOnceOpened && comp is not ISharedModal) {
                     modal.ModalOpenedEvent -= HandleModalOpened;
                 }
             }
+        }
+
+        private static float CalculateClippedPos(float pos, float size, float pivot, float parentSize) {
+            var maxPos = pos + (1 - pivot) * size;
+            var minPos = pos - pivot * size;
+
+            var maxDelta = Mathf.Abs(maxPos - parentSize);
+            var minDelta = Mathf.Abs(minPos);
+
+            return pos - maxDelta + minDelta;
         }
 
         private static void CalculateRelativePlacement(
@@ -179,9 +117,11 @@ namespace Reactive.Components {
             out Vector2 pivot
         ) {
             position = root.InverseTransformPoint(anchor.position);
+
             var rect = anchor.rect;
             var anchorHeightDiv = new Vector2(0f, rect.height / 2);
             var anchorWidthDiv = new Vector2(rect.width / 2, 0f);
+
             position = placement switch {
                 RelativePlacement.LeftTop => position - anchorWidthDiv + anchorHeightDiv - offset,
                 RelativePlacement.LeftCenter => position - anchorWidthDiv + new Vector2(-offset.x, offset.y),
@@ -198,6 +138,7 @@ namespace Reactive.Components {
                 RelativePlacement.Center => position + offset + rect.size * Vector2.one * 0.5f - rect.size * anchor.pivot,
                 _ => throw new ArgumentOutOfRangeException(nameof(placement), placement, null)
             };
+
             pivot = placement switch {
                 RelativePlacement.LeftTop => new(1f, 1f),
                 RelativePlacement.LeftCenter => new(1f, 0.5f),
@@ -215,7 +156,5 @@ namespace Reactive.Components {
                 _ => throw new ArgumentOutOfRangeException(nameof(placement), placement, null)
             };
         }
-
-        #endregion
     }
 }
