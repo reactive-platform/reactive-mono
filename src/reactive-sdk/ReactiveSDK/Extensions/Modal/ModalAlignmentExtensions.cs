@@ -59,9 +59,13 @@ namespace Reactive.Components {
             return comp;
 
             void HandleModalOpened(IModal modal, bool opened) {
+                if (opened) {
+                    return;
+                }
+                
                 var rect = comp.ContentTransform;
                 var root = rect.parent;
-
+                
                 if (root == null) {
                     return;
                 }
@@ -79,14 +83,16 @@ namespace Reactive.Components {
                 if (!allowOverflow && root is RectTransform rootRect) {
                     // Translating from any pivot to 0,0
                     var translationDelta = rootRect.pivot * rootRect.rect.size;
-                    var actualPos = position - translationDelta;
+                    var actualPos = position + translationDelta;
 
+                    modal.RecalculateLayoutImmediate();
+                    
                     // Clipping both x and y
                     for (var i = 0; i < 2; i++) {
-                        actualPos[i] = CalculateClippedPos(actualPos[i], rect.rect.size[i], rect.pivot[i], rootRect.rect.size[i]);
+                        actualPos[i] = CalculateClippedPos(actualPos[i], rect.rect.size[i], pivot[i], rootRect.rect.size[i]);
                     }
 
-                    position = actualPos + translationDelta;
+                    position = actualPos - translationDelta;
                 }
 
                 comp.ContentTransform.localPosition = position;
@@ -99,13 +105,18 @@ namespace Reactive.Components {
         }
 
         private static float CalculateClippedPos(float pos, float size, float pivot, float parentSize) {
-            var maxPos = pos + (1 - pivot) * size;
+            // Calculate the edges of the rect based on pivot and size
             var minPos = pos - pivot * size;
+            var maxPos = pos + (1 - pivot) * size;
 
-            var maxDelta = Mathf.Abs(maxPos - parentSize);
-            var minDelta = Mathf.Abs(minPos);
+            // Shift the position if it goes out of bounds
+            if (minPos < 0) {
+                pos += 0f - minPos;
+            } else if (maxPos > parentSize) {
+                pos -= maxPos - parentSize;
+            }
 
-            return pos - maxDelta + minDelta;
+            return pos;
         }
 
         private static void CalculateRelativePlacement(

@@ -37,6 +37,7 @@ namespace Reactive.Components {
         private static T BorrowOrInstantiateModalSystem(Transform viewController) {
             var system = systemsPool.Get(viewController);
             system.Use(viewController.transform);
+            system.WithRectExpand();
             return system;
         }
 
