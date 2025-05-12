@@ -27,6 +27,16 @@ namespace Reactive.Components {
             return comp;
         }
 
+        public static T WithBeforeOpenListener<T>(this T comp, Action callback) where T : ISharedModal {
+            comp.BeforeModalOpenedEvent += _ => callback();
+            return comp;
+        }
+
+        public static T WithBeforeOpenListener<T>(this T comp, Action<IModal> callback) where T : ISharedModal {
+            comp.BeforeModalOpenedEvent += callback;
+            return comp;
+        }
+
         #endregion
 
         #region Scale Animation

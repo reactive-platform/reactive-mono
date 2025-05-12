@@ -4,13 +4,20 @@ using UnityEngine;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public interface ISharedModal : IModal;
+    public interface ISharedModal : IModal {
+        /// <summary>
+        /// Invoked before the Open method is called. Passes the original modal as an argument.
+        /// </summary>
+        event Action<IModal>? BeforeModalOpenedEvent;
+    }
 
     [PublicAPI]
-    public class SharedModal<T> : ISharedModal, IReactiveComponent where T : class, IModal, IReactiveComponent, new() {
+    public class SharedModal<T> : ISharedModal where T : class, IModal, new() {
         #region Pool
 
         public T Modal => _modal ?? throw new InvalidOperationException();
+
+        public event Action<IModal>? BeforeModalOpenedEvent;
 
         private static readonly ReactivePool<T> modals = new();
         private T? _modal;
@@ -68,6 +75,7 @@ namespace Reactive.Components {
 
         public void Open(bool immediate) {
             SpawnModal();
+            BeforeModalOpenedEvent?.Invoke(Modal);
             Modal.Open(immediate);
         }
 
