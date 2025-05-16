@@ -4,6 +4,9 @@ using JetBrains.Annotations;
 namespace Reactive.Components {
     [PublicAPI]
     public interface IModal : IReactiveComponent {
+        ISharedAnimation? OpenAnimation { get; set; }
+        ISharedAnimation? CloseAnimation { get; set; }
+        
         event Action<IModal, bool>? ModalClosedEvent;
         event Action<IModal, bool>? ModalOpenedEvent;
 
