@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -15,13 +16,25 @@ namespace Reactive.Components {
     public class SharedModal<T> : ISharedModal where T : ModalBase, new() {
         #region Pool
 
+        /// <summary>
+        /// A currently opened modal.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the modal is closed.</exception>
         public T Modal => _modal ?? throw new InvalidOperationException();
+
+        /// <summary>
+        /// Determines if the modal is opened using in this SharedModal instance.
+        /// </summary>
+        public bool ModalOpened => _modal != null;
 
         public event Action<IModal>? BeforeModalOpenedEvent;
 
         private static readonly ReactivePool<T> modals = new();
         private T? _modal;
 
+        /// <summary>
+        /// Creates an instance immediately if needed.
+        /// </summary>
         public void BuildImmediate() {
             modals.Preload(1);
         }
@@ -44,6 +57,12 @@ namespace Reactive.Components {
             _modal!.ModalClosedEvent -= HandleModalClosed;
             _modal.ModalOpenedEvent -= HandleModalOpened;
 
+            if (_modules != null) {
+                foreach (var module in _modules) {
+                    Modal.UnbindModule(module);
+                }
+            }
+            
             OnDespawn();
 
             modals.Despawn(_modal);
@@ -63,7 +82,7 @@ namespace Reactive.Components {
 
         public ISharedAnimation? OpenAnimation { get; set; }
         public ISharedAnimation? CloseAnimation { get; set; }
-        
+
         public void Pause() {
             Modal.Pause();
         }
@@ -78,10 +97,16 @@ namespace Reactive.Components {
 
         public void Open(bool immediate) {
             SpawnModal();
-            
+
             Modal.OpenAnimation = OpenAnimation;
             Modal.CloseAnimation = CloseAnimation;
-            
+
+            if (_modules != null) {
+                foreach (var module in _modules) {
+                    Modal.BindModule(module);
+                }
+            }
+
             BeforeModalOpenedEvent?.Invoke(Modal);
             Modal.Open(immediate);
         }
@@ -160,17 +185,60 @@ namespace Reactive.Components {
 
         private void HandleModalClosed(IModal modal, bool finished) {
             OnCloseInternal(finished);
-            if (finished) DespawnModal();
+            
+            if (finished) {
+                DespawnModal();
+            }
+            
             ModalClosedEvent?.Invoke(this, finished);
         }
 
         private void HandleModalOpened(IModal modal, bool finished) {
             OnOpenInternal(finished);
+            
             ModalOpenedEvent?.Invoke(this, finished);
         }
 
         private void HandleOpenProgressChanged(IModal modal, float progress) {
             OpenProgressChangedEvent?.Invoke(this, progress);
+        }
+
+        #endregion
+
+        #region Module Binder
+
+        IReadOnlyCollection<IReactiveModule> IReactiveModuleBinder.Modules {
+            get {
+                if (_modules == null) {
+                    return [];
+                }
+
+                return _modules;
+            }
+        }
+
+        private HashSet<IReactiveModule>? _modules;
+
+        public void BindModule(IReactiveModule module) {
+            _modules ??= new();
+            
+            _modules.Add(module);
+            
+            if (ModalOpened) {
+                Modal.BindModule(module);
+            }
+        }
+
+        public void UnbindModule(IReactiveModule module) {
+            if (_modules == null) {
+                return;
+            }
+            
+            _modules.Remove(module);
+
+            if (ModalOpened) {
+                Modal.UnbindModule(module);
+            }
         }
 
         #endregion
