@@ -14,7 +14,7 @@ namespace Reactive.Components {
     }
 
     [PublicAPI]
-    public abstract class ModalBase : ReactiveComponent, IModal {
+    public abstract class ModalBase : ReactiveComponent, IComponentHolder<ModalBase>, IModal {
         #region Abstraction
 
         protected virtual bool AllowExternalClose => true;
@@ -67,6 +67,8 @@ namespace Reactive.Components {
         public event Action<IModal, bool>? ModalClosedEvent;
         public event Action<IModal, bool>? ModalOpenedEvent;
 
+        ModalBase IComponentHolder<ModalBase>.Component => this;
+        
         public void Pause() {
             if (IsPaused) return;
             IsPaused = true;

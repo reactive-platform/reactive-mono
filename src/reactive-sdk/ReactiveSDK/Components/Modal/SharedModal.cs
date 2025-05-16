@@ -12,7 +12,7 @@ namespace Reactive.Components {
     }
 
     [PublicAPI]
-    public class SharedModal<T> : ISharedModal where T : class, IModal, new() {
+    public class SharedModal<T> : ISharedModal where T : ModalBase, new() {
         #region Pool
 
         public T Modal => _modal ?? throw new InvalidOperationException();
@@ -61,6 +61,9 @@ namespace Reactive.Components {
         public event Action<IModal, bool>? ModalOpenedEvent;
         public event Action<IModal, float>? OpenProgressChangedEvent;
 
+        public ISharedAnimation? OpenAnimation { get; set; }
+        public ISharedAnimation? CloseAnimation { get; set; }
+        
         public void Pause() {
             Modal.Pause();
         }
@@ -75,6 +78,10 @@ namespace Reactive.Components {
 
         public void Open(bool immediate) {
             SpawnModal();
+            
+            Modal.OpenAnimation = OpenAnimation;
+            Modal.CloseAnimation = CloseAnimation;
+            
             BeforeModalOpenedEvent?.Invoke(Modal);
             Modal.Open(immediate);
         }
@@ -132,11 +139,11 @@ namespace Reactive.Components {
         }
 
         public void RecalculateLayoutImmediate() {
-            Modal.RecalculateLayoutImmediate();
+            ((ILayoutRecalculationSource)Modal).RecalculateLayoutImmediate();
         }
 
         public void ScheduleLayoutRecalculation() {
-            Modal.ScheduleLayoutRecalculation();
+            ((ILayoutRecalculationSource)Modal).ScheduleLayoutRecalculation();
         }
 
         public RectTransform BeginApply() {
