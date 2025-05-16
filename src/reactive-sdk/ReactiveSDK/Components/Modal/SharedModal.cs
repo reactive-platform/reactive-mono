@@ -13,7 +13,7 @@ namespace Reactive.Components {
     }
 
     [PublicAPI]
-    public class SharedModal<T> : ISharedModal where T : ModalBase, new() {
+    public class SharedModal<T> : ISharedModal, IComponentHolder<ISharedModal> where T : ModalBase, new() {
         #region Pool
 
         /// <summary>
@@ -26,6 +26,8 @@ namespace Reactive.Components {
         /// Determines if the modal is opened using in this SharedModal instance.
         /// </summary>
         public bool ModalOpened => _modal != null;
+
+        ISharedModal IComponentHolder<ISharedModal>.Component => this;
 
         public event Action<IModal>? BeforeModalOpenedEvent;
 
@@ -62,7 +64,7 @@ namespace Reactive.Components {
                     Modal.UnbindModule(module);
                 }
             }
-            
+
             OnDespawn();
 
             modals.Despawn(_modal);
@@ -185,17 +187,17 @@ namespace Reactive.Components {
 
         private void HandleModalClosed(IModal modal, bool finished) {
             OnCloseInternal(finished);
-            
+
             if (finished) {
                 DespawnModal();
             }
-            
+
             ModalClosedEvent?.Invoke(this, finished);
         }
 
         private void HandleModalOpened(IModal modal, bool finished) {
             OnOpenInternal(finished);
-            
+
             ModalOpenedEvent?.Invoke(this, finished);
         }
 
@@ -221,9 +223,9 @@ namespace Reactive.Components {
 
         public void BindModule(IReactiveModule module) {
             _modules ??= new();
-            
+
             _modules.Add(module);
-            
+
             if (ModalOpened) {
                 Modal.BindModule(module);
             }
@@ -233,7 +235,7 @@ namespace Reactive.Components {
             if (_modules == null) {
                 return;
             }
-            
+
             _modules.Remove(module);
 
             if (ModalOpened) {
