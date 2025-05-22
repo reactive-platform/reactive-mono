@@ -101,6 +101,7 @@ namespace Reactive.Components {
         protected override void OnInitialize() {
             _items.ItemAddedEvent += HandleItemAdded;
             _items.ItemRemovedEvent += HandleItemRemoved;
+            _items.AllItemsRemovedEvent += HandleAllItemsRemoved;
         }
 
         protected override GameObject Construct() {
@@ -125,6 +126,15 @@ namespace Reactive.Components {
 
         private void HandleItemRemoved(TKey key, TParam param) {
             DespawnCell(key);
+            NotifyPropertyChanged(nameof(Items));
+        }
+        
+        private void HandleAllItemsRemoved() {
+            foreach (var key in _cells.SpawnedComponents.Keys.ToArray()) {
+                DespawnCell(key);
+            }
+
+            _selectedKey = default;
             NotifyPropertyChanged(nameof(Items));
         }
 
