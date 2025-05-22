@@ -35,10 +35,16 @@ namespace Reactive.Components {
                 }
 
                 _selectedKey = value;
+                KeySelectedCb?.Invoke(value);
+                
                 SelectedKeyChangedEvent?.Invoke(value);
                 NotifyPropertyChanged();
             }
         }
+        
+        public Action<TKey>? KeySelectedCb { get; set; }
+        public Action<TKey, TCell>? CellSpawnedCb { get; set; }
+        public Action<TKey, TCell>? CellDespawnedCb { get; set; }
 
         public event Action<TKey>? SelectedKeyChangedEvent;
 
@@ -58,8 +64,8 @@ namespace Reactive.Components {
 
             _layout.Children.Add(cell);
 
-            CellConstructCallback?.Invoke(cell);
-            OnCellConstruct(cell);
+            CellSpawnedCb?.Invoke(key, cell);
+            OnCellSpawned(key, cell);
 
             if (_selectedCell == null) {
                 Select(Items.Keys.First());
@@ -76,6 +82,9 @@ namespace Reactive.Components {
 
             _layout.Children.Remove(cell);
             _cells.Despawn(cell);
+            
+            CellDespawnedCb?.Invoke(key, cell);
+            OnCellDespawned(key, cell);
         }
 
         public void Select(TKey key) {
@@ -100,15 +109,10 @@ namespace Reactive.Components {
 
         #endregion
 
-        #region Abstraction
-
-        public Action<TCell>? CellConstructCallback { get; set; }
-
-        protected virtual void OnCellConstruct(TCell cell) { }
-
-        #endregion
-
         #region Callbacks
+        
+        protected virtual void OnCellSpawned(TKey key, TCell cell) { }
+        protected virtual void OnCellDespawned(TKey key, TCell cell) { }
 
         private void HandleCellAskedToBeSelected(TKey key) {
             Select(key);
