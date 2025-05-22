@@ -59,5 +59,50 @@ namespace Reactive.Components {
             }
             return _color;
         }
+
+        /// <summary>
+        /// Creates a new color set with modified values.
+        /// </summary>
+        public SimpleColorSet But(
+            Color? color = null,
+            Color? hoveredColor = null,
+            Color? activeColor = null,
+            Color? notInteractableColor = null
+        ) {
+            return new SimpleColorSet {
+                _color = color ?? _color,
+                _hoveredColor = hoveredColor ?? _hoveredColor,
+                _activeColor = activeColor ?? _activeColor,
+                _notInteractableColor = notInteractableColor ?? _notInteractableColor
+            };
+        }
+
+        /// <summary>
+        /// Modifies this color set with specified values.
+        /// </summary>
+        public SimpleColorSet With(
+            Color? color = null,
+            Color? hoveredColor = null,
+            Color? activeColor = null,
+            Color? notInteractableColor = null
+        ) {
+            if (color != null) {
+                _color = color.Value;
+            }
+            
+            if (hoveredColor != null) {
+                _hoveredColor = hoveredColor.Value;
+            }
+            
+            if (activeColor != null) {
+                _activeColor = activeColor.Value;
+            }
+            
+            if (notInteractableColor != null) {
+                _notInteractableColor = notInteractableColor.Value;
+            }
+
+            return this;
+        }
     }
 }
