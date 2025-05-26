@@ -45,6 +45,12 @@ namespace Reactive.Components {
             UpdateColor();
         }
 
+        protected override void OnDestroy() {
+            if (_stateColorSet != null) {
+                _stateColorSet.SetUpdatedEvent -= UpdateColor;
+            }
+        }
+
         protected virtual void ApplyColor(Color color) { }
 
         #endregion
