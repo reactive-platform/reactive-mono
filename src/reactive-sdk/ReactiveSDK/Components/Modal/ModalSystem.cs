@@ -60,7 +60,6 @@ namespace Reactive.Components {
         protected override void OnDestroy() {
             SceneManager.activeSceneChanged -= OnActiveSceneChanged;
             InterruptAllEvent -= InterruptAll;
-            systemsPool.Despawn((T)this);
         }
 
         private void OnActiveSceneChanged(Scene from, Scene to) {
