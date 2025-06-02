@@ -9,9 +9,10 @@ namespace Reactive.Components {
 
         private IReactiveComponent? _constructedComponent;
 
-        public delegate IReactiveComponent Constructor(INotifyValueChanged<TItem> item, ObservableValue<bool> selected); 
-        
+        public delegate IReactiveComponent Constructor(INotifyValueChanged<TItem> item, ObservableValue<bool> selected);
+
         public TableCell(Constructor constructor) : base(false) {
+            _observableSelected.ValueChangedEvent += SelectSelf;
             _constructedComponent = constructor(_observableItem!, _observableSelected);
             ConstructAndInit();
         }
@@ -34,6 +35,7 @@ namespace Reactive.Components {
         private event Action<ITableCell<TItem>, bool>? CellAskedToChangeSelectionEvent;
         private ObservableValue<TItem?> _observableItem = new(default);
         private ObservableValue<bool> _observableSelected = new(false);
+        private bool _canSelect = true;
 
         void ITableCell<TItem>.Init(TItem item) {
             _observableItem.Value = item;
@@ -41,7 +43,11 @@ namespace Reactive.Components {
         }
 
         void ITableCell<TItem>.OnCellStateChange(bool selected) {
-            _observableSelected.Value = selected;
+            _canSelect = false;
+            if (_observableSelected.Value != selected) {
+                _observableSelected.Value = selected;
+            }
+            _canSelect = true;
             OnCellStateChange(selected);
         }
 
@@ -51,7 +57,7 @@ namespace Reactive.Components {
 
         public TItem Item => _observableItem!;
         public bool Selected => _observableSelected!;
-        
+
         public INotifyValueChanged<TItem> ObservableItem => _observableItem!;
         public INotifyValueChanged<TItem> ObservableSelected => _observableItem!;
 
@@ -60,7 +66,9 @@ namespace Reactive.Components {
         protected virtual void OnCellStateChange(bool selected) { }
 
         protected void SelectSelf(bool select) {
-            CellAskedToChangeSelectionEvent?.Invoke(this, select);
+            if (_canSelect) {
+                CellAskedToChangeSelectionEvent?.Invoke(this, select);
+            }
         }
 
         #endregion
