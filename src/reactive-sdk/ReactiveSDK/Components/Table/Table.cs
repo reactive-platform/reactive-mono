@@ -20,7 +20,7 @@ namespace Reactive.Components.Basic {
         /// </summary>
         public TableCell<TItem>.Constructor? ConstructCell { get; set; }
 
-        protected override void OnInitialize() {
+        protected override void OnInstantiate() {
             cellsPool.Construct = CreateCell;
         }
 
