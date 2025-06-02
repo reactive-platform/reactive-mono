@@ -5,22 +5,25 @@ using UnityEngine;
 namespace Reactive.Components {
     [PublicAPI]
     public class TableCell<TItem> : ReactiveComponent, ITableCell<TItem> {
-        #region Factory
-
-        private IReactiveComponent? _constructedComponent;
-
         public delegate IReactiveComponent Constructor(INotifyValueChanged<TItem> item, ObservableValue<bool> selected);
 
-        public TableCell(Constructor constructor) : base(false) {
-            _observableSelected.ValueChangedEvent += SelectSelf;
-            _constructedComponent = constructor(_observableItem!, _observableSelected);
-            ConstructAndInit();
+        #region Factory
+
+        public TableCell(Constructor constructor) : this() {
+            _constructor = constructor;
         }
 
-        public TableCell() { }
+        public TableCell() : base(false) { }
+
+        private Constructor? _constructor;
 
         protected override GameObject Construct() {
-            return _constructedComponent?.Use(null) ?? base.Construct();
+            if (_constructor == null) {
+                return base.Construct();
+            }
+
+            var component = _constructor(_observableItem!, _observableSelected!);
+            return component.Use(null);
         }
 
         #endregion
@@ -33,22 +36,30 @@ namespace Reactive.Components {
         }
 
         private event Action<ITableCell<TItem>, bool>? CellAskedToChangeSelectionEvent;
-        private ObservableValue<TItem?> _observableItem = new(default);
+        private ObservableValue<TItem>? _observableItem;
         private ObservableValue<bool> _observableSelected = new(false);
         private bool _canSelect = true;
 
         void ITableCell<TItem>.Init(TItem item) {
-            _observableItem.Value = item;
+            if (!IsInitialized) {
+                _observableItem = new(item);
+                ConstructAndInit();
+            } else {
+                _observableItem!.Value = item;
+            }
+            
             OnInit(item);
         }
 
         void ITableCell<TItem>.OnCellStateChange(bool selected) {
             _canSelect = false;
+
             if (_observableSelected.Value != selected) {
                 _observableSelected.Value = selected;
             }
-            _canSelect = true;
             OnCellStateChange(selected);
+
+            _canSelect = true;
         }
 
         #endregion
@@ -56,10 +67,10 @@ namespace Reactive.Components {
         #region Abstraction
 
         public TItem Item => _observableItem!;
-        public bool Selected => _observableSelected!;
+        public bool Selected => _observableSelected;
 
         public INotifyValueChanged<TItem> ObservableItem => _observableItem!;
-        public INotifyValueChanged<TItem> ObservableSelected => _observableItem!;
+        public INotifyValueChanged<bool> ObservableSelected => _observableSelected;
 
         protected virtual void OnInit(TItem item) { }
 
