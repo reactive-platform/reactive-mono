@@ -1,9 +1,29 @@
 using System;
 using JetBrains.Annotations;
+using UnityEngine;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public abstract class TableCell<TItem> : ReactiveComponent, ITableCell<TItem> {
+    public class TableCell<TItem> : ReactiveComponent, ITableCell<TItem> {
+        #region Factory
+
+        private IReactiveComponent? _constructedComponent;
+
+        public delegate IReactiveComponent Constructor(INotifyValueChanged<TItem> item, ObservableValue<bool> selected); 
+        
+        public TableCell(Constructor constructor) : base(false) {
+            _constructedComponent = constructor(_observableItem!, _observableSelected);
+            ConstructAndInit();
+        }
+
+        public TableCell() { }
+
+        protected override GameObject Construct() {
+            return _constructedComponent?.Use(null) ?? base.Construct();
+        }
+
+        #endregion
+
         #region TableCell
 
         event Action<ITableCell<TItem>, bool>? ITableCell<TItem>.CellAskedToChangeSelectionEvent {
@@ -12,14 +32,16 @@ namespace Reactive.Components {
         }
 
         private event Action<ITableCell<TItem>, bool>? CellAskedToChangeSelectionEvent;
-        private TItem? _item;
-        
+        private ObservableValue<TItem?> _observableItem = new(default);
+        private ObservableValue<bool> _observableSelected = new(false);
+
         void ITableCell<TItem>.Init(TItem item) {
-            _item = item;
+            _observableItem.Value = item;
             OnInit(item);
         }
 
         void ITableCell<TItem>.OnCellStateChange(bool selected) {
+            _observableSelected.Value = selected;
             OnCellStateChange(selected);
         }
 
@@ -27,12 +49,16 @@ namespace Reactive.Components {
 
         #region Abstraction
 
-        public TItem Item => _item ?? throw new UninitializedComponentException("The cell was not initialized");
+        public TItem Item => _observableItem!;
+        public bool Selected => _observableSelected!;
         
+        public INotifyValueChanged<TItem> ObservableItem => _observableItem!;
+        public INotifyValueChanged<TItem> ObservableSelected => _observableItem!;
+
         protected virtual void OnInit(TItem item) { }
-        
+
         protected virtual void OnCellStateChange(bool selected) { }
-        
+
         protected void SelectSelf(bool select) {
             CellAskedToChangeSelectionEvent?.Invoke(this, select);
         }

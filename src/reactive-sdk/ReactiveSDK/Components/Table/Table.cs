@@ -10,6 +10,29 @@ namespace Reactive.Components.Basic {
         Multiple
     }
 
+    /// <summary>
+    /// A <see cref="Table{TItem,TCell}"/> overload with an ability to make cells in-place.
+    /// </summary>
+    [PublicAPI]
+    public class Table<TItem> : Table<TItem, TableCell<TItem>> {
+        /// <summary>
+        /// Defines a cell constructor. Must be specified.
+        /// </summary>
+        public TableCell<TItem>.Constructor? ConstructCell { get; set; }
+
+        protected override void OnInitialize() {
+            cellsPool.Construct = CreateCell;
+        }
+
+        private TableCell<TItem> CreateCell() {
+            if (ConstructCell == null) {
+                throw new UninitializedComponentException("The ConstructCell property must be specified");
+            }
+            
+            return new TableCell<TItem>(ConstructCell);
+        }
+    }
+
     [PublicAPI]
     public class Table<TItem, TCell> : ReactiveComponent, IModifiableTableComponent<TItem> where TCell : ITableCell<TItem>, IReactiveComponent, new() {
         #region Props
@@ -200,7 +223,7 @@ namespace Reactive.Components.Basic {
 
         protected virtual float CellSize => ScrollOrientation is ScrollOrientation.Vertical ? _cellSize.y : _cellSize.x;
 
-        private readonly ReactivePool<TCell> _cellsPool = new() { DetachOnDespawn = false };
+        internal readonly ReactivePool<TCell> cellsPool = new() { DetachOnDespawn = false };
         private readonly Dictionary<ITableCell<TItem>, int> _cachedIndexes = new();
         private bool _selectionRefreshNeeded;
         private Vector2 _cellSize;
@@ -271,10 +294,10 @@ namespace Reactive.Components.Basic {
             _selectionRefreshNeeded = false;
             //despawning redundant cells
             i -= _visibleCellsStartIndex;
-            while (_cellsPool.SpawnedComponents.Count > i) {
-                var cell = _cellsPool.SpawnedComponents.Last();
+            while (cellsPool.SpawnedComponents.Count > i) {
+                var cell = cellsPool.SpawnedComponents.Last();
                 cell.CellAskedToChangeSelectionEvent -= HandleCellWantsToChangeSelection;
-                _cellsPool.Despawn(cell);
+                cellsPool.Despawn(cell);
             }
         }
 
@@ -288,14 +311,14 @@ namespace Reactive.Components.Basic {
         }
 
         private TCell GetOrSpawnCell(int index) {
-            if (_cellsPool.SpawnedComponents.Count - 1 < index) {
-                var cell = _cellsPool.Spawn();
+            if (cellsPool.SpawnedComponents.Count - 1 < index) {
+                var cell = cellsPool.Spawn();
                 cell.Use(_scrollContent);
                 cell.CellAskedToChangeSelectionEvent += HandleCellWantsToChangeSelection;
                 AlignCell(cell.ContentTransform);
                 return cell;
             }
-            return _cellsPool.SpawnedComponents[index];
+            return cellsPool.SpawnedComponents[index];
         }
 
         #endregion
@@ -380,19 +403,19 @@ namespace Reactive.Components.Basic {
             //initializing here instead of OnInitialize to leave it for inheritors
             EmptyLabel = label;
             RefreshEmptyText();
-            
-            var cell = _cellsPool.Spawn();
+
+            var cell = cellsPool.Spawn();
             // To get the actual size
             cell.RecalculateLayoutImmediate();
             _cellSize = cell.ContentTransform.rect.size;
             _scrollArea.ScrollSize = CellSize;
-            
+
             ScrollbarScrollSize = 4;
-            _cellsPool.Despawn(cell);
-            
+            cellsPool.Despawn(cell);
+
             _scrollArea.ScrollContent = new ReactiveComponent().Bind(ref _scrollContent);
             _scrollContent.name = "content";
-            
+
             _scrollArea.ScrollPosChangedEvent += HandlePosChanged;
             _scrollArea.ScrollDestinationPosChangedEvent += HandleDestinationPosChanged;
             _scrollArea.ScrollWithJoystickFinishedEvent += HandleJoystickScrollFinished;

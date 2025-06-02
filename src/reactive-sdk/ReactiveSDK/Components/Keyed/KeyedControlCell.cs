@@ -11,6 +11,7 @@ namespace Reactive.Components {
         private TKey? _key;
 
         public void Init(TKey key, TParam param) {
+            
             _key = key;
             OnInit(key, param);
         }
