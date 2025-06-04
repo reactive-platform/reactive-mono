@@ -28,7 +28,7 @@ namespace Reactive.Components.Basic {
             if (ConstructCell == null) {
                 throw new UninitializedComponentException("The ConstructCell property must be specified");
             }
-            
+
             return new TableCell<TItem>(ConstructCell);
         }
     }
@@ -173,6 +173,10 @@ namespace Reactive.Components.Basic {
             OnRefresh();
         }
 
+        public void QueueRefreshCellSize() {
+            _cellSizeRefreshNeeded = true;
+        }
+
         public void ScrollTo(int idx, bool animated = true) {
             _scrollArea.ScrollTo(CellSize * idx);
         }
@@ -225,6 +229,7 @@ namespace Reactive.Components.Basic {
 
         internal readonly ReactivePool<TCell> cellsPool = new() { DetachOnDespawn = false };
         private readonly Dictionary<ITableCell<TItem>, int> _cachedIndexes = new();
+        private bool _cellSizeRefreshNeeded;
         private bool _selectionRefreshNeeded;
         private Vector2 _cellSize;
         private float _contentPos;
@@ -274,14 +279,24 @@ namespace Reactive.Components.Basic {
         }
 
         private void RefreshVisibleCells(float pos) {
+            if (_cellSizeRefreshNeeded && FilteredItems.Count > 0) {
+                var probeItem = _filteredItems[0];
+                var cell = GetOrSpawnCell(0, probeItem);
+
+                RefreshCellSize(cell);
+                _cellSizeRefreshNeeded = false;
+            }
+
             CalculateVisibleCellsRange(pos);
+
             int i;
             for (i = _visibleCellsStartIndex; i < _visibleCellsEndIndex; i++) {
                 //spawning and initializing
                 var item = _filteredItems[i];
-                var cell = GetOrSpawnCell(i - _visibleCellsStartIndex);
-                cell.Init(item);
+                var cell = GetOrSpawnCell(i - _visibleCellsStartIndex, item);
+
                 OnCellConstruct(cell);
+
                 //updating state
                 if (_selectionRefreshNeeded) {
                     var selected = _selectedIndexes.Contains(i);
@@ -292,6 +307,7 @@ namespace Reactive.Components.Basic {
                 _cachedIndexes[cell] = i;
             }
             _selectionRefreshNeeded = false;
+            
             //despawning redundant cells
             i -= _visibleCellsStartIndex;
             while (cellsPool.SpawnedComponents.Count > i) {
@@ -310,15 +326,23 @@ namespace Reactive.Components.Basic {
             RefreshVisibleCells(_contentPos);
         }
 
-        private TCell GetOrSpawnCell(int index) {
+        private TCell GetOrSpawnCell(int index, TItem item) {
+            TCell cell;
             if (cellsPool.SpawnedComponents.Count - 1 < index) {
-                var cell = cellsPool.Spawn();
+                cell = cellsPool.Spawn(false);
+
+                cell.Init(item);
                 cell.Use(_scrollContent);
+                cell.Enabled = true;
                 cell.CellAskedToChangeSelectionEvent += HandleCellWantsToChangeSelection;
+
                 AlignCell(cell.ContentTransform);
-                return cell;
+            } else {
+                cell = cellsPool.SpawnedComponents[index];
+                cell.Init(item);
             }
-            return cellsPool.SpawnedComponents[index];
+
+            return cell;
         }
 
         #endregion
@@ -347,6 +371,23 @@ namespace Reactive.Components.Basic {
             }
         }
 
+        private void RefreshCellSize(TCell cell) {
+            // To get the actual size
+            cell.RecalculateLayoutImmediate();
+
+            _cellSize = cell.ContentTransform.rect.size;
+            _scrollArea.ScrollSize = CellSize;
+
+            RefreshVisibleCellsCount();
+        }
+
+        private void RefreshVisibleCellsCount() {
+            var averageCellsCount = CellSize != 0 ? ViewportSize / CellSize : 0;
+            var cellCount = Mathf.CeilToInt(averageCellsCount);
+            //adding because we need two more cells to fill the free space when scrolling
+            _visibleCellsCount = cellCount + 1;
+        }
+
         private void ScrollContentIfNeeded() {
             var needScrollToEnd = ContentSize - _contentPos <= ViewportSize;
             var needScrollToStart = _contentPos < 0f || _filteredItems.Count <= (int)(ViewportSize / CellSize);
@@ -358,12 +399,8 @@ namespace Reactive.Components.Basic {
         }
 
         protected override void OnRectDimensionsChanged() {
-            var averageCellsCount = ViewportSize / CellSize;
-            var cellCount = Mathf.CeilToInt(averageCellsCount);
-            //adding because we need two more cells to fill the free space when scrolling
-            _visibleCellsCount = cellCount + 1;
-            CalculateVisibleCellsRange(_contentPos);
-            RefreshVisibleCells(_contentPos);
+            RefreshVisibleCellsCount();
+            RefreshVisibleCells();
         }
 
         #endregion
@@ -404,17 +441,11 @@ namespace Reactive.Components.Basic {
             EmptyLabel = label;
             RefreshEmptyText();
 
-            var cell = cellsPool.Spawn();
-            // To get the actual size
-            cell.RecalculateLayoutImmediate();
-            _cellSize = cell.ContentTransform.rect.size;
-            _scrollArea.ScrollSize = CellSize;
-
+            QueueRefreshCellSize();
             ScrollbarScrollSize = 4;
-            cellsPool.Despawn(cell);
 
             _scrollArea.ScrollContent = new ReactiveComponent().Bind(ref _scrollContent);
-            _scrollContent.name = "content";
+            _scrollContent.name = "Content";
 
             _scrollArea.ScrollPosChangedEvent += HandlePosChanged;
             _scrollArea.ScrollDestinationPosChangedEvent += HandleDestinationPosChanged;
