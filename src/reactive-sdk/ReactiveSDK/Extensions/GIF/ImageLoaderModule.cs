@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -26,19 +27,23 @@ public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
     }
 
     private async Task LoadRemoteInternal(string url, CancellationToken token) {
-        var image = await ImageLoader.LoadRemoteImage(url, token);
+        try {
+            var image = await ImageLoader.LoadRemoteImage(url, token);
 
-        if (image == null) {
-            Debug.LogError("Remote picture has failed to load");
-            return;
+            if (image == null) {
+                Debug.LogError("Remote picture has failed to load");
+                return;
+            }
+
+            if (token.IsCancellationRequested) {
+                return;
+            }
+
+            renderer.Sprite = image.Sprite;
+            _image = image;
+        } catch (Exception ex) {
+            Debug.LogError($"The load has has failed: {ex}");
         }
-
-        if (token.IsCancellationRequested) {
-            return;
-        }
-
-        renderer.Sprite = image.Sprite;
-        _image = image;
     }
 
     public void OnUpdate() {
