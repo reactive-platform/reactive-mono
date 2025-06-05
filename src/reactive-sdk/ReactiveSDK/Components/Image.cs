@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Reactive.Components.Basic {
     [PublicAPI]
-    public class Image : ReactiveComponent, IComponentHolder<Image>, ILeafLayoutItem, IGraphic {
+    public class Image : ReactiveComponent, IComponentHolder<Image>, ILeafLayoutItem, IGraphic, ISpriteRenderer {
         public Sprite? Sprite {
             get => _image.sprite;
             set {
