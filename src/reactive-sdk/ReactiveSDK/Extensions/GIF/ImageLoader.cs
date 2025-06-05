@@ -77,8 +77,11 @@ public static class ImageLoader {
         return Task.Run(
             () => {
                 try {
+                    // Important to leave open as it's just a wrapper
+                    var reader = new BinaryReader(stream);
+                    
                     // Returns null if magic is invalid
-                    return new GIFLoader().Load(stream);
+                    return new GIFLoader().Load(reader);
                 } catch (Exception ex) {
                     Debug.LogError($"Failed to load GIF: {ex}");
 
