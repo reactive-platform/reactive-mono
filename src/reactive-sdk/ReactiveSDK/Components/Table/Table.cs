@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -164,6 +165,9 @@ namespace Reactive.Components.Basic {
 
         public void Refresh(bool clearSelection = true) {
             OnEarlyRefresh();
+            if (EarlyRefreshed != null) {
+                EarlyRefreshed.Invoke(this);
+            }
             RefreshFilter();
             RefreshContentSize();
             RefreshVisibleCells(0f);
@@ -171,6 +175,9 @@ namespace Reactive.Components.Basic {
             RefreshVisibility();
             if (clearSelection) ClearSelection();
             OnRefresh();
+            if (Refreshed != null) {
+                Refreshed.Invoke(this);
+            }
         }
 
         public void QueueRefreshCellSize() {
@@ -297,6 +304,9 @@ namespace Reactive.Components.Basic {
 
                 OnCellConstruct(cell);
 
+                if (CellConstructed != null) {
+                    CellConstructed.Invoke(cell);
+                }
                 //updating state
                 if (_selectionRefreshNeeded) {
                     var selected = _selectedIndexes.Contains(i);
@@ -352,8 +362,13 @@ namespace Reactive.Components.Basic {
         protected IEnumerable<KeyValuePair<TCell, TItem>> SpawnedCells => _cachedIndexes
             .Select(pair => new KeyValuePair<TCell, TItem>((TCell)pair.Key, _filteredItems[pair.Value]));
 
+        public Action<Table<TItem, TCell>>? EarlyRefreshed;
         protected virtual void OnEarlyRefresh() { }
+
+        public Action<Table<TItem, TCell>>? Refreshed;
         protected virtual void OnRefresh() { }
+
+        public Action<TCell>? CellConstructed;
         protected virtual void OnCellConstruct(TCell cell) { }
 
         #endregion

@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace Reactive.Components.Basic {
+namespace Reactive.Components {
 
     /// <summary>
     /// A <see cref="ListView{LItem,LCell}"/> overload with an ability to make cells in-place.
@@ -56,6 +57,9 @@ namespace Reactive.Components.Basic {
         public void Refresh() {
             RefreshCells();
             OnRefresh();
+            if (Refreshed != null) {
+                Refreshed.Invoke(this);
+            }
         }
 
         #endregion
@@ -74,6 +78,9 @@ namespace Reactive.Components.Basic {
                 var cell = cellsPool.Spawn();
                 cell.Init(item);
                 OnCellConstruct(cell);
+                if (CellConstructed != null) {
+                    CellConstructed.Invoke(cell);
+                }
                 _container.Children.Add(cell);
             }
         }
@@ -81,7 +88,11 @@ namespace Reactive.Components.Basic {
         #endregion
 
         #region Abstraction
+
+        public Action<ListView<LItem, LCell>>? Refreshed;
         protected virtual void OnRefresh() { }
+
+        public Action<LCell>? CellConstructed;
         protected virtual void OnCellConstruct(LCell cell) { }
 
         #endregion
