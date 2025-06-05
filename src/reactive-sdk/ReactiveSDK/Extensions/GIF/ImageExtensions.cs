@@ -32,7 +32,7 @@ public static class ImageExtensions {
             binder.BindModule(loaderModule);
         }
 
-        loaderModule.LoadRemote(url);
+        loaderModule.LoadRemote(url, onStart, onFinish);
 
         return comp;
     }

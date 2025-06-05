@@ -19,15 +19,22 @@ public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
         }
     }
 
-    public void LoadRemote(string url) {
+    public void LoadRemote(string url, Action? onStart, Action<bool>? onFinish) {
         StopLoading();
 
         _image = null;
-        _loadTask = LoadRemoteInternal(url, _tokenSource.Token);
+        _loadTask = LoadRemoteInternal(url, onStart, onFinish, _tokenSource.Token);
     }
 
-    private async Task LoadRemoteInternal(string url, CancellationToken token) {
+    private async Task LoadRemoteInternal(
+        string url,
+        Action? onStart, 
+        Action<bool>? onFinish,
+        CancellationToken token
+    ) {
         try {
+            onStart?.Invoke();
+            
             var image = await ImageLoader.LoadRemoteImage(url, token);
 
             if (image == null) {
@@ -41,8 +48,12 @@ public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
 
             renderer.Sprite = image.Sprite;
             _image = image;
+            
+            onFinish?.Invoke(true);
         } catch (Exception ex) {
             Debug.LogError($"The load has has failed: {ex}");
+            
+            onFinish?.Invoke(false);
         }
     }
 
