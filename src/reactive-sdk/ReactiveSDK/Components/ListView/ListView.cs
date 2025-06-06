@@ -35,7 +35,7 @@ namespace Reactive.Components {
         #region Layout Driver
 
         // Avoid using collection expression as it create a new instance of List each time.
-        public ICollection<ILayoutItem> Children => Array.Empty<ILayoutItem>();
+        ICollection<ILayoutItem> ILayoutDriver.Children => Array.Empty<ILayoutItem>();
 
         public ILayoutController? LayoutController {
             get => _container.LayoutController;
