@@ -1,10 +1,11 @@
 using System;
+using JetBrains.Annotations;
 
 namespace Reactive.Components {
-    public interface ITableCell<in TItem> {
+    [PublicAPI]
+    public interface ITableCell<in TItem> : IListCell<TItem> {
         event Action<ITableCell<TItem>, bool>? CellAskedToChangeSelectionEvent;
 
-        void Init(TItem item);
         void OnCellStateChange(bool selected);
     }
 }

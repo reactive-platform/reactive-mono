@@ -165,9 +165,8 @@ namespace Reactive.Components.Basic {
 
         public void Refresh(bool clearSelection = true) {
             OnEarlyRefresh();
-            if (EarlyRefreshed != null) {
-                EarlyRefreshed.Invoke(this);
-            }
+            EarlyRefreshedCb?.Invoke(this);
+
             RefreshFilter();
             RefreshContentSize();
             RefreshVisibleCells(0f);
@@ -175,9 +174,8 @@ namespace Reactive.Components.Basic {
             RefreshVisibility();
             if (clearSelection) ClearSelection();
             OnRefresh();
-            if (Refreshed != null) {
-                Refreshed.Invoke(this);
-            }
+
+            RefreshedCb?.Invoke(this);
         }
 
         public void QueueRefreshCellSize() {
@@ -303,10 +301,8 @@ namespace Reactive.Components.Basic {
                 var cell = GetOrSpawnCell(i - _visibleCellsStartIndex, item);
 
                 OnCellConstruct(cell);
-
-                if (CellConstructed != null) {
-                    CellConstructed.Invoke(cell);
-                }
+                CellConstructedCb?.Invoke(cell);
+                
                 //updating state
                 if (_selectionRefreshNeeded) {
                     var selected = _selectedIndexes.Contains(i);
@@ -317,7 +313,7 @@ namespace Reactive.Components.Basic {
                 _cachedIndexes[cell] = i;
             }
             _selectionRefreshNeeded = false;
-            
+
             //despawning redundant cells
             i -= _visibleCellsStartIndex;
             while (cellsPool.SpawnedComponents.Count > i) {
@@ -359,16 +355,15 @@ namespace Reactive.Components.Basic {
 
         #region Abstraction
 
+        public Action<Table<TItem, TCell>>? EarlyRefreshedCb;
+        public Action<Table<TItem, TCell>>? RefreshedCb;
+        public Action<TCell>? CellConstructedCb;
+
         protected IEnumerable<KeyValuePair<TCell, TItem>> SpawnedCells => _cachedIndexes
             .Select(pair => new KeyValuePair<TCell, TItem>((TCell)pair.Key, _filteredItems[pair.Value]));
 
-        public Action<Table<TItem, TCell>>? EarlyRefreshed;
         protected virtual void OnEarlyRefresh() { }
-
-        public Action<Table<TItem, TCell>>? Refreshed;
         protected virtual void OnRefresh() { }
-
-        public Action<TCell>? CellConstructed;
         protected virtual void OnCellConstruct(TCell cell) { }
 
         #endregion
