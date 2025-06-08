@@ -39,9 +39,8 @@ public class ListCell<TItem> : ReactiveComponent, IListCell<TItem> {
         if (!IsInitialized) {
             _observableItem = new(item);
             ConstructAndInit();
-        } else {
-            _observableItem!.Value = item;
         }
+        _observableItem!.Value = item;
 
         OnInit(item);
     }
