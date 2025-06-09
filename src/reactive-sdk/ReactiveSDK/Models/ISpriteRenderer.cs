@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using System;
 using UnityEngine;
 
 namespace Reactive.Components;
@@ -10,5 +9,4 @@ namespace Reactive.Components;
 [PublicAPI]
 public interface ISpriteRenderer {
     Sprite Sprite { get; set; }
-    Action<Sprite?>? OnSpriteChanged { get; set; }
 }

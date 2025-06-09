@@ -10,12 +10,9 @@ namespace Reactive.Components.Basic {
             get => _image.sprite;
             set {
                 _image.sprite = value;
-                OnSpriteChanged?.Invoke(value);
                 NotifyPropertyChanged();
             }
         }
-
-        public Action<Sprite?>? OnSpriteChanged { get; set; }
 
         public Color Color {
             get => _image.color;

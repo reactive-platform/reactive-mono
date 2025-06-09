@@ -26,11 +26,13 @@ public static class ImageExtensions {
             loaderModule = new(renderer);
             binder.BindModule(loaderModule);
 
-            renderer.OnSpriteChanged += (newSprite) => {
-                if (newSprite != loaderModule.LoadedImage?.Sprite) {
-                    loaderModule.StopLoading();
-                }
-            };
+            if (renderer is IObservableHost observableRenderer && renderer is ISpriteRenderer spriteRenderer) {
+                observableRenderer.WithListener(x => ((ISpriteRenderer)x).Sprite, (newSprite) => {
+                    if (newSprite != loaderModule.LoadedImage?.Sprite) {
+                        loaderModule.StopLoading();
+                    }
+                });
+            }
         }
 
         loaderModule.LoadRemote(url, onStart, onFinish);
