@@ -8,8 +8,9 @@ namespace Reactive.Components;
 
 [PublicAPI]
 public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
+    public CachedImage? LoadedImage;
+
     private CancellationTokenSource _tokenSource = new();
-    private CachedImage? _image;
     private Task? _loadTask;
 
     public void StopLoading() {
@@ -17,12 +18,14 @@ public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
             _tokenSource.Cancel();
             _tokenSource = new();
         }
+
+        LoadedImage = null;
     }
 
     public void LoadRemote(string url, Action? onStart, Action<bool>? onFinish) {
         StopLoading();
 
-        _image = null;
+        LoadedImage = null;
         _loadTask = LoadRemoteInternal(url, onStart, onFinish, _tokenSource.Token);
     }
 
@@ -35,7 +38,7 @@ public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
         try {
             onStart?.Invoke();
             
-            var image = await ImageLoader.LoadRemoteImage(url, token);
+            var image = await ImageLoader.LoadImage(url, token);
 
             if (image == null) {
                 Debug.LogError("Remote picture has failed to load");
@@ -47,7 +50,7 @@ public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
             }
 
             renderer.Sprite = image.Sprite;
-            _image = image;
+            LoadedImage = image;
             
             onFinish?.Invoke(true);
         } catch (Exception ex) {
@@ -58,8 +61,8 @@ public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
     }
 
     public void OnUpdate() {
-        if (_image?.IsAnimated ?? false) {
-            _image.ManualUpdate(Time.deltaTime);
+        if (LoadedImage?.IsAnimated ?? false) {
+            LoadedImage.ManualUpdate(Time.deltaTime);
         }
     }
 

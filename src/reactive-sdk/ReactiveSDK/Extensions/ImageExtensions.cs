@@ -19,17 +19,20 @@ public static class ImageExtensions {
         Action? onStart = null,
         Action<bool>? onFinish = null
     ) where T : IComponentHolder<ISpriteRenderer>, IComponentHolder<IReactiveModuleBinder> {
-        if (!Uri.TryCreate(url, UriKind.RelativeOrAbsolute, out _)) {
-            Debug.LogError($"Invalid url: {url}");
-            return comp;
-        }
-
         var binder = (comp as IComponentHolder<IReactiveModuleBinder>).Component;
         var renderer = (comp as IComponentHolder<ISpriteRenderer>).Component;
 
         if (ResolveModule(binder) is not { } loaderModule) {
             loaderModule = new(renderer);
             binder.BindModule(loaderModule);
+
+            if (renderer is IObservableHost observableRenderer && renderer is ISpriteRenderer spriteRenderer) {
+                observableRenderer.WithListener(x => ((ISpriteRenderer)x).Sprite, (newSprite) => {
+                    if (newSprite != loaderModule.LoadedImage?.Sprite) {
+                        loaderModule.StopLoading();
+                    }
+                });
+            }
         }
 
         loaderModule.LoadRemote(url, onStart, onFinish);
