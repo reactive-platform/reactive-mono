@@ -13,26 +13,24 @@ public static class ImageExtensions {
     /// <param name="url">A url to load the data from.</param>
     /// <param name="onStart">Called when a picture has started loading.</param>
     /// <param name="onFinish">Called when a picture has finished or failed loading.</param>
-    public static T WithWebSource<T>(
-        this T comp,
+    public static IComponentHolder<T> WithWebSource<T>(
+        this IComponentHolder<T> comp,
         string url,
         Action? onStart = null,
         Action<bool>? onFinish = null
-    ) where T : IComponentHolder<ISpriteRenderer>, IComponentHolder<IReactiveModuleBinder> {
-        var binder = (comp as IComponentHolder<IReactiveModuleBinder>).Component;
-        var renderer = (comp as IComponentHolder<ISpriteRenderer>).Component;
+    ) where T : ReactiveComponent, ISpriteRenderer, IReactiveModuleBinder, IObservableHost {
+        var binder = (comp.Component as IReactiveModuleBinder);
+        var renderer = (comp.Component as ISpriteRenderer);
 
         if (ResolveModule(binder) is not { } loaderModule) {
             loaderModule = new(renderer);
             binder.BindModule(loaderModule);
 
-            if (renderer is IObservableHost observableRenderer && renderer is ISpriteRenderer spriteRenderer) {
-                observableRenderer.WithListener(x => ((ISpriteRenderer)x).Sprite, (newSprite) => {
-                    if (newSprite != loaderModule.LoadedImage?.Sprite) {
-                        loaderModule.StopLoading();
-                    }
-                });
-            }
+            comp.Component.WithListener(x => x.Sprite, (newSprite) => {
+                if (newSprite != loaderModule.LoadedImage?.Sprite) {
+                    loaderModule.StopLoading();
+                }
+            });
         }
 
         loaderModule.LoadRemote(url, onStart, onFinish);
