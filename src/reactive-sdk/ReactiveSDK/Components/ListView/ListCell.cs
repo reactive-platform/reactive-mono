@@ -16,14 +16,21 @@ public class ListCell<TItem> : ReactiveComponent, IListCell<TItem> {
     public ListCell() : base(false) { }
 
     internal Constructor? constructor;
+    private IReactiveComponent? _constructedComponent;
 
     protected override GameObject Construct() {
         if (constructor == null) {
             return base.Construct();
         }
 
-        var component = constructor(_observableItem!);
-        return component.Use(null);
+        _constructedComponent = constructor(_observableItem!);
+        return _constructedComponent.Use(null);
+    }
+
+    protected override void OnInitialize() {
+        if (_constructedComponent is ReactiveComponent comp) {
+            ExposeLayoutFirstComponent(comp);
+        }
     }
 
     #endregion
