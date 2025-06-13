@@ -165,7 +165,7 @@ namespace Reactive.Components.Basic {
 
         public void Refresh(bool clearSelection = true) {
             OnEarlyRefresh();
-            EarlyRefreshedCb?.Invoke(this);
+            WhenEarlyRefreshed?.Invoke(this);
 
             RefreshFilter();
             RefreshContentSize();
@@ -175,7 +175,7 @@ namespace Reactive.Components.Basic {
             if (clearSelection) ClearSelection();
             OnRefresh();
 
-            RefreshedCb?.Invoke(this);
+            WhenRefreshed?.Invoke(this);
         }
 
         public void QueueRefreshCellSize() {
@@ -301,7 +301,7 @@ namespace Reactive.Components.Basic {
                 var cell = GetOrSpawnCell(i - _visibleCellsStartIndex, item);
 
                 OnCellConstruct(cell);
-                CellConstructedCb?.Invoke(cell);
+                WhenCellConstructed?.Invoke(cell);
                 
                 //updating state
                 if (_selectionRefreshNeeded) {
@@ -355,9 +355,9 @@ namespace Reactive.Components.Basic {
 
         #region Abstraction
 
-        public Action<Table<TItem, TCell>>? EarlyRefreshedCb;
-        public Action<Table<TItem, TCell>>? RefreshedCb;
-        public Action<TCell>? CellConstructedCb;
+        public Action<Table<TItem, TCell>>? WhenEarlyRefreshed;
+        public Action<Table<TItem, TCell>>? WhenRefreshed;
+        public Action<TCell>? WhenCellConstructed;
 
         protected IEnumerable<KeyValuePair<TCell, TItem>> SpawnedCells => _cachedIndexes
             .Select(pair => new KeyValuePair<TCell, TItem>((TCell)pair.Key, _filteredItems[pair.Value]));

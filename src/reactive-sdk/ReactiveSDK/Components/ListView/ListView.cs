@@ -62,7 +62,7 @@ namespace Reactive.Components {
         public void Refresh() {
             RefreshCells();
             OnRefresh();
-            RefreshedCb?.Invoke(this);
+            WhenRefreshed?.Invoke(this);
         }
 
         #endregion
@@ -81,7 +81,7 @@ namespace Reactive.Components {
                 cell.Enabled = true;
                 
                 OnCellConstruct(cell);
-                CellConstructedCb?.Invoke(cell);
+                WhenCellConstructed?.Invoke(cell);
                 
                 _container.Children.Add(cell);
             }
@@ -91,8 +91,8 @@ namespace Reactive.Components {
 
         #region Abstraction
 
-        public Action<ListView<TItem, TCell>>? RefreshedCb;
-        public Action<TCell>? CellConstructedCb;
+        public Action<ListView<TItem, TCell>>? WhenRefreshed;
+        public Action<TCell>? WhenCellConstructed;
 
         protected virtual void OnRefresh() { }
         protected virtual void OnCellConstruct(TCell cell) { }

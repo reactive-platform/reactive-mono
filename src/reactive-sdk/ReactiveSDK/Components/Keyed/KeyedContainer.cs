@@ -35,11 +35,11 @@ namespace Reactive.Components {
             get => _control;
             set {
                 if (_control != null) {
-                    _control.SelectedKeyChangedEvent -= HandleSelectedKeyChanged;
+                    _control.WhenKeySelected -= HandleSelectedKeyChanged;
                 }
                 _control = value;
                 if (_control != null) {
-                    _control.SelectedKeyChangedEvent += HandleSelectedKeyChanged;
+                    _control.WhenKeySelected += HandleSelectedKeyChanged;
                 }
             }
         }
