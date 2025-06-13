@@ -106,7 +106,7 @@ public static class ImageLoader {
             bytes ??= await ReadStreamToBufferAsync(stream, token);
 
             // Load as static image (e.g. PNG, JPG)
-            var sprite = ReactiveUtils.CreateSprite(bytes);
+            var sprite = SpriteUtils.CreateSprite(bytes);
 
             return new CachedImage(sprite!);
         } catch (Exception ex) {

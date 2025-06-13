@@ -22,7 +22,7 @@ public class CachedImage {
         _renderTexture = new RenderTexture(gifImage.screen.width, gifImage.screen.height, 0, RenderTextureFormat.Default, 10);
         _renderTexture.Create();
         
-        Sprite = ReactiveUtils.CreateSprite(_renderTexture)!;
+        Sprite = SpriteUtils.CreateSprite(_renderTexture)!;
 
         _colors = Sprite.texture.GetPixels32();
         _colors.Initialize();

@@ -7,7 +7,7 @@ public static class ReactiveResources {
         var texture = new Texture2D(1, 1);
         texture.SetPixel(0, 0, Color.clear);
         texture.Apply();
-        TransparentPixel = ReactiveUtils.CreateSprite(texture)!;
+        TransparentPixel = SpriteUtils.CreateSprite(texture)!;
     }
 
     public static readonly Sprite TransparentPixel;
