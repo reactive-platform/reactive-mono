@@ -43,6 +43,13 @@ namespace Reactive.Components {
         public Action<TKey>? WhenKeySelected { get; set; }
         public Action<TKey, TCell>? WhenCellSpawned { get; set; }
         public Action<TKey, TCell>? WhenCellDespawned { get; set; }
+        
+        event Action<TKey>? IKeyedControl<TKey>.SelectedKeyChangedEvent {
+            add => _selectedKeyChanged += value;
+            remove => _selectedKeyChanged -= value;
+        }
+
+        private Action<TKey>? _selectedKeyChanged;
 
         private readonly ReactivePool<TKey, TCell> _cells = new();
         private readonly ObservableDictionary<TKey, TParam> _items = new();

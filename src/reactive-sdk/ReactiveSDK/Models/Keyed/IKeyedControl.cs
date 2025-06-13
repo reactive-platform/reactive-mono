@@ -9,7 +9,7 @@ namespace Reactive.Components {
     public interface IKeyedControl<TKey> {
         TKey SelectedKey { get; }
 
-        Action<TKey>? WhenKeySelected { get; set; } 
+        event Action<TKey>? SelectedKeyChangedEvent;
         
         void Select(TKey key);
     }
