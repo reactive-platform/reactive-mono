@@ -36,6 +36,7 @@ namespace Reactive.Components {
 
                 _selectedKey = value;
                 WhenKeySelected?.Invoke(value);
+                _selectedKeyChanged?.Invoke(value);
                 NotifyPropertyChanged();
             }
         }
