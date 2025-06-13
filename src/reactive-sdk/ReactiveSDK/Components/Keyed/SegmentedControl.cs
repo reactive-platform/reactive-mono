@@ -35,18 +35,22 @@ namespace Reactive.Components {
                 }
 
                 _selectedKey = value;
-                KeySelectedCb?.Invoke(value);
-                
-                SelectedKeyChangedEvent?.Invoke(value);
+                WhenKeySelected?.Invoke(value);
+                _selectedKeyChanged?.Invoke(value);
                 NotifyPropertyChanged();
             }
         }
         
-        public Action<TKey>? KeySelectedCb { get; set; }
-        public Action<TKey, TCell>? CellSpawnedCb { get; set; }
-        public Action<TKey, TCell>? CellDespawnedCb { get; set; }
+        public Action<TKey>? WhenKeySelected { get; set; }
+        public Action<TKey, TCell>? WhenCellSpawned { get; set; }
+        public Action<TKey, TCell>? WhenCellDespawned { get; set; }
+        
+        event Action<TKey>? IKeyedControl<TKey>.SelectedKeyChangedEvent {
+            add => _selectedKeyChanged += value;
+            remove => _selectedKeyChanged -= value;
+        }
 
-        public event Action<TKey>? SelectedKeyChangedEvent;
+        private Action<TKey>? _selectedKeyChanged;
 
         private readonly ReactivePool<TKey, TCell> _cells = new();
         private readonly ObservableDictionary<TKey, TParam> _items = new();
@@ -64,7 +68,7 @@ namespace Reactive.Components {
 
             _layout.Children.Add(cell);
 
-            CellSpawnedCb?.Invoke(key, cell);
+            WhenCellSpawned?.Invoke(key, cell);
             OnCellSpawned(key, cell);
 
             if (_selectedCell == null) {
@@ -83,7 +87,7 @@ namespace Reactive.Components {
             _layout.Children.Remove(cell);
             _cells.Despawn(cell);
             
-            CellDespawnedCb?.Invoke(key, cell);
+            WhenCellDespawned?.Invoke(key, cell);
             OnCellDespawned(key, cell);
         }
 

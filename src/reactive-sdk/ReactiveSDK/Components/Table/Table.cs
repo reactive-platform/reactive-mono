@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -164,6 +165,8 @@ namespace Reactive.Components.Basic {
 
         public void Refresh(bool clearSelection = true) {
             OnEarlyRefresh();
+            WhenEarlyRefreshed?.Invoke(this);
+
             RefreshFilter();
             RefreshContentSize();
             RefreshVisibleCells(0f);
@@ -171,6 +174,8 @@ namespace Reactive.Components.Basic {
             RefreshVisibility();
             if (clearSelection) ClearSelection();
             OnRefresh();
+
+            WhenRefreshed?.Invoke(this);
         }
 
         public void QueueRefreshCellSize() {
@@ -296,7 +301,8 @@ namespace Reactive.Components.Basic {
                 var cell = GetOrSpawnCell(i - _visibleCellsStartIndex, item);
 
                 OnCellConstruct(cell);
-
+                WhenCellConstructed?.Invoke(cell);
+                
                 //updating state
                 if (_selectionRefreshNeeded) {
                     var selected = _selectedIndexes.Contains(i);
@@ -307,7 +313,7 @@ namespace Reactive.Components.Basic {
                 _cachedIndexes[cell] = i;
             }
             _selectionRefreshNeeded = false;
-            
+
             //despawning redundant cells
             i -= _visibleCellsStartIndex;
             while (cellsPool.SpawnedComponents.Count > i) {
@@ -348,6 +354,10 @@ namespace Reactive.Components.Basic {
         #endregion
 
         #region Abstraction
+
+        public Action<Table<TItem, TCell>>? WhenEarlyRefreshed;
+        public Action<Table<TItem, TCell>>? WhenRefreshed;
+        public Action<TCell>? WhenCellConstructed;
 
         protected IEnumerable<KeyValuePair<TCell, TItem>> SpawnedCells => _cachedIndexes
             .Select(pair => new KeyValuePair<TCell, TItem>((TCell)pair.Key, _filteredItems[pair.Value]));
