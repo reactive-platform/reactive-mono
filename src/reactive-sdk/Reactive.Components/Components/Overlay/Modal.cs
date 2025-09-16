@@ -35,6 +35,11 @@ public class Modal : ReactiveComponent, ILayoutDriver {
     public RectTransform? PlacementAnchor { get; set; }
 
     /// <summary>
+    /// Called when user clicks outside the modal view.
+    /// </summary>
+    public Action? OnClickOutside { get; set; }
+
+    /// <summary>
     /// Pushes the modal to the stack using params from the object.
     /// </summary>
     public bool Push() {
@@ -110,7 +115,8 @@ public class Modal : ReactiveComponent, ILayoutDriver {
             Children = {
                 new Image()
                     .Bind(ref _blocker)
-                    .WithRectExpand(),
+                    .WithRectExpand()
+                    .WithPointerEvents(onDown: _ => OnClickOutside?.Invoke()),
 
                 new Layout().Bind(ref _wrapper)
             }
