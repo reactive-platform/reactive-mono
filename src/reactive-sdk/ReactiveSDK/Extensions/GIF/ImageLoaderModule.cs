@@ -37,7 +37,7 @@ public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
     ) {
         try {
             onStart?.Invoke();
-            
+
             var image = await ImageLoader.LoadImage(url, token);
 
             if (image == null) {
@@ -51,10 +51,12 @@ public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
 
             renderer.Sprite = image.Sprite;
             LoadedImage = image;
-            
+
             onFinish?.Invoke(true);
+        } catch (TaskCanceledException) {
+            // do nothing
         } catch (Exception ex) {
-            Debug.LogError($"The load has has failed: {ex}");
+            Debug.LogError($"Image loading has failed: {ex}");
             
             onFinish?.Invoke(false);
         }
