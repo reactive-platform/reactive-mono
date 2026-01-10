@@ -168,8 +168,8 @@ namespace Reactive.Components.Basic {
             WhenEarlyRefreshed?.Invoke(this);
 
             RefreshFilter();
-            RefreshContentSize();
             RefreshVisibleCells(0f);
+            RefreshContentSize();
             ScrollContentIfNeeded();
             RefreshVisibility();
             if (clearSelection) ClearSelection();
