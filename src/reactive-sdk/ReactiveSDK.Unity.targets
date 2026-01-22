@@ -1,0 +1,10 @@
+<Project>
+	<ItemGroup>
+        <Reference Include="UnityEngine.TMPro">
+            <HintPath>$(UnityAssembliesDir)\Unity.TextMeshPro.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Net.Http">
+            <HintPath>$(UnityAssembliesDir)\System.Net.Http.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+</Project>

@@ -1,0 +1,26 @@
+<Project>
+    <PropertyGroup>
+        <!-- Can be replaced by requiring project if needed -->
+        <ReactiveSDKDir>..\reactive-sdk\ReactiveSDK\</ReactiveSDKDir>
+        <ReactiveSDKProject>$(ReactiveSDKDir)\ReactiveSDK.csproj</ReactiveSDKProject>
+    </PropertyGroup>
+    <ItemGroup>
+		 <Reference Include="ReactiveSDK">
+            <HintPath>$(ReactiveSDKDir)\bin\$(Configuration)\$(TargetFramework)\Reactive.Components.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    <Target Name="BuildReactiveSDK" BeforeTargets="PrepareForBuild">
+        <Message Importance="high" Text="Started building project: ReactiveSDK"/>
+        <!-- Restoring nugets -->
+        <Message Importance="high" Text="Restoring nugets..."/>
+        <MSBuild Projects="$(ReactiveSDKProject)" Targets="Restore"/>
+        <!-- Building -->
+        <Message Importance="high" Text="Unity assemblies directory: $(UnityAssembliesDir)"/>
+        <Message Importance="high" Text="Building..."/>
+        <MSBuild Projects="$(ReactiveSDKProject)"
+                 Properties="Configuration=$(Configuration);UnityAssembliesDir=$(UnityAssembliesDir)"
+                 RebaseOutputs="True"/>
+    </Target>
+    <!-- Importing unity references -->
+    <Import Project="$(ReactiveSDKDir)\..\ReactiveSDK.Unity.targets"/>
+</Project>
