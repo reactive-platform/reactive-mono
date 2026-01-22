@@ -1,0 +1,116 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net48</TargetFramework>
+        <OutputType>Library</OutputType>
+        <LocalRefsDir Condition="Exists('..\Refs')">..\Refs</LocalRefsDir>
+        <BeatSaberDir>$(LocalRefsDir)</BeatSaberDir>
+        <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <AssemblyName>Reactive.BeatSaber.Components</AssemblyName>
+        <Configurations>Debug;Release;Debug Editor;Release Editor</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <!-- Override in .csproj.user if needed -->
+        <CopyArtifacts>True</CopyArtifacts>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="$(Configuration.Contains('Editor'))">
+        <DefineConstants>COMPILE_EDITOR</DefineConstants>
+    </PropertyGroup>
+
+    <Import Project="$(MSBuildProjectFile).user" Condition="Exists('$(MSBuildProjectFile).user')"/>
+    <PropertyGroup>
+        <UnityAssembliesDir Condition="'$(UnityAssembliesDir)' == ''">$(BeatSaberDir)\Beat Saber_Data\Managed</UnityAssembliesDir>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="IPA.Loader">
+            <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\IPA.Loader.dll</HintPath>
+        </Reference>
+        <Reference Include="HMUI" Publicize="True">
+            <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\HMUI.dll</HintPath>
+        </Reference>
+        <Reference Include="BeatSaber.ViewSystem" Publicize="True">
+            <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BeatSaber.ViewSystem.dll</HintPath>
+        </Reference>
+        <Reference Include="BGLib.AppFlow" Publicize="True">
+            <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BGLib.AppFlow.dll</HintPath>
+        </Reference>
+        <Reference Include="Menu.ColorSettings">
+            <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Menu.ColorSettings.dll</HintPath>
+        </Reference>
+        <Reference Include="Menu.CommonLib">
+            <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Menu.CommonLib.dll</HintPath>
+        </Reference>
+        <Reference Include="VRUI" Publicize="True">
+            <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\VRUI.dll</HintPath>
+        </Reference>
+        <Reference Include="Main">
+            <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Main.dll</HintPath>
+        </Reference>
+        <Reference Include="0Harmony">
+            <HintPath>$(BeatSaberDir)\Libs\0Harmony.dll</HintPath>
+        </Reference>
+        <Reference Include="HMLib">
+            <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\HMLib.dll</HintPath>
+        </Reference>
+        <Reference Include="GameInit">
+            <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\GameInit.dll</HintPath>
+        </Reference>
+        <Reference Include="BeatSaber.Init">
+            <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BeatSaber.Init.dll</HintPath>
+        </Reference>
+        <Reference Include="Zenject" Publicize="True">
+            <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Zenject.dll</HintPath>
+        </Reference>
+        <Reference Include="Zenject-usage">
+            <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Zenject-usage.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEditor.CoreModule">
+            <HintPath>$(UnityAssembliesDir)\UnityEditor.CoreModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.AssetBundleModule">
+            <HintPath>$(UnityAssembliesDir)\UnityEngine.AssetBundleModule.dll</HintPath>
+        </Reference>
+        <Reference Include="Reactive">
+            <HintPath>$(ReactiveSDKDir)\bin\$(Configuration)\$(TargetFramework)\Reactive.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup Condition="!$(Configuration.Contains('Editor'))">
+        <EmbeddedResource Include="Resources\AssetBundles\asset_bundle"/>
+        <EmbeddedResource Include="manifest.json"/>
+    </ItemGroup>
+
+    <!-- Post-processing -->
+    <PropertyGroup>
+        <ArtifactsDest>$(BeatSaberDir)\Plugins</ArtifactsDest>
+        <LibArtifactsDest>$(BeatSaberDir)\Libs</LibArtifactsDest>
+        <ArtifactFile>bin\$(Configuration)\net48\Reactive</ArtifactFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Artifacts Include="$(ArtifactFile).BeatSaber.Components.dll;$(ArtifactFile).BeatSaber.Components.pdb"/>
+        <LibArtifacts Include="$(ArtifactFile).Components.dll;$(ArtifactFile).Components.pdb;$(ArtifactFile).dll;$(ArtifactFile).pdb"/>
+    </ItemGroup>
+
+    <Target Condition="$(CopyArtifacts) == True" Name="CopyArtifacts" AfterTargets="Build">
+        <Message Importance="high" Text="Copying artifacts:
+    BeatSaberSDK to $(ArtifactsDest)
+    Libs to $(LibArtifactsDest)"/>
+        <Copy SourceFiles="@(Artifacts)" DestinationFolder="$(ArtifactsDest)"/>
+        <Copy SourceFiles="@(LibArtifacts)" DestinationFolder="$(LibArtifactsDest)"/>
+    </Target>
+
+    <ItemGroup>
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="BeatSaberModdingTools.Tasks" Version="2.0.0-beta7" PrivateAssets="all"/>
+    </ItemGroup>
+
+    <Import Project="..\reactive-sdk\ReactiveSDK.ExternalBuild.targets"/>
+    <Import Project="..\reactive-sdk\ReactiveSDK.Unity.targets"/>
+    <Import Project="..\reactive-sdk\reactive-ui\ReactiveUI.Unity.targets"/>
+</Project>
