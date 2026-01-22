@@ -1,0 +1,42 @@
+<Project DefaultTargets="Build">
+    <Import Project="../Directory.Build.props"/>
+
+    <PropertyGroup>
+        <BsRoot>$(BuildRoot)/BeatSaber</BsRoot>
+
+        <LibsDir>$(BsRoot)/Source/Libs</LibsDir>
+        <PluginsDir>$(BsRoot)/Source/Plugins</PluginsDir>
+
+        <ReactiveDir>../src/reactive/ReactiveUI</ReactiveDir>
+        <ReactiveSdkDir>../src/reactive-sdk/ReactiveSDK</ReactiveSdkDir>
+        <ReactiveBsSdkDir>../src/reactive-bs-sdk/BeatSaberSDK</ReactiveBsSdkDir>
+    </PropertyGroup>
+
+    <Target Name="Build">
+        <MSBuild
+                Projects="$(ReactiveBsSdkDir)/BeatSaberSDK.csproj"
+                Properties="Configuration=$(Configuration);UnityAssembliesDir=$(UnityAssembliesDir);BeatSaberDir=$(BeatSaberDir)"
+                Targets="Build"
+                BuildInParallel="false"
+        />
+    </Target>
+
+    <Target Name="CopyFiles" AfterTargets="Build">
+        <PropertyGroup>
+            <Profile>bin/net48</Profile>
+        </PropertyGroup>
+
+        <Copy SourceFiles="$(ReactiveDir)/$(Profile)/Reactive.dll" DestinationFolder="$(LibsDir)"/>
+        <Copy SourceFiles="$(ReactiveSdkDir)/$(Profile)/Reactive.Components.dll" DestinationFolder="$(LibsDir)"/>
+        <Copy SourceFiles="$(ReactiveBsSdkDir)/$(Profile)/Reactive.BeatSaber.Components.dll" DestinationFolder="$(PluginsDir)"/>
+    </Target>
+
+    <Target Name="PackArchive" AfterTargets="CopyFiles">
+        <ZipDirectory
+                SourceDirectory="$(BsRoot)/Source"
+                DestinationFile="$(BsRoot)/BeatSaber_$(BuildProfile)_$(MSBuildThisFileModifiedTime).zip"
+        />
+
+        <Message Text="Packed BeatSaber build: $(ArchiveFile)" Importance="High"/>
+    </Target>
+</Project>
