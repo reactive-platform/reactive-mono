@@ -10,6 +10,8 @@
         <ReactiveDir>../src/reactive/ReactiveUI</ReactiveDir>
         <ReactiveSdkDir>../src/reactive-sdk/ReactiveSDK</ReactiveSdkDir>
         <ReactiveBsSdkDir>../src/reactive-bs-sdk/BeatSaberSDK</ReactiveBsSdkDir>
+        
+        <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
     </PropertyGroup>
 
     <Target Name="Build">
@@ -23,7 +25,7 @@
 
     <Target Name="CopyFiles" AfterTargets="Build">
         <PropertyGroup>
-            <Profile>bin/net48</Profile>
+            <Profile>bin/$(Configuration)/net48</Profile>
         </PropertyGroup>
 
         <Copy SourceFiles="$(ReactiveDir)/$(Profile)/Reactive.dll" DestinationFolder="$(LibsDir)"/>
@@ -32,9 +34,24 @@
     </Target>
 
     <Target Name="PackArchive" AfterTargets="CopyFiles">
+        <GetAssemblyIdentity AssemblyFiles="$(ReactiveBsSdkDir)/$(Profile)/Reactive.BeatSaber.Components.dll">
+            <Output TaskParameter="Assemblies" ItemName="AssemblyIdentities"/>
+        </GetAssemblyIdentity>
+
+        <PropertyGroup>
+            <!-- Raw version has 4 parameters (e.g. 0.2.0.0), so we truncate to make it simple -->
+            <RawVersion>%(AssemblyIdentities.Version)</RawVersion>
+            <CleanVersion>$([System.Version]::Parse($(RawVersion)).ToString(3))</CleanVersion>
+
+            <ArchiveFile>BeatSaber_$(Configuration)_$(CleanVersion).zip</ArchiveFile>
+            <ArchivePath>$(BsRoot)/$(ArchiveFile)</ArchivePath>
+        </PropertyGroup>
+
+        <Delete Files="$(ArchivePath)" Condition="Exists('$(ArchivePath)')" />
+        
         <ZipDirectory
                 SourceDirectory="$(BsRoot)/Source"
-                DestinationFile="$(BsRoot)/BeatSaber_$(BuildProfile)_$(MSBuildThisFileModifiedTime).zip"
+                DestinationFile="$(ArchivePath)"
         />
 
         <Message Text="Packed BeatSaber build: $(ArchiveFile)" Importance="High"/>
