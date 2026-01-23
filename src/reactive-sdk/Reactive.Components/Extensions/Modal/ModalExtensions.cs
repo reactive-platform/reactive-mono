@@ -56,17 +56,20 @@ namespace Reactive.Components {
             Optional<AnimationDuration> duration = default,
             AnimationCurve? curve = null
         ) where T : ModalBase {
-            var scale = ValueUtils.AnimatedFloat(0f, duration.GetValueOrDefault(200.ms()), curve);
+            var scale = StateUtils.RememberAnimatedFloat(modal, 0f, duration.GetValueOrDefault(200.ms), curve);
 
-            modal.OpenAnimation = AnimationUtils.Animation(
-                () => {
+            modal.OpenAnimation = new SharedAnimation(
+                x => {
                     scale.SetValueImmediate(modal.ContentTransform.localScale.x);
                     scale.Value = 1f;
-                },
-                [scale]
+
+                    scale.OnFinish ??= _ => {
+                        x.NotifyFinished();
+                    };
+                }
             );
 
-            modal.Animate(
+            modal.On(
                 scale,
                 static (x, y) => {
                     x.ContentTransform.localScale = y * Vector3.one;
@@ -81,17 +84,20 @@ namespace Reactive.Components {
             Optional<AnimationDuration> duration = default,
             AnimationCurve? curve = null
         ) where T : ModalBase {
-            var scale = ValueUtils.AnimatedFloat(1f, duration.GetValueOrDefault(200.ms()), curve);
+            var scale = StateUtils.RememberAnimatedFloat(modal, 1f, duration.GetValueOrDefault(200.ms), curve);
 
-            modal.OpenAnimation = AnimationUtils.Animation(
-                () => {
+            modal.OpenAnimation = new SharedAnimation(
+                x => {
                     scale.SetValueImmediate(modal.ContentTransform.localScale.x);
                     scale.Value = 0f;
-                },
-                [scale]
+                    
+                    scale.OnFinish ??= _ => {
+                        x.NotifyFinished();
+                    };
+                }
             );
 
-            modal.Animate(
+            modal.On(
                 scale,
                 static (x, y) => {
                     x.ContentTransform.localScale = y * Vector3.one;

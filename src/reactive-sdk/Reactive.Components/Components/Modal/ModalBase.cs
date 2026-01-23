@@ -4,8 +4,8 @@ using JetBrains.Annotations;
 namespace Reactive.Components {
     [PublicAPI]
     public interface IModal : IReactiveComponent {
-        ISharedAnimation? OpenAnimation { get; set; }
-        ISharedAnimation? CloseAnimation { get; set; }
+        SharedAnimation? OpenAnimation { get; set; }
+        SharedAnimation? CloseAnimation { get; set; }
         
         event Action<IModal, bool>? ModalClosedEvent;
         event Action<IModal, bool>? ModalOpenedEvent;
@@ -31,41 +31,11 @@ namespace Reactive.Components {
 
         #region Modal
 
-        public ISharedAnimation? CloseAnimation {
-            get => _closeAnimation;
-            set {
-                if (_closeAnimation != null) {
-                    UnbindModule(_closeAnimation);
-                }
-                
-                _closeAnimation = value;
-                
-                if (_closeAnimation != null) {
-                    BindModule(_closeAnimation);
-                }
-            }
-        }
-
-        public ISharedAnimation? OpenAnimation {
-            get => _openAnimation;
-            set {
-                if (_openAnimation != null) {
-                    UnbindModule(_openAnimation);
-                }
-                
-                _openAnimation = value;
-                
-                if (_openAnimation != null) {
-                    BindModule(_openAnimation);
-                }
-            }
-        }
+        public SharedAnimation? CloseAnimation { get; set; }
+        public SharedAnimation? OpenAnimation { get; set; }
 
         protected bool IsOpened { get; private set; }
         protected bool IsPaused { get; private set; }
-
-        private ISharedAnimation? _closeAnimation;
-        private ISharedAnimation? _openAnimation;
 
         public event Action<IModal, bool>? ModalClosedEvent;
         public event Action<IModal, bool>? ModalOpenedEvent;
@@ -98,7 +68,6 @@ namespace Reactive.Components {
             if (OpenAnimation != null && !immediate) {
                 OpenAnimation.AnimationFinishedEvent += HandleOpenAnimationFinished;
                 OpenAnimation.Play();
-                OpenAnimation.OnUpdate();
 
                 ModalOpenedEvent?.Invoke(this, false);
             } else {
@@ -115,7 +84,6 @@ namespace Reactive.Components {
             if (CloseAnimation != null && !immediate) {
                 CloseAnimation.AnimationFinishedEvent += HandleCloseAnimationFinished;
                 CloseAnimation.Play();
-                CloseAnimation.OnUpdate();
 
                 ModalClosedEvent?.Invoke(this, false);
             } else {

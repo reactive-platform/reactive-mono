@@ -59,8 +59,8 @@ public class WebImage : Image {
 
     #region Construct
 
-    private AnimatedValue<float> _spinnerAlpha = null!;
-    private ObservableValue<float> _backgroundAlpha = null!;
+    private AnimatedState<float> _spinnerAlpha = null!;
+    private State<float> _backgroundAlpha = null!;
     private Spinner _spinner = null!;
 
     protected override void Construct(RectTransform rect) {
@@ -78,8 +78,8 @@ public class WebImage : Image {
             }
             .WithNativeComponent(out CanvasGroup group)
             .AsBackground()
-            .Animate(_backgroundAlpha, (x, y) => x.Color = Color.black.ColorWithAlpha(y), applyImmediately: true)
-            .Animate(_spinnerAlpha, (_, y) => group.alpha = y)
+            .On(_backgroundAlpha, (x, y) => x.Color = Color.black.ColorWithAlpha(y), applyImmediately: true)
+            .On(_spinnerAlpha, (_, y) => group.alpha = y)
             .AsFlexGroup(justifyContent: Justify.Center, alignItems: Align.Center)
             .WithRectExpand()
             .Use(rect);

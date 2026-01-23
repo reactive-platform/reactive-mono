@@ -14,17 +14,17 @@ public static class BasicEffects {
     ) where T : IComponentHolder<ButtonBase> {
         var comp = holder.Component;
         
-        var value = ValueUtils.RememberAnimatedVector(
+        var value = StateUtils.RememberAnimatedVector(
             comp,
             baseScale,
-            duration.GetValueOrDefault(10.fact()),
+            duration.GetValueOrDefault(10.fact),
             curve
         );
         comp.WithListener(
             static x => x.IsHovered,
             x => value.Value = x ? hoverScale : baseScale
         );
-        comp.Animate(
+        comp.On(
             value,
             static (x, y) => x.ContentTransform.localScale = y
         );
