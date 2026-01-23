@@ -82,8 +82,8 @@ namespace Reactive.Components {
         public event Action<IModal, bool>? ModalOpenedEvent;
         public event Action<IModal, float>? OpenProgressChangedEvent;
 
-        public ISharedAnimation? OpenAnimation { get; set; }
-        public ISharedAnimation? CloseAnimation { get; set; }
+        public SharedAnimation? OpenAnimation { get; set; }
+        public SharedAnimation? CloseAnimation { get; set; }
 
         public void Pause() {
             Modal.Pause();

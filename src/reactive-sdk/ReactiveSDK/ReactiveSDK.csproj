@@ -36,9 +36,17 @@
         <Reference Include="UnityEngine.ImageConversionModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.ImageConversionModule.dll</HintPath>
         </Reference>
+    </ItemGroup>
+    
+    <ItemGroup>
         <ProjectReference
-                Include="..\..\reactive\ReactiveUI\ReactiveUI.csproj"
+                Include="..\..\reactive\Reactive\Reactive.csproj"
                 Properties="UnityAssembliesDir=$(UnityAssembliesDir)"
+        />
+        <!-- Analyzer -->
+        <ProjectReference
+                Include="..\..\reactive\Reactive.Compiler\Reactive.Compiler.csproj"
+                ReferenceOutputAssembly="false"
         />
     </ItemGroup>
 </Project>

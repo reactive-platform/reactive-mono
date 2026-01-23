@@ -61,7 +61,7 @@ namespace Reactive.BeatSaber.Components {
 
         #region Setup
 
-        private AnimatedValue<float> _progressValue = null!;
+        private AnimatedState<float> _progressValue = null!;
 
         private void UpdateAnimations(float progress) {
             LerpPosition(progress);

@@ -7,7 +7,7 @@
         <LibsDir>$(BsRoot)/Source/Libs</LibsDir>
         <PluginsDir>$(BsRoot)/Source/Plugins</PluginsDir>
 
-        <ReactiveDir>../src/reactive/ReactiveUI</ReactiveDir>
+        <ReactiveDir>../src/reactive/Reactive</ReactiveDir>
         <ReactiveSdkDir>../src/reactive-sdk/ReactiveSDK</ReactiveSdkDir>
         <ReactiveBsSdkDir>../src/reactive-bs-sdk/BeatSaberSDK</ReactiveBsSdkDir>
         
@@ -18,7 +18,7 @@
         <MSBuild
                 Projects="$(ReactiveBsSdkDir)/BeatSaberSDK.csproj"
                 Properties="Configuration=$(Configuration);UnityAssembliesDir=$(UnityAssembliesDir);BeatSaberDir=$(BeatSaberDir)"
-                Targets="Build"
+                Targets="Restore;Build"
                 BuildInParallel="false"
         />
     </Target>

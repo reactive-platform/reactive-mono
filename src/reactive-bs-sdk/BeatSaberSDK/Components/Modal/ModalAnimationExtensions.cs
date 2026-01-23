@@ -15,23 +15,31 @@ namespace Reactive.BeatSaber.Components {
             var modal = wrapper.Component;
             var group = new Lazy<CanvasGroup>(() => modal.Content.GetOrAddComponent<CanvasGroup>());
 
-            var modalScale = ValueUtils.AnimatedFloat(0f, duration.GetValueOrDefault(150.ms()));
+            var modalScale = StateUtils.RememberAnimatedFloat(modal, 0f, duration.GetValueOrDefault(150.ms));
 
-            modal.OpenAnimation = AnimationUtils.Animation(
-                () => modalScale.Value = 1f,
-                [modalScale]
+            modal.OpenAnimation = new SharedAnimation(
+                x => {
+                     modalScale.Value = 1f;
+                     modalScale.OnFinish ??= _ => {
+                         x.NotifyFinished();
+                     };
+                }
             );
 
-            modal.CloseAnimation = AnimationUtils.Animation(
-                () => modalScale.Value = 0f,
-                [modalScale]
+            modal.CloseAnimation = new SharedAnimation(
+                x => {
+                    modalScale.Value = 0f;
+                    modalScale.OnFinish ??= _ => {
+                        x.NotifyFinished();
+                    };
+                }
             );
 
             modalScale.OnStart = _ => {
                 group.Evaluate();
             };
             
-            modal.Animate(
+            modal.On(
                 modalScale,
                 (x, y) => {
                     group.Value.alpha = y;

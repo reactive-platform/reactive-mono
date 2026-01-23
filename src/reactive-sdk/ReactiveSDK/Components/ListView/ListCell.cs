@@ -5,7 +5,7 @@ namespace Reactive.Components;
 
 [PublicAPI]
 public class ListCell<TItem> : ReactiveComponent, IListCell<TItem> {
-    public delegate IReactiveComponent Constructor(INotifyValueChanged<TItem> item);
+    public delegate IReactiveComponent Constructor(IState<TItem> item);
 
     #region Factory
 
@@ -38,9 +38,9 @@ public class ListCell<TItem> : ReactiveComponent, IListCell<TItem> {
     #region Cell
 
     public TItem Item => _observableItem!;
-    public INotifyValueChanged<TItem> ObservableItem => _observableItem!;
+    public IState<TItem> ObservableItem => _observableItem!;
 
-    private ObservableValue<TItem>? _observableItem;
+    private State<TItem>? _observableItem;
 
     void IListCell<TItem>.Init(TItem item) {
         if (!IsInitialized) {

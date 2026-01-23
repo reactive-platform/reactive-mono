@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Reactive.Components {
     [PublicAPI]
     public class TableCell<TItem> : ListCell<TItem>, ITableCell<TItem> {
-        public new delegate IReactiveComponent Constructor(INotifyValueChanged<TItem> item, ObservableValue<bool> selected);
+        public new delegate IReactiveComponent Constructor(IState<TItem> item, State<bool> selected);
 
         #region Factory
 
@@ -25,7 +25,7 @@ namespace Reactive.Components {
         }
 
         private event Action<ITableCell<TItem>, bool>? CellAskedToChangeSelectionEvent;
-        private ObservableValue<bool> _observableSelected = new(false);
+        private State<bool> _observableSelected = new(false);
         private bool _canSelect = true;
 
         void ITableCell<TItem>.OnCellStateChange(bool selected) {
@@ -44,7 +44,7 @@ namespace Reactive.Components {
         #region Abstraction
 
         public bool Selected => _observableSelected;
-        public INotifyValueChanged<bool> ObservableSelected => _observableSelected;
+        public IState<bool> ObservableSelected => _observableSelected;
 
         protected virtual void OnCellStateChange(bool selected) { }
 

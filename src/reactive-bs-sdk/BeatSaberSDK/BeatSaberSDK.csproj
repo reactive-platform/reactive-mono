@@ -63,10 +63,6 @@
         <Reference Include="UnityEngine.AssetBundleModule">
             <HintPath>$(UnityAssembliesDir)\UnityEngine.AssetBundleModule.dll</HintPath>
         </Reference>
-        <ProjectReference 
-                Include="..\..\reactive-sdk\ReactiveSDK\ReactiveSDK.csproj"
-                Properties="UnityAssembliesDir=$(UnityAssembliesDir)"
-        />
     </ItemGroup>
     
     <!-- Unity deps -->
@@ -98,6 +94,13 @@
         <Reference Include="UnityEngine.ImageConversionModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.ImageConversionModule.dll</HintPath>
         </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference
+                Include="..\..\reactive-sdk\ReactiveSDK\ReactiveSDK.csproj"
+                Properties="UnityAssembliesDir=$(UnityAssembliesDir)"
+        />
     </ItemGroup>
 
     <ItemGroup Condition="!$(Configuration.Contains('Editor'))">
