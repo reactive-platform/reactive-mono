@@ -2,7 +2,6 @@
     <Import Project="Directory.Build.props.user" Condition="Exists('Directory.Build.props.user')" />
     
     <PropertyGroup>
-        <BuildProfile Condition="'$(Configuration)' == ''">Release</BuildProfile>
         <BuildRoot>$(MSBuildThisFileDirectory)/artifacts</BuildRoot>
 
         <UnityAssembliesDir Condition="'$(UnityAssembliesDir)' == ''">$(BeatSaberDir)/Beat Saber_Data/Managed</UnityAssembliesDir>
