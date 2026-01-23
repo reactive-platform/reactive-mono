@@ -4,11 +4,17 @@
         <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
-        <AssemblyName>Reactive</AssemblyName>
-        <RootNamespace>Reactive</RootNamespace>
+        <AssemblyName>Reactive.Components</AssemblyName>
+        <RootNamespace>Reactive.Components</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
+        <Reference Include="UnityEngine.TMPro">
+            <HintPath>$(UnityAssembliesDir)\Unity.TextMeshPro.dll</HintPath>
+        </Reference>
+        <Reference Include="System.Net.Http">
+            <HintPath>$(UnityAssembliesDir)\System.Net.Http.dll</HintPath>
+        </Reference>
         <Reference Include="UnityEngine">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.dll</HintPath>
         </Reference>
@@ -30,9 +36,9 @@
         <Reference Include="UnityEngine.ImageConversionModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.ImageConversionModule.dll</HintPath>
         </Reference>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Reactive.Compiler.Models\Reactive.Compiler.Models.csproj" />
+        <ProjectReference
+                Include="..\..\reactive\ReactiveUI\ReactiveUI.csproj"
+                Properties="UnityAssembliesDir=$(UnityAssembliesDir)"
+        />
     </ItemGroup>
 </Project>
