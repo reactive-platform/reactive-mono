@@ -46,62 +46,9 @@ namespace Reactive.Components {
             Optional<AnimationDuration> duration = default,
             AnimationCurve? curve = null
         ) where T : ModalBase {
-            WithScaleOpenAnimation(modal, duration, curve);
-            WithScaleCloseAnimation(modal, duration, curve);
-            return modal;
-        }
-
-        public static T WithScaleOpenAnimation<T>(
-            this T modal,
-            Optional<AnimationDuration> duration = default,
-            AnimationCurve? curve = null
-        ) where T : ModalBase {
-            var scale = StateUtils.RememberAnimatedFloat(modal, 0f, duration.GetValueOrDefault(200.ms), curve);
-
-            modal.OpenAnimation = new SharedAnimation(
-                x => {
-                    scale.SetValueImmediate(modal.ContentTransform.localScale.x);
-                    scale.Value = 1f;
-
-                    scale.OnFinish ??= _ => {
-                        x.NotifyFinished();
-                    };
-                }
-            );
-
-            modal.On(
-                scale,
-                static (x, y) => {
-                    x.ContentTransform.localScale = y * Vector3.one;
-                }
-            );
-
-            return modal;
-        }
-
-        public static T WithScaleCloseAnimation<T>(
-            this T modal,
-            Optional<AnimationDuration> duration = default,
-            AnimationCurve? curve = null
-        ) where T : ModalBase {
-            var scale = StateUtils.RememberAnimatedFloat(modal, 1f, duration.GetValueOrDefault(200.ms), curve);
-
-            modal.OpenAnimation = new SharedAnimation(
-                x => {
-                    scale.SetValueImmediate(modal.ContentTransform.localScale.x);
-                    scale.Value = 0f;
-                    
-                    scale.OnFinish ??= _ => {
-                        x.NotifyFinished();
-                    };
-                }
-            );
-
-            modal.On(
-                scale,
-                static (x, y) => {
-                    x.ContentTransform.localScale = y * Vector3.one;
-                }
+            modal.OpenProgress.AttachLerp(
+                x => modal.ContentTransform.localScale = x * Vector3.one,
+                curve ?? AnimationCurve.Linear
             );
 
             return modal;

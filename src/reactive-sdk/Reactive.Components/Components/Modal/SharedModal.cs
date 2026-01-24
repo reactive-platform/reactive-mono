@@ -51,6 +51,7 @@ namespace Reactive.Components {
 
             _modal.ModalClosedEvent += HandleModalClosed;
             _modal.ModalOpenedEvent += HandleModalOpened;
+            Modal.OpenProgress.Attach(HandleOpenProgressChanged);
 
             OnSpawn();
         }
@@ -58,6 +59,7 @@ namespace Reactive.Components {
         private void DespawnModal() {
             _modal!.ModalClosedEvent -= HandleModalClosed;
             _modal.ModalOpenedEvent -= HandleModalOpened;
+            Modal.OpenProgress.Detach(HandleOpenProgressChanged);
 
             if (_modules != null) {
                 foreach (var module in _modules) {
@@ -80,10 +82,10 @@ namespace Reactive.Components {
 
         public event Action<IModal, bool>? ModalClosedEvent;
         public event Action<IModal, bool>? ModalOpenedEvent;
-        public event Action<IModal, float>? OpenProgressChangedEvent;
 
-        public SharedAnimation? OpenAnimation { get; set; }
-        public SharedAnimation? CloseAnimation { get; set; }
+        public IState<float> OpenProgress => _openProgress;
+
+        private State<float> _openProgress = StateUtils.Remember(0f);
 
         public void Pause() {
             Modal.Pause();
@@ -99,10 +101,7 @@ namespace Reactive.Components {
 
         public void Open(bool immediate) {
             SpawnModal();
-
-            Modal.OpenAnimation = OpenAnimation;
-            Modal.CloseAnimation = CloseAnimation;
-
+            
             if (_modules != null) {
                 foreach (var module in _modules) {
                     Modal.BindModule(module);
@@ -201,8 +200,8 @@ namespace Reactive.Components {
             ModalOpenedEvent?.Invoke(this, finished);
         }
 
-        private void HandleOpenProgressChanged(IModal modal, float progress) {
-            OpenProgressChangedEvent?.Invoke(this, progress);
+        private void HandleOpenProgressChanged(float progress) {
+            _openProgress.Value = progress;
         }
 
         #endregion

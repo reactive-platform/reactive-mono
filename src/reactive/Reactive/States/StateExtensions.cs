@@ -33,7 +33,37 @@ namespace Reactive {
         #endregion
 
         #region Animate
-        
+
+        extension<T>(IState<T> state) {
+            /// <summary>
+            /// Attaches a callback to the state.
+            /// </summary>
+            /// <param name="callback">A callback to attach.</param>
+            public IState<T> Attach(Action<T> callback) {
+                state.ValueChangedEvent += callback;
+                return state;
+            }
+            
+            /// <summary>
+            /// Detaches the specified callback.
+            /// </summary>
+            /// <param name="callback">A callback to detach.</param>
+            public IState<T> Detach(Action<T> callback) {
+                state.ValueChangedEvent -= callback;
+                return state;
+            }
+        }
+
+        /// <summary>
+        /// Attaches a callback to a state that returns a float,
+        /// interpolating it using the provided curve.
+        /// </summary>
+        /// <param name="callback">A callback to attach.</param>
+        public static IState<float> AttachLerp(this IState<float> state, Action<float> callback, AnimationCurve curve) {
+            state.ValueChangedEvent += t => callback(curve.Evaluate(t));
+            return state;
+        }
+
         // Note: methods use duplicated logic rather than wrapping
         // as each wrap costs a heap allocation
         extension<T>(T comp) where T : IReactiveComponent {
@@ -79,7 +109,7 @@ namespace Reactive {
 
                 return comp;
             }
-            
+
             /// <summary>
             /// Binds a callback to some state.
             /// </summary>

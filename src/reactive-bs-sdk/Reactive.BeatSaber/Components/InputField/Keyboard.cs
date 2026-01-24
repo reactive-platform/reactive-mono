@@ -44,11 +44,11 @@ namespace Reactive.BeatSaber.Components {
         protected override GameObject Construct() {
             return new Background {
                 LayoutModifier = new YogaModifier {
-                    Size = new() { x = 96.pt(), y = 32.pt() }
+                    Size = new() { x = 96.pt, y = 32.pt }
                 },
                 
                 LayoutController = new YogaLayoutController {
-                    Padding = 2.pt()
+                    Padding = 2.pt
                 },
 
                 Children = {

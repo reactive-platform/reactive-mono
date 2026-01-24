@@ -83,7 +83,7 @@ public partial class Dropdown<TKey, TParam, TCell> {
                     // Scrollbar
                     new Scrollbar()
                         .AsFlexItem(
-                            size: new() { x = 2f, y = 100.pct() },
+                            size: new() { x = 2f, y = 100.pct },
                             position: new() { right = -4f }
                         )
                         .With(x => Table.Scrollbar = x)
