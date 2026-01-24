@@ -4,9 +4,8 @@ using JetBrains.Annotations;
 namespace Reactive.Components {
     [PublicAPI]
     public interface IModal : IReactiveComponent {
-        SharedAnimation? OpenAnimation { get; set; }
-        SharedAnimation? CloseAnimation { get; set; }
-        
+        IState<float> OpenProgress { get; }
+
         event Action<IModal, bool>? ModalClosedEvent;
         event Action<IModal, bool>? ModalOpenedEvent;
 
@@ -31,8 +30,12 @@ namespace Reactive.Components {
 
         #region Modal
 
-        public SharedAnimation? CloseAnimation { get; set; }
-        public SharedAnimation? OpenAnimation { get; set; }
+        public IState<float> OpenProgress => _openProgress;
+
+        public AnimationDuration AnimationDuration {
+            get => _openProgress.Duration;
+            set => _openProgress.Duration = value;
+        }
 
         protected bool IsOpened { get; private set; }
         protected bool IsPaused { get; private set; }
@@ -40,8 +43,10 @@ namespace Reactive.Components {
         public event Action<IModal, bool>? ModalClosedEvent;
         public event Action<IModal, bool>? ModalOpenedEvent;
 
+        private AnimatedState<float> _openProgress = null!;
+
         ModalBase IComponentHolder<ModalBase>.Component => this;
-        
+
         public void Pause() {
             if (IsPaused) return;
             IsPaused = true;
@@ -65,12 +70,12 @@ namespace Reactive.Components {
             OnOpen(false);
             Enabled = true;
 
-            if (OpenAnimation != null && !immediate) {
-                OpenAnimation.AnimationFinishedEvent += HandleOpenAnimationFinished;
-                OpenAnimation.Play();
-
+            if (!immediate) {
+                _openProgress.Value = 1f;
+                _openProgress.OnFinish = HandleOpenAnimationFinished;
                 ModalOpenedEvent?.Invoke(this, false);
             } else {
+                _openProgress.SetValueImmediate(1f);
                 ModalOpenedEvent?.Invoke(this, false);
                 ModalOpenedEvent?.Invoke(this, true);
             }
@@ -81,12 +86,13 @@ namespace Reactive.Components {
             IsOpened = false;
             OnClose(false);
 
-            if (CloseAnimation != null && !immediate) {
-                CloseAnimation.AnimationFinishedEvent += HandleCloseAnimationFinished;
-                CloseAnimation.Play();
-
+            if (!immediate) {
+                _openProgress.Value = 0f;
+                _openProgress.OnFinish = HandleCloseAnimationFinished;
+                
                 ModalClosedEvent?.Invoke(this, false);
             } else {
+                _openProgress.SetValueImmediate(0f);
                 Enabled = false;
 
                 ModalClosedEvent?.Invoke(this, false);
@@ -96,20 +102,21 @@ namespace Reactive.Components {
 
         protected override void OnInitialize() {
             Enabled = false;
+            _openProgress = RememberAnimated(0f, 200.ms);
         }
 
         #endregion
 
         #region Callbacks
 
-        private void HandleOpenAnimationFinished() {
-            OpenAnimation!.AnimationFinishedEvent -= HandleOpenAnimationFinished;
+        private void HandleOpenAnimationFinished(float t) {
+            _openProgress.OnFinish = null;
             ModalOpenedEvent?.Invoke(this, true);
         }
 
-        private void HandleCloseAnimationFinished() {
+        private void HandleCloseAnimationFinished(float t) {
             Enabled = false;
-            CloseAnimation!.AnimationFinishedEvent -= HandleCloseAnimationFinished;
+            _openProgress.OnFinish = null;
             ModalClosedEvent?.Invoke(this, true);
         }
 

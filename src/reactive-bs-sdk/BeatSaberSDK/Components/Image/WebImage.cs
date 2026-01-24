@@ -66,14 +66,14 @@ public class WebImage : Image {
     protected override void Construct(RectTransform rect) {
         base.Construct(rect);
 
-        _spinnerAlpha = RememberAnimated(0f, 200.ms(), AnimationCurve.EaseInOut);
+        _spinnerAlpha = RememberAnimated(0f, 200.ms, AnimationCurve.EaseInOut);
         _backgroundAlpha = Remember(0.9f);
 
         new Background {
                 Children = {
                     new Spinner()
                         .Bind(ref _spinner)
-                        .AsFlexItem(size: 80.pct())
+                        .AsFlexItem(size: 80.pct)
                 }
             }
             .WithNativeComponent(out CanvasGroup group)
