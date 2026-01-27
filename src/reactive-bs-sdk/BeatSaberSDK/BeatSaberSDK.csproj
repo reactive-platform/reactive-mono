@@ -101,6 +101,12 @@
                 Include="..\..\reactive-sdk\ReactiveSDK\ReactiveSDK.csproj"
                 Properties="UnityAssembliesDir=$(UnityAssembliesDir)"
         />
+        <!-- Analyzer -->
+        <ProjectReference
+                Include="..\..\reactive\Reactive.Compiler\Reactive.Compiler.csproj"
+                OutputItemType="Analyzer"
+                ReferenceOutputAssembly="false"
+        />
     </ItemGroup>
 
     <ItemGroup Condition="!$(Configuration.Contains('Editor'))">
