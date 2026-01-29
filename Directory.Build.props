@@ -1,15 +1,5 @@
 <Project>
-    <Import Project="Directory.Build.props.user" Condition="Exists('Directory.Build.props.user')" />
-    
     <PropertyGroup>
-        <BuildRoot>$(MSBuildThisFileDirectory)/artifacts</BuildRoot>
-
-        <UnityAssembliesDir Condition="'$(UnityAssembliesDir)' == ''">$(BeatSaberDir)/Beat Saber_Data/Managed</UnityAssembliesDir>
+        <UnityAssembliesDir Condition="'$(UnityAssembliesDir)' == '' and '$(BeatSaberDir)' != ''">$(BeatSaberDir)/Beat Saber_Data/Managed</UnityAssembliesDir>
     </PropertyGroup>
-
-    <Target Name="CheckImports"
-            BeforeTargets="PrepareForBuild"
-            Condition="'$(UnityAssembliesDir)' == '' and '$(BeatSaberDir)' == ''">
-        <Error Text="Either UnityAssembliesDir or BeatSaberDir must be set in Directory.Build.props.user"/>
-    </Target>
 </Project>

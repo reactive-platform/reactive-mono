@@ -2,7 +2,6 @@
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
         <OutputType>Library</OutputType>
-        <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <AssemblyName>Reactive.BeatSaber.Components</AssemblyName>
@@ -63,12 +62,12 @@
         <Reference Include="UnityEngine.AssetBundleModule">
             <HintPath>$(UnityAssembliesDir)\UnityEngine.AssetBundleModule.dll</HintPath>
         </Reference>
-        <ProjectReference 
+        <ProjectReference
                 Include="..\..\reactive-sdk\ReactiveSDK\ReactiveSDK.csproj"
                 Properties="UnityAssembliesDir=$(UnityAssembliesDir)"
         />
     </ItemGroup>
-    
+
     <!-- Unity deps -->
     <ItemGroup>
         <Reference Include="UnityEngine.TMPro">
@@ -102,7 +101,10 @@
 
     <ItemGroup Condition="!$(Configuration.Contains('Editor'))">
         <EmbeddedResource Include="Resources\AssetBundles\asset_bundle"/>
-        <EmbeddedResource Include="manifest.json"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="$(MSBuildProjectFile).user" Condition="Exists('$(MSBuildProjectFile).user')"/>
     </ItemGroup>
 
     <ItemGroup>

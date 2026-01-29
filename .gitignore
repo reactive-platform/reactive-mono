@@ -1,6 +1,7 @@
 .idea
 .user
-artifacts
 *.user
 **/bin
 **/obj
+riderModule.iml
+_ReSharper.Caches

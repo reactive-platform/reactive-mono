@@ -1,12 +1,18 @@
 ﻿{
   "$schema": "https://raw.githubusercontent.com/bsmg/BSIPA-MetadataFileSchema/master/Schema.json",
-  "id": "Reactive.BeatSaberSDK",
-  "name": "Reactive.BeatSaberSDK",
+  "id": "Reactive",
+  "name": "Reactive",
   "author": "Hermanest",
-  "version": "0.2.0",
-  "description": "Beat Saber SDK for the ReactiveUI library.",
+  "description": "A set of SDKs built around Reactive library.",
+  "version": "1.0.0",
   "gameVersion": "1.42.0",
   "dependsOn": {
-    "BSIPA": "^4.2.2"
-  }
+    "BSIPA": "^4.2.2",
+    "Yoga": "^3.2.1"
+  },
+  "files": [
+    "Libs/Reactive.dll",
+    "Libs/Reactive.Components.dll",
+    "Plugins/Reactive.Components.BeatSaber.dll"
+  ]
 }
