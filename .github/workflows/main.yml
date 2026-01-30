@@ -5,6 +5,13 @@ on:
   pull_request:
     branches:
       - 'master'
+  release:
+    types:
+      - published
+
+defaults:
+  run:
+    shell: pwsh
 
 jobs:
   build-reactive:
@@ -34,6 +41,22 @@ jobs:
           name: ${{ steps.build.outputs.filename }}
           path: ${{ steps.build.outputs.artifactpath }}
 
+      - name: Create Release Archive
+        if: ${{ github.event_name == 'release' }}
+        run: Compress-Archive -Path "${{ steps.build.outputs.artifactpath }}/*" -DestinationPath "./${{ steps.build.outputs.filename }}.zip"
+
+      - name: Upload Release Archive
+        if: ${{ github.event_name == 'release' }}
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./${{ steps.build.outputs.filename }}.zip
+          asset_name: ${{ steps.build.outputs.filename }}.zip
+          asset_content_type: application/zip
+
   build-reactive-components:
     name: Build Reactive.Components
     runs-on: ubuntu-latest
@@ -60,6 +83,22 @@ jobs:
         with:
           name: ${{ steps.build.outputs.filename }}
           path: ${{ steps.build.outputs.artifactpath }}
+
+      - name: Create Release Archive
+        if: ${{ github.event_name == 'release' }}
+        run: Compress-Archive -Path "${{ steps.build.outputs.artifactpath }}/*" -DestinationPath "./${{ steps.build.outputs.filename }}.zip"
+
+      - name: Upload Release Archive
+        if: ${{ github.event_name == 'release' }}
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./${{ steps.build.outputs.filename }}.zip
+          asset_name: ${{ steps.build.outputs.filename }}.zip
+          asset_content_type: application/zip
   
   build-reactive-beatsaber:
     name: Build Reactive.BeatSaber
@@ -92,7 +131,23 @@ jobs:
         with:
           name: ${{ steps.build.outputs.filename }}
           path: ${{ steps.build.outputs.artifactpath }}
-  
+
+      - name: Create Release Archive
+        if: ${{ github.event_name == 'release' }}
+        run: Compress-Archive -Path "${{ steps.build.outputs.artifactpath }}/*" -DestinationPath "./${{ steps.build.outputs.filename }}.zip"
+
+      - name: Upload Release Archive
+        if: ${{ github.event_name == 'release' }}
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./${{ steps.build.outputs.filename }}.zip
+          asset_name: ${{ steps.build.outputs.filename }}.zip
+          asset_content_type: application/zip
+
   package-all:
     name: Package All
     needs: [ build-reactive, build-reactive-components, build-reactive-beatsaber ]
@@ -105,3 +160,19 @@ jobs:
         with:
           name: ${{needs.build-reactive-beatsaber.outputs.filename}}-aio
           path: ${{ github.workspace }}
+
+      - name: Create Release Archive
+        if: ${{ github.event_name == 'release' }}
+        run: Compress-Archive -Path "./*" -DestinationPath "./${{needs.build-reactive-beatsaber.outputs.filename}}-aio.zip"
+
+      - name: Upload Release Archive
+        if: ${{ github.event_name == 'release' }}
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./${{needs.build-reactive-beatsaber.outputs.filename}}-aio.zip
+          asset_name: ${{needs.build-reactive-beatsaber.outputs.filename}}-aio.zip
+          asset_content_type: application/zip
