@@ -10,5 +10,8 @@
     "BSIPA": "^4.2.2",
     "Reactive": "^1.0.0",
     "Reactive.Components": "^1.0.0"
+  },
+  "links": {
+    "project-source": "https://github.com/reactive-platform/reactive-mono"
   }
 }
