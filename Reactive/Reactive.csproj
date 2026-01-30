@@ -11,24 +11,31 @@
     <ItemGroup>
         <Reference Include="UnityEngine">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.CoreModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.CoreModule.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.UI">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.UI.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.UIModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.UIModule.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.UIElementsModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.UIElementsModule.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.InputModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.InputModule.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.ImageConversionModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.ImageConversionModule.dll</HintPath>
+            <Private>False</Private>
         </Reference>
     </ItemGroup>
 </Project>
