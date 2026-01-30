@@ -5,6 +5,12 @@
         <UnityAssembliesDir Condition="'$(UnityAssembliesDir)' == ''">$(BeatSaberDir)/Beat Saber_Data/Managed</UnityAssembliesDir>
     </PropertyGroup>
 
+    <PropertyGroup Condition="$(Configuration.Contains('Editor'))">
+        <DefineConstants>COMPILE_EDITOR</DefineConstants>
+        <DisableCopyToGame>True</DisableCopyToGame>
+        <DisableZipRelease>True</DisableZipRelease>
+    </PropertyGroup>
+
     <Target Name="CheckImports"
             BeforeTargets="PrepareForBuild"
             Condition="'$(UnityAssembliesDir)' == '' and '$(BeatSaberDir)' == ''">

@@ -10,10 +10,6 @@
         <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
-    <PropertyGroup Condition="$(Configuration.Contains('Editor'))">
-        <DefineConstants>COMPILE_EDITOR</DefineConstants>
-    </PropertyGroup>
-
     <ItemGroup>
         <Reference Include="IPA.Loader">
             <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\IPA.Loader.dll</HintPath>

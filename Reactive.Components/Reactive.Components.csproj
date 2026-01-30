@@ -6,6 +6,7 @@
         <Nullable>enable</Nullable>
         <AssemblyName>Reactive.Components</AssemblyName>
         <RootNamespace>Reactive.Components</RootNamespace>
+        <Configurations>Debug;Release;Debug Editor;Release Editor</Configurations>
     </PropertyGroup>
 
     <ItemGroup>
