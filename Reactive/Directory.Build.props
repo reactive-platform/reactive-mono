@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <Import Project="..\Directory.Build.props" />
+
+    <PropertyGroup>
+        <BSMTProjectType>BSIPA</BSMTProjectType>
+        <GenerateManifest>true</GenerateManifest>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+        <PluginId>Reactive</PluginId>
+        <PluginName>Reactive</PluginName>
+        <Authors>Hermanest</Authors>
+        <Version>1.0.0</Version>
+        <GameVersion>1.42.0</GameVersion>
+        <Description>Reactive UI base library</Description>
+        <!--<PluginIcon></PluginIcon>-->
+        <ProjectSource>https://github.com/reactive-platform/reactive-mono</ProjectSource>
+        <!--<ProjectHome></ProjectHome>-->
+        <!--<DonateUrl></DonateUrl>-->
+        <RequiresBsipa>False</RequiresBsipa>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <DependsOn Include="Yoga" Version="^3.2.1"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Files Include="Libs\$(TargetFileName)"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <OutputCopy Include="$(OutputPath)\$(TargetFileName)" OutputPath="Libs\$(TargetFileName)" />
+        <OutputCopy Include="$(OutputPath)\$(TargetName).pdb" OutputPath="Libs\$(TargetName).pdb" />
+        <OutputCopy Include="$(OutputPath)\$(TargetName).manifest" OutputPath="Plugins\$(TargetName).manifest" />
+    </ItemGroup>
+</Project>

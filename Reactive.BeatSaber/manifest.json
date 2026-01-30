@@ -7,6 +7,8 @@
   "description": "Beat Saber SDK for the ReactiveUI library.",
   "gameVersion": "1.42.0",
   "dependsOn": {
-    "BSIPA": "^4.2.2"
+    "BSIPA": "^4.2.2",
+    "Reactive": "^1.0.0",
+    "Reactive.Components": "^1.0.0"
   }
 }
