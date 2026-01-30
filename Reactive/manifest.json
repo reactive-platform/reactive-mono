@@ -1,0 +1,15 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/bsmg/BSIPA-MetadataFileSchema/master/Schema.json",
+  "id": "Reactive",
+  "name": "Reactive",
+  "author": "Hermanest",
+  "version": "1.0.0",
+  "gameVersion": "1.42.0",
+  "description": "Reactive UI base library",
+  "dependsOn": {
+    "Yoga": "^3.2.1"
+  },
+  "links": {
+    "project-source": "https://github.com/reactive-platform/reactive-mono"
+  }
+}

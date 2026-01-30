@@ -1,0 +1,15 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/bsmg/BSIPA-MetadataFileSchema/master/Schema.json",
+  "id": "Reactive.Components",
+  "name": "Reactive.Components",
+  "author": "Hermanest",
+  "version": "1.0.0",
+  "gameVersion": "1.42.0",
+  "description": "Reactive UI components library",
+  "dependsOn": {
+    "Reactive": "^1.0.0"
+  },
+  "links": {
+    "project-source": "https://github.com/reactive-platform/reactive-mono"
+  }
+}
