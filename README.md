@@ -31,9 +31,8 @@ Here is a template for the `Directory.Build.props.user` file:
 </Project>
 ```
 
-After that you should be able to run any of the workflows from the `targets/` directory. 
-Projects can be built manually as well, but using pre-defined targets simplifies the process
-by producing ready-to-ship artifacts packed the proper way.
+After that you should be able to build the projects. Compiled files will be automatically copied to the game directory
+when building the `Debug` and `Release` configurations with a valid `BeatSaberDir`.
 
 # Roadmap
 This roadmap covers not just this repo, but rather the whole reactive sdk set. Here it is:
