@@ -11,20 +11,16 @@ jobs:
     name: Build Reactive
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       #  with:
       #    submodules: recursive
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v5
       - name: Initialize modding environment
         uses: beat-forge/init-beatsaber@v1
         with:
           token: ${{ github.token }}
           repo: beat-forge/beatsaber-stripped
-      - name: Download Mod Dependencies
-        uses: Goobwabber/download-beatmods-deps@1.3
-        with:
-          manifest: ${{ github.workspace }}/Reactive.BeatSaber/manifest.json
 
       - name: Build
         id: build
@@ -33,7 +29,7 @@ jobs:
           BeatSaberDir: ${{ github.workspace }}/Refs/
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ steps.build.outputs.filename }}
           path: ${{ steps.build.outputs.artifactpath }}
@@ -42,20 +38,16 @@ jobs:
     name: Build Reactive.Components
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       #  with:
       #    submodules: recursive
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v5
       - name: Initialize modding environment
         uses: beat-forge/init-beatsaber@v1
         with:
           token: ${{ github.token }}
           repo: beat-forge/beatsaber-stripped
-      - name: Download Mod Dependencies
-        uses: Goobwabber/download-beatmods-deps@1.3
-        with:
-          manifest: ${{ github.workspace }}/Reactive.BeatSaber/manifest.json
 
       - name: Build
         id: build
@@ -64,7 +56,7 @@ jobs:
           BeatSaberDir: ${{ github.workspace }}/Refs/
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ steps.build.outputs.filename }}
           path: ${{ steps.build.outputs.artifactpath }}
@@ -72,12 +64,14 @@ jobs:
   build-reactive-beatsaber:
     name: Build Reactive.BeatSaber
     runs-on: ubuntu-latest
+    outputs:
+      filename: ${{ steps.build.outputs.filename }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       #  with:
       #    submodules: recursive
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v5
       - name: Initialize modding environment
         uses: beat-forge/init-beatsaber@v1
         with:
@@ -94,9 +88,20 @@ jobs:
           BeatSaberDir: ${{ github.workspace }}/Refs/
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ steps.build.outputs.filename }}
           path: ${{ steps.build.outputs.artifactpath }}
-
-
+  
+  package-all:
+    name: Package All
+    needs: [ build-reactive, build-reactive-components, build-reactive-beatsaber ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          merge-multiple: true
+      - uses: actions/upload-artifact@v6
+        with:
+          name: ${{needs.build-reactive-beatsaber.outputs.filename}}-aio
+          path: ${{ github.workspace }}
