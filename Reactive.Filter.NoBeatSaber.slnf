@@ -1,0 +1,9 @@
+﻿{
+  "solution": {
+    "path": "Reactive.sln",
+    "projects": [
+      "Reactive.Components\\Reactive.Components.csproj",
+      "Reactive\\Reactive.csproj"
+    ]
+  }
+}
