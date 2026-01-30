@@ -1,9 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive", "Reactive\Reactive.csproj", "{D0230F06-CBBB-4479-B6EE-B54D78D14D6B}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Components", "Reactive.Components\Reactive.Components.csproj", "{63D515EE-0C84-4E0B-87C1-75B3F2C6BA51}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.BeatSaber", "Reactive.BeatSaber\Reactive.BeatSaber.csproj", "{32F2B8F2-BE8B-47C0-8A37-145069871FFD}"
-
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,5 +43,8 @@ Global
 		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Debug Editor|Any CPU.Build.0 = Debug Editor|Any CPU
 		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Release Editor|Any CPU.ActiveCfg = Release Editor|Any CPU
 		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Release Editor|Any CPU.Build.0 = Release Editor|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
