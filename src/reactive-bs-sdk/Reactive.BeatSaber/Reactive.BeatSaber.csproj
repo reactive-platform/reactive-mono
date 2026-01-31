@@ -101,6 +101,8 @@
 
     <ItemGroup Condition="!$(Configuration.Contains('Editor'))">
         <EmbeddedResource Include="Resources\AssetBundles\asset_bundle"/>
+        <None Remove="manifest.json" />
+        <EmbeddedResource Include="manifest.json" />
     </ItemGroup>
 
     <ItemGroup>

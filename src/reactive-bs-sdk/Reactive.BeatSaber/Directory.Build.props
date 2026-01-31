@@ -1,7 +1,7 @@
 <Project>
     <PropertyGroup>
         <BSMTProjectType>BSIPA</BSMTProjectType>
-        <GenerateManifest>true</GenerateManifest>
+        <GenerateManifest>false</GenerateManifest>
     </PropertyGroup>
 
     <ItemGroup>
@@ -11,6 +11,5 @@
         <OutputCopy Include="$(OutputPath)/Reactive.Components.pdb" OutputPath="Libs/Reactive.Components.pdb" />
         <OutputCopy Include="$(OutputPath)/$(TargetFileName)" OutputPath="Plugins/$(TargetFileName)" />
         <OutputCopy Include="$(OutputPath)/$(TargetName).pdb" OutputPath="Plugins/$(TargetName).pdb" />
-        <OutputCopy Include="$(OutputPath)/$(TargetName).manifest" OutputPath="Plugins/$(TargetName).manifest" />
     </ItemGroup>
 </Project>
