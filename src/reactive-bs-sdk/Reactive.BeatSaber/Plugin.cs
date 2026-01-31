@@ -3,7 +3,7 @@ using HarmonyLib;
 using IPA;
 using JetBrains.Annotations;
 
-namespace BeatSaberSDK {
+namespace Reactive.BeatSaber {
     [Plugin(RuntimeOptions.SingleStartInit)]
     [UsedImplicitly]
     public class Plugin {

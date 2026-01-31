@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BeatSaberSDK", "BeatSaberSDK\BeatSaberSDK.csproj", "{32F2B8F2-BE8B-47C0-8A37-145069871FFD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.BeatSaber", "Reactive.BeatSaber\Reactive.BeatSaber.csproj", "{32F2B8F2-BE8B-47C0-8A37-145069871FFD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

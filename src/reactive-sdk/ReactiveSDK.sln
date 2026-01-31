@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactiveSDK", "ReactiveSDK\ReactiveSDK.csproj", "{63D515EE-0C84-4E0B-87C1-75B3F2C6BA51}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Components", "Reactive.Components\Reactive.Components.csproj", "{63D515EE-0C84-4E0B-87C1-75B3F2C6BA51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

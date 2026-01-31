@@ -4,7 +4,7 @@
         <OutputType>Library</OutputType>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
-        <AssemblyName>Reactive.BeatSaber.Components</AssemblyName>
+        <AssemblyName>Reactive.BeatSaber</AssemblyName>
         <Configurations>Debug;Release;Debug Editor;Release Editor</Configurations>
         <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
@@ -63,7 +63,7 @@
             <HintPath>$(UnityAssembliesDir)\UnityEngine.AssetBundleModule.dll</HintPath>
         </Reference>
         <ProjectReference
-                Include="..\..\reactive-sdk\ReactiveSDK\ReactiveSDK.csproj"
+                Include="..\..\reactive-sdk\Reactive.Components\Reactive.Components.csproj"
                 Properties="UnityAssembliesDir=$(UnityAssembliesDir)"
         />
     </ItemGroup>
