@@ -20,37 +20,40 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ReactiveSDK", "ReactiveSDK"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug Editor|Any CPU = Debug Editor|Any CPU
-		Debug|Any CPU = Debug|Any CPU
-		Release Editor|Any CPU = Release Editor|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
+    	Core Debug|Any CPU = Core Debug|Any CPU
+    	Core Release|Any CPU = Core Release|Any CPU
+    	Beat Saber Debug|Any CPU = Beat Saber Debug|Any CPU
+    	Beat Saber Release|Any CPU = Beat Saber Release|Any CPU
+    EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Debug Editor|Any CPU.ActiveCfg = Debug Editor|Any CPU
-		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Debug Editor|Any CPU.Build.0 = Debug Editor|Any CPU
-		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Release Editor|Any CPU.ActiveCfg = Release Editor|Any CPU
-		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Release Editor|Any CPU.Build.0 = Release Editor|Any CPU
-		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{126A49C7-6954-498B-8AA4-C09126373844}.Debug Editor|Any CPU.ActiveCfg = Debug|Any CPU
-		{126A49C7-6954-498B-8AA4-C09126373844}.Debug Editor|Any CPU.Build.0 = Debug|Any CPU
-		{126A49C7-6954-498B-8AA4-C09126373844}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{126A49C7-6954-498B-8AA4-C09126373844}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{126A49C7-6954-498B-8AA4-C09126373844}.Release Editor|Any CPU.ActiveCfg = Debug|Any CPU
-		{126A49C7-6954-498B-8AA4-C09126373844}.Release Editor|Any CPU.Build.0 = Debug|Any CPU
-		{126A49C7-6954-498B-8AA4-C09126373844}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{126A49C7-6954-498B-8AA4-C09126373844}.Release|Any CPU.Build.0 = Release|Any CPU
-		{953C4414-CD02-4B26-B52A-6633219E302F}.Debug Editor|Any CPU.ActiveCfg = Debug|Any CPU
-		{953C4414-CD02-4B26-B52A-6633219E302F}.Debug Editor|Any CPU.Build.0 = Debug|Any CPU
-		{953C4414-CD02-4B26-B52A-6633219E302F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{953C4414-CD02-4B26-B52A-6633219E302F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{953C4414-CD02-4B26-B52A-6633219E302F}.Release Editor|Any CPU.ActiveCfg = Debug|Any CPU
-		{953C4414-CD02-4B26-B52A-6633219E302F}.Release Editor|Any CPU.Build.0 = Debug|Any CPU
-		{953C4414-CD02-4B26-B52A-6633219E302F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{953C4414-CD02-4B26-B52A-6633219E302F}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
+    	{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Core Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    	{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Core Release|Any CPU.ActiveCfg = Release|Any CPU
+    
+    	{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Beat Saber Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    	{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Beat Saber Debug|Any CPU.Build.0 = Debug|Any CPU
+    	{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Beat Saber Release|Any CPU.ActiveCfg = Release|Any CPU
+    	{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Beat Saber Release|Any CPU.Build.0 = Release|Any CPU
+
+    	{126A49C7-6954-498B-8AA4-C09126373844}.Core Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    	{126A49C7-6954-498B-8AA4-C09126373844}.Core Debug|Any CPU.Build.0 = Debug|Any CPU
+    	{126A49C7-6954-498B-8AA4-C09126373844}.Core Release|Any CPU.ActiveCfg = Release|Any CPU
+    	{126A49C7-6954-498B-8AA4-C09126373844}.Core Release|Any CPU.Build.0 = Release|Any CPU
+    
+    	{126A49C7-6954-498B-8AA4-C09126373844}.Beat Saber Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    	{126A49C7-6954-498B-8AA4-C09126373844}.Beat Saber Debug|Any CPU.Build.0 = Debug|Any CPU
+    	{126A49C7-6954-498B-8AA4-C09126373844}.Beat Saber Release|Any CPU.ActiveCfg = Release|Any CPU
+    	{126A49C7-6954-498B-8AA4-C09126373844}.Beat Saber Release|Any CPU.Build.0 = Release|Any CPU
+    
+    	{953C4414-CD02-4B26-B52A-6633219E302F}.Core Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    	{953C4414-CD02-4B26-B52A-6633219E302F}.Core Debug|Any CPU.Build.0 = Debug|Any CPU
+    	{953C4414-CD02-4B26-B52A-6633219E302F}.Core Release|Any CPU.ActiveCfg = Release|Any CPU
+    	{953C4414-CD02-4B26-B52A-6633219E302F}.Core Release|Any CPU.Build.0 = Release|Any CPU
+    
+    	{953C4414-CD02-4B26-B52A-6633219E302F}.Beat Saber Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    	{953C4414-CD02-4B26-B52A-6633219E302F}.Beat Saber Debug|Any CPU.Build.0 = Debug|Any CPU
+    	{953C4414-CD02-4B26-B52A-6633219E302F}.Beat Saber Release|Any CPU.ActiveCfg = Release|Any CPU
+    	{953C4414-CD02-4B26-B52A-6633219E302F}.Beat Saber Release|Any CPU.Build.0 = Release|Any CPU
+    EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
