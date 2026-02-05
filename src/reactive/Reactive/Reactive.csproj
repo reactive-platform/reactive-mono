@@ -38,4 +38,8 @@
             <Private>False</Private>
         </Reference>
     </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Reactive.Compiler.Models\Reactive.Compiler.Models.csproj" />
+    </ItemGroup>
 </Project>
