@@ -1,0 +1,65 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36705.20
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.BeatSaber", "src\reactive-bs-sdk\Reactive.BeatSaber\Reactive.BeatSaber.csproj", "{32F2B8F2-BE8B-47C0-8A37-145069871FFD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Components", "src\reactive-sdk\Reactive.Components\Reactive.Components.csproj", "{126A49C7-6954-498B-8AA4-C09126373844}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive", "src\reactive\Reactive\Reactive.csproj", "{953C4414-CD02-4B26-B52A-6633219E302F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ReactiveUI", "ReactiveUI", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ReactiveSDK", "ReactiveSDK", "{62C5533A-84A7-429F-935D-F32D41508AB0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug Editor|Any CPU = Debug Editor|Any CPU
+		Debug|Any CPU = Debug|Any CPU
+		Release Editor|Any CPU = Release Editor|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Debug Editor|Any CPU.ActiveCfg = Debug Editor|Any CPU
+		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Debug Editor|Any CPU.Build.0 = Debug Editor|Any CPU
+		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Release Editor|Any CPU.ActiveCfg = Release Editor|Any CPU
+		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Release Editor|Any CPU.Build.0 = Release Editor|Any CPU
+		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{126A49C7-6954-498B-8AA4-C09126373844}.Debug Editor|Any CPU.ActiveCfg = Debug|Any CPU
+		{126A49C7-6954-498B-8AA4-C09126373844}.Debug Editor|Any CPU.Build.0 = Debug|Any CPU
+		{126A49C7-6954-498B-8AA4-C09126373844}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{126A49C7-6954-498B-8AA4-C09126373844}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{126A49C7-6954-498B-8AA4-C09126373844}.Release Editor|Any CPU.ActiveCfg = Debug|Any CPU
+		{126A49C7-6954-498B-8AA4-C09126373844}.Release Editor|Any CPU.Build.0 = Debug|Any CPU
+		{126A49C7-6954-498B-8AA4-C09126373844}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{126A49C7-6954-498B-8AA4-C09126373844}.Release|Any CPU.Build.0 = Release|Any CPU
+		{953C4414-CD02-4B26-B52A-6633219E302F}.Debug Editor|Any CPU.ActiveCfg = Debug|Any CPU
+		{953C4414-CD02-4B26-B52A-6633219E302F}.Debug Editor|Any CPU.Build.0 = Debug|Any CPU
+		{953C4414-CD02-4B26-B52A-6633219E302F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{953C4414-CD02-4B26-B52A-6633219E302F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{953C4414-CD02-4B26-B52A-6633219E302F}.Release Editor|Any CPU.ActiveCfg = Debug|Any CPU
+		{953C4414-CD02-4B26-B52A-6633219E302F}.Release Editor|Any CPU.Build.0 = Debug|Any CPU
+		{953C4414-CD02-4B26-B52A-6633219E302F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{953C4414-CD02-4B26-B52A-6633219E302F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{126A49C7-6954-498B-8AA4-C09126373844} = {62C5533A-84A7-429F-935D-F32D41508AB0}
+		{953C4414-CD02-4B26-B52A-6633219E302F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {62C5533A-84A7-429F-935D-F32D41508AB0}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {591796CA-B53A-4620-B64C-B60D809E7FDE}
+	EndGlobalSection
+EndGlobal

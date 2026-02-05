@@ -4,31 +4,47 @@
         <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
-        <AssemblyName>Reactive</AssemblyName>
-        <RootNamespace>Reactive</RootNamespace>
+        <AssemblyName>Reactive.Components</AssemblyName>
+        <RootNamespace>Reactive.Components</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
+        <Reference Include="UnityEngine.TMPro">
+            <HintPath>$(UnityAssembliesDir)/Unity.TextMeshPro.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="System.Net.Http">
+            <HintPath>$(UnityAssembliesDir)/System.Net.Http.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
         <Reference Include="UnityEngine">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.CoreModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.CoreModule.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.UI">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.UI.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.UIModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.UIModule.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.UIElementsModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.UIElementsModule.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.InputModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.InputModule.dll</HintPath>
+            <Private>False</Private>
         </Reference>
         <Reference Include="UnityEngine.ImageConversionModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.ImageConversionModule.dll</HintPath>
+            <Private>False</Private>
         </Reference>
+        <ProjectReference Include="../../reactive/Reactive/Reactive.csproj" />
     </ItemGroup>
 </Project>

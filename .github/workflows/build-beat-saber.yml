@@ -10,10 +10,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
 
@@ -26,14 +26,16 @@ jobs:
       - name: Download mod dependencies
         uses: Goobwabber/download-beatmods-deps@1.3
         with:
-          manifest: ${{ github.workspace }}/src/reactive-bs-sdk/BeatSaberSDK/manifest.json
+          manifest: ${{ github.workspace }}/src/reactive-bs-sdk/Reactive.BeatSaber/manifest.json
 
       - name: Build
-        id: Build
-        run: cd src/reactive-bs-sdk && dotnet build --configuration Release
+        id: build
+        run: dotnet build -c Release ${{ github.workspace }}/src/reactive-bs-sdk/Reactive.BeatSaber/Reactive.BeatSaber.csproj
+        env:
+          BeatSaberDir: ${{ github.workspace }}/Refs/
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
-          name: ${{ steps.Build.outputs.filename }}
-          path: ${{ steps.Build.outputs.artifactpath }}
+          name: ${{ steps.build.outputs.filename }}
+          path: ${{ steps.build.outputs.artifactpath }}
