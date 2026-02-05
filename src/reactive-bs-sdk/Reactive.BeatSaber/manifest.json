@@ -13,6 +13,6 @@
   "files": [
     "Libs/Reactive.dll",
     "Libs/Reactive.Components.dll",
-    "Plugins/Reactive.Components.BeatSaber.dll"
+    "Plugins/Reactive.BeatSaber.dll"
   ]
 }
