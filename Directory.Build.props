@@ -1,8 +1,8 @@
 <Project>
+    <Import Project="Directory.Build.props.user" Condition="Exists('Directory.Build.props.user')" />
 
-    <Import Project="Directory.Build.props.user" Condition="Exists('Directory.Build.props.user')"/>
-    
-    <PropertyGroup>
-        <UnityAssembliesDir Condition="'$(UnityAssembliesDir)' == '' and '$(BeatSaberDir)' != ''">$(BeatSaberDir)/Beat Saber_Data/Managed</UnityAssembliesDir>
+    <!-- MSBuild doesn't pass properties defined in .csproj to project references, so we have to define it here -->
+    <PropertyGroup Condition="'$(UnityAssembliesDir)' == '' and '$(BeatSaberDir)' != ''">
+        <UnityAssembliesDir>$(BeatSaberDir)/Beat Saber_Data/Managed</UnityAssembliesDir>
     </PropertyGroup>
 </Project>
