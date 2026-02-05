@@ -1,4 +1,10 @@
 <Project>
+
+    <!-- MSBuild will only import the first Directory.Build.props it finds. 
+    This makes it keep searching and import the next one-->
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))"
+            Condition="'' != $([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
     <PropertyGroup>
         <BSMTProjectType>BSIPA</BSMTProjectType>
         <GenerateManifest>false</GenerateManifest>
