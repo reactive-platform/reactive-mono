@@ -62,10 +62,7 @@
         <Reference Include="UnityEngine.AssetBundleModule">
             <HintPath>$(UnityAssembliesDir)\UnityEngine.AssetBundleModule.dll</HintPath>
         </Reference>
-        <ProjectReference
-                Include="..\..\reactive-sdk\Reactive.Components\Reactive.Components.csproj"
-                Properties="UnityAssembliesDir=$(UnityAssembliesDir)"
-        />
+        <ProjectReference Include="..\..\reactive-sdk\Reactive.Components\Reactive.Components.csproj" />
     </ItemGroup>
 
     <!-- Unity deps -->
