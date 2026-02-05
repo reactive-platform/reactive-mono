@@ -9,6 +9,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Components", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive", "src\reactive\Reactive\Reactive.csproj", "{953C4414-CD02-4B26-B52A-6633219E302F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Compiler", "src\reactive\Reactive.Compiler\Reactive.Compiler.csproj", "{A254E26A-8BB9-4BCF-961A-4ED807F01DCB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Compiler.Sample", "src\reactive\Reactive.Compiler.Sample\Reactive.Compiler.Sample.csproj", "{59A10833-B28C-4E3A-8CFA-BEA343CC9FA8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Compiler.Models", "src\reactive\Reactive.Compiler.Models\Reactive.Compiler.Models.csproj", "{70F822D2-42EE-4CF9-BDCD-8BB001E3A123}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
@@ -19,45 +25,72 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Reactive", "Reactive", "{0C
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-    	Core Debug|Any CPU = Core Debug|Any CPU
-    	Core Release|Any CPU = Core Release|Any CPU
-    	Beat Saber Debug|Any CPU = Beat Saber Debug|Any CPU
-    	Beat Saber Release|Any CPU = Beat Saber Release|Any CPU
-    EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-    	{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Core Debug|Any CPU.ActiveCfg = Debug|Any CPU
-    	{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Core Release|Any CPU.ActiveCfg = Release|Any CPU
-    
-    	{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Beat Saber Debug|Any CPU.ActiveCfg = Debug|Any CPU
-    	{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Beat Saber Debug|Any CPU.Build.0 = Debug|Any CPU
-    	{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Beat Saber Release|Any CPU.ActiveCfg = Release|Any CPU
-    	{32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Beat Saber Release|Any CPU.Build.0 = Release|Any CPU
+	    Core Debug|Any CPU = Core Debug|Any CPU
+	    Core Release|Any CPU = Core Release|Any CPU
+	    Beat Saber Debug|Any CPU = Beat Saber Debug|Any CPU
+	    Beat Saber Release|Any CPU = Beat Saber Release|Any CPU
+	EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Core Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Core Release|Any CPU.ActiveCfg = Release|Any CPU
+        {32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Beat Saber Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Beat Saber Debug|Any CPU.Build.0 = Debug|Any CPU
+        {32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Beat Saber Release|Any CPU.ActiveCfg = Release|Any CPU
+        {32F2B8F2-BE8B-47C0-8A37-145069871FFD}.Beat Saber Release|Any CPU.Build.0 = Release|Any CPU
 
-    	{126A49C7-6954-498B-8AA4-C09126373844}.Core Debug|Any CPU.ActiveCfg = Debug|Any CPU
-    	{126A49C7-6954-498B-8AA4-C09126373844}.Core Debug|Any CPU.Build.0 = Debug|Any CPU
-    	{126A49C7-6954-498B-8AA4-C09126373844}.Core Release|Any CPU.ActiveCfg = Release|Any CPU
-    	{126A49C7-6954-498B-8AA4-C09126373844}.Core Release|Any CPU.Build.0 = Release|Any CPU
-    
-    	{126A49C7-6954-498B-8AA4-C09126373844}.Beat Saber Debug|Any CPU.ActiveCfg = Debug|Any CPU
-    	{126A49C7-6954-498B-8AA4-C09126373844}.Beat Saber Debug|Any CPU.Build.0 = Debug|Any CPU
-    	{126A49C7-6954-498B-8AA4-C09126373844}.Beat Saber Release|Any CPU.ActiveCfg = Release|Any CPU
-    	{126A49C7-6954-498B-8AA4-C09126373844}.Beat Saber Release|Any CPU.Build.0 = Release|Any CPU
-    
-    	{953C4414-CD02-4B26-B52A-6633219E302F}.Core Debug|Any CPU.ActiveCfg = Debug|Any CPU
-    	{953C4414-CD02-4B26-B52A-6633219E302F}.Core Debug|Any CPU.Build.0 = Debug|Any CPU
-    	{953C4414-CD02-4B26-B52A-6633219E302F}.Core Release|Any CPU.ActiveCfg = Release|Any CPU
-    	{953C4414-CD02-4B26-B52A-6633219E302F}.Core Release|Any CPU.Build.0 = Release|Any CPU
-    
-    	{953C4414-CD02-4B26-B52A-6633219E302F}.Beat Saber Debug|Any CPU.ActiveCfg = Debug|Any CPU
-    	{953C4414-CD02-4B26-B52A-6633219E302F}.Beat Saber Debug|Any CPU.Build.0 = Debug|Any CPU
-    	{953C4414-CD02-4B26-B52A-6633219E302F}.Beat Saber Release|Any CPU.ActiveCfg = Release|Any CPU
-    	{953C4414-CD02-4B26-B52A-6633219E302F}.Beat Saber Release|Any CPU.Build.0 = Release|Any CPU
+        {126A49C7-6954-498B-8AA4-C09126373844}.Core Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {126A49C7-6954-498B-8AA4-C09126373844}.Core Debug|Any CPU.Build.0 = Debug|Any CPU
+        {126A49C7-6954-498B-8AA4-C09126373844}.Core Release|Any CPU.ActiveCfg = Release|Any CPU
+        {126A49C7-6954-498B-8AA4-C09126373844}.Core Release|Any CPU.Build.0 = Release|Any CPU
+        {126A49C7-6954-498B-8AA4-C09126373844}.Beat Saber Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {126A49C7-6954-498B-8AA4-C09126373844}.Beat Saber Debug|Any CPU.Build.0 = Debug|Any CPU
+        {126A49C7-6954-498B-8AA4-C09126373844}.Beat Saber Release|Any CPU.ActiveCfg = Release|Any CPU
+        {126A49C7-6954-498B-8AA4-C09126373844}.Beat Saber Release|Any CPU.Build.0 = Release|Any CPU
+
+        {953C4414-CD02-4B26-B52A-6633219E302F}.Core Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {953C4414-CD02-4B26-B52A-6633219E302F}.Core Debug|Any CPU.Build.0 = Debug|Any CPU
+        {953C4414-CD02-4B26-B52A-6633219E302F}.Core Release|Any CPU.ActiveCfg = Release|Any CPU
+        {953C4414-CD02-4B26-B52A-6633219E302F}.Core Release|Any CPU.Build.0 = Release|Any CPU
+        {953C4414-CD02-4B26-B52A-6633219E302F}.Beat Saber Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {953C4414-CD02-4B26-B52A-6633219E302F}.Beat Saber Debug|Any CPU.Build.0 = Debug|Any CPU
+        {953C4414-CD02-4B26-B52A-6633219E302F}.Beat Saber Release|Any CPU.ActiveCfg = Release|Any CPU
+        {953C4414-CD02-4B26-B52A-6633219E302F}.Beat Saber Release|Any CPU.Build.0 = Release|Any CPU
+
+        {A254E26A-8BB9-4BCF-961A-4ED807F01DCB}.Core Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {A254E26A-8BB9-4BCF-961A-4ED807F01DCB}.Core Debug|Any CPU.Build.0 = Debug|Any CPU
+        {A254E26A-8BB9-4BCF-961A-4ED807F01DCB}.Core Release|Any CPU.ActiveCfg = Release|Any CPU
+        {A254E26A-8BB9-4BCF-961A-4ED807F01DCB}.Core Release|Any CPU.Build.0 = Release|Any CPU
+        {A254E26A-8BB9-4BCF-961A-4ED807F01DCB}.Beat Saber Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {A254E26A-8BB9-4BCF-961A-4ED807F01DCB}.Beat Saber Debug|Any CPU.Build.0 = Debug|Any CPU
+        {A254E26A-8BB9-4BCF-961A-4ED807F01DCB}.Beat Saber Release|Any CPU.ActiveCfg = Release|Any CPU
+        {A254E26A-8BB9-4BCF-961A-4ED807F01DCB}.Beat Saber Release|Any CPU.Build.0 = Release|Any CPU
+
+        {59A10833-B28C-4E3A-8CFA-BEA343CC9FA8}.Core Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {59A10833-B28C-4E3A-8CFA-BEA343CC9FA8}.Core Debug|Any CPU.Build.0 = Debug|Any CPU
+        {59A10833-B28C-4E3A-8CFA-BEA343CC9FA8}.Core Release|Any CPU.ActiveCfg = Release|Any CPU
+        {59A10833-B28C-4E3A-8CFA-BEA343CC9FA8}.Core Release|Any CPU.Build.0 = Release|Any CPU
+        {59A10833-B28C-4E3A-8CFA-BEA343CC9FA8}.Beat Saber Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {59A10833-B28C-4E3A-8CFA-BEA343CC9FA8}.Beat Saber Debug|Any CPU.Build.0 = Debug|Any CPU
+        {59A10833-B28C-4E3A-8CFA-BEA343CC9FA8}.Beat Saber Release|Any CPU.ActiveCfg = Release|Any CPU
+        {59A10833-B28C-4E3A-8CFA-BEA343CC9FA8}.Beat Saber Release|Any CPU.Build.0 = Release|Any CPU
+
+        {70F822D2-42EE-4CF9-BDCD-8BB001E3A123}.Core Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {70F822D2-42EE-4CF9-BDCD-8BB001E3A123}.Core Debug|Any CPU.Build.0 = Debug|Any CPU
+        {70F822D2-42EE-4CF9-BDCD-8BB001E3A123}.Core Release|Any CPU.ActiveCfg = Release|Any CPU
+        {70F822D2-42EE-4CF9-BDCD-8BB001E3A123}.Core Release|Any CPU.Build.0 = Release|Any CPU
+        {70F822D2-42EE-4CF9-BDCD-8BB001E3A123}.Beat Saber Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {70F822D2-42EE-4CF9-BDCD-8BB001E3A123}.Beat Saber Debug|Any CPU.Build.0 = Debug|Any CPU
+        {70F822D2-42EE-4CF9-BDCD-8BB001E3A123}.Beat Saber Release|Any CPU.ActiveCfg = Release|Any CPU
+        {70F822D2-42EE-4CF9-BDCD-8BB001E3A123}.Beat Saber Release|Any CPU.Build.0 = Release|Any CPU
     EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{953C4414-CD02-4B26-B52A-6633219E302F} = {0CE334B9-B26F-4C52-B9DA-A68D26D62C36}
+	    {A254E26A-8BB9-4BCF-961A-4ED807F01DCB} = {0CE334B9-B26F-4C52-B9DA-A68D26D62C36}
+	    {59A10833-B28C-4E3A-8CFA-BEA343CC9FA8} = {0CE334B9-B26F-4C52-B9DA-A68D26D62C36}
+	    {70F822D2-42EE-4CF9-BDCD-8BB001E3A123} = {0CE334B9-B26F-4C52-B9DA-A68D26D62C36}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {591796CA-B53A-4620-B64C-B60D809E7FDE}
