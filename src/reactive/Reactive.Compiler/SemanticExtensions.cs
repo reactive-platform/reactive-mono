@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -7,6 +8,21 @@ internal static class SemanticExtensions {
     public static TypedConstant? GetNamedArgument(this AttributeData data, string argument) {
         var arg = data.NamedArguments.FirstOrDefault(x => x.Key == argument);
         return arg.Key == null ? null : arg.Value;
+    }
+
+    /// <summary>
+    /// Acquires all members of a type and its supertypes that match the provided string.
+    /// </summary>
+    public static IEnumerable<ISymbol> GetMembersRecursive(this ITypeSymbol type, string name) {
+        var current = type;
+
+        do {
+            foreach (var member in current.GetMembers(name)) {
+                yield return member;
+            }
+
+            current = current.BaseType;
+        } while (current != null);
     }
 
     #region GetAttribute

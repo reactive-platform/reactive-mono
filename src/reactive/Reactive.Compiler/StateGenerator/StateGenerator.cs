@@ -138,7 +138,7 @@ internal class StateGenerator : IIncrementalGenerator {
             }
 
             var matchedPropName = match.Groups[1].Value;
-            if (containingType.GetMembers(matchedPropName).FirstOrDefault() is { } member) {
+            if (containingType.GetMembersRecursive(matchedPropName).FirstOrDefault() is { } member) {
                 return (member, statePropName);
             }
         }
