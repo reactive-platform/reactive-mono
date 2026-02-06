@@ -71,6 +71,7 @@
             <Private>False</Private>
         </Reference>
         <ProjectReference Include="..\..\reactive-sdk\Reactive.Components\Reactive.Components.csproj" />
+        <ProjectReference Include="..\..\reactive\Reactive.Compiler\Reactive.Compiler.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     </ItemGroup>
 
     <!-- Unity deps -->
