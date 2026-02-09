@@ -123,7 +123,8 @@
 
     <ItemGroup Condition="!$(Configuration.Contains('Editor'))">
         <EmbeddedResource Include="Resources\AssetBundles\asset_bundle"/>
-        <None Update="manifest.json" CopyToOutputDirectory="Always"/>
+        <None Remove="manifest.json" />
+        <EmbeddedResource Include="manifest.json" CopyToOutputDirectory="Always" />
     </ItemGroup>
 
     <ItemGroup>
