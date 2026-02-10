@@ -12,7 +12,6 @@
   },
   "files": [
     "Libs/Reactive.dll",
-    "Libs/Reactive.Components.dll",
-    "Plugins/Reactive.BeatSaber.dll"
+    "Libs/Reactive.Components.dll"
   ]
 }
