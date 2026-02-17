@@ -34,7 +34,7 @@ public class Sample : ReactiveComponent {
                         Size = new() { x = 10.pt }
                     },
 
-                    sText = text.Map(x => $"Hello, {x}!"),
+                    sText = RememberDerived(deps => $"The label is {deps.color.CurrentValue} and displays {deps.text.Value}", (text, color)),
                     sColor = color,
                 }
             }

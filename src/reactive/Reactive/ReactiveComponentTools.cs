@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace Reactive;
@@ -33,6 +33,10 @@ public partial class ReactiveComponent {
 
     protected static State<TValue> Remember<TValue>(TValue initialValue) {
         return new State<TValue>(initialValue);
+    }
+    
+    protected static DerivedState<T, TDeps> RememberDerived<T, TDeps>(Func<TDeps, T> predicate, TDeps dependencies) where TDeps : ITuple {
+        return StateUtils.RememberDerived(predicate, dependencies);
     }
 
     protected AnimatedState<Color> RememberAnimated(

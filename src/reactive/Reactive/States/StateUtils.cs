@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -9,6 +10,10 @@ namespace Reactive {
 
         public static State<T> Remember<T>(T initialValue) {
             return new State<T>(initialValue);
+        }
+        
+        public static DerivedState<T, TDeps> RememberDerived<T, TDeps>(Func<TDeps, T> predicate, TDeps dependencies) where TDeps : ITuple {
+            return new DerivedState<T, TDeps>(predicate, dependencies);
         }
 
         public static AnimatedState<T> RememberAnimated<T>(
