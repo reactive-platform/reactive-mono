@@ -18,4 +18,8 @@ internal static class StateGeneratorUtils {
 
         return state?.TypeArguments.First();
     }
+
+    public static bool IsStateType(this ISymbol? symbol) {
+        return symbol is ITypeSymbol type && type.AllInterfaces.Any(x => x.Name == StateType);
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using Reactive.Compiler;
 using UnityEngine;
 
 namespace Reactive;
@@ -35,7 +36,7 @@ public partial class ReactiveComponent {
         return new State<TValue>(initialValue);
     }
     
-    protected static DerivedState<T, TDeps> RememberDerived<T, TDeps>(Func<TDeps, T> predicate, TDeps dependencies) where TDeps : ITuple {
+    protected static DerivedState<T, TDeps> RememberDerived<T, TDeps>(Func<TDeps, T> predicate, [StateDependencies] TDeps dependencies) where TDeps : ITuple {
         return StateUtils.RememberDerived(predicate, dependencies);
     }
 

@@ -13,7 +13,7 @@ public class Sample : ReactiveComponent {
                 FlexDirection = FlexDirection.Column,
                 ConstrainHorizontal = false
             },
-            
+
             FlexItem = {
                 Size = new() { y = 20.pt },
             },
@@ -23,7 +23,7 @@ public class Sample : ReactiveComponent {
                     Do = x => x
                         .On(text, Debug.Log)
                         .On(color, x => Debug.Log(x)),
-                    
+
                     DoAll = [
                         x => Debug.Log(x),
                         x => Debug.Log(x),
@@ -34,7 +34,11 @@ public class Sample : ReactiveComponent {
                         Size = new() { x = 10.pt }
                     },
 
-                    sText = RememberDerived(deps => $"The label is {deps.color.Value} and displays {deps.text.Value}", (text, color)),
+                    sText = RememberDerived(
+                        deps => $"The label is {deps.color.Value} and displays {deps.text.Value}",
+                        (text, color) // Try adding an extra argument that is a literal or not a state
+                    ),
+
                     sColor = color,
                 }
             }

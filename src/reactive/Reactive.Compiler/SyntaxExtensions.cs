@@ -100,7 +100,7 @@ internal static class SyntaxExtensions {
         }
     }
 
-    public static ITypeSymbol? GetReturnType(ISymbol symbol) {
+    public static ITypeSymbol? GetReturnType(ISymbol? symbol) {
         return symbol switch {
             IMethodSymbol method => method.ReturnType,
             IFieldSymbol field => field.Type,

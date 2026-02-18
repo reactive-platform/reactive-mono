@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using Reactive.Compiler;
 using UnityEngine;
 
 namespace Reactive {
@@ -12,7 +13,7 @@ namespace Reactive {
             return new State<T>(initialValue);
         }
         
-        public static DerivedState<T, TDeps> RememberDerived<T, TDeps>(Func<TDeps, T> predicate, TDeps dependencies) where TDeps : ITuple {
+        public static DerivedState<T, TDeps> RememberDerived<T, TDeps>(Func<TDeps, T> predicate, [StateDependencies] TDeps dependencies) where TDeps : ITuple {
             return new DerivedState<T, TDeps>(predicate, dependencies);
         }
 
