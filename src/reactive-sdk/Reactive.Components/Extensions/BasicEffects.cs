@@ -22,7 +22,7 @@ public static class BasicEffects {
         );
         comp.WithListener(
             static x => x.IsHovered,
-            x => value.Value = x ? hoverScale : baseScale
+            x => value.TargetValue = x ? hoverScale : baseScale
         );
         comp.On(
             value,

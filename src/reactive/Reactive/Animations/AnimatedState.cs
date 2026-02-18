@@ -11,22 +11,22 @@ namespace Reactive {
     public class AnimatedState<T> : IState<T>, IReactiveModule {
         public AnimatedState(T initialValue, IValueInterpolator<T> valueInterpolator) {
             _startValue = initialValue;
-            _endValue = initialValue;
+            _targetValue = initialValue;
             _valueInterpolator = valueInterpolator;
             _set = true;
             _progress = 1f;
             _elapsedTime = 0f;
         }
 
-        public T Value {
-            get => _endValue;
+        public T TargetValue {
+            get => _targetValue;
             set {
-                if (_valueInterpolator.Equals(_endValue, value)) {
+                if (_valueInterpolator.Equals(_targetValue, value)) {
                     return;
                 }
 
-                _startValue = CurrentValue;
-                _endValue = value;
+                _startValue = Value;
+                _targetValue = value;
 
                 _elapsedTime = 0f;
                 _progress = 0f;
@@ -35,7 +35,7 @@ namespace Reactive {
                 _set = false;
 
                 if (shouldNotify) {
-                    OnStart?.Invoke(CurrentValue);
+                    OnStart?.Invoke(Value);
                 }
             }
         }
@@ -44,13 +44,11 @@ namespace Reactive {
             get => _progress;
             private set {
                 _progress = value;
-                ValueChangedEvent?.Invoke(CurrentValue);
+                ValueChangedEvent?.Invoke(Value);
             }
         }
-
-        T IState<T>.Value => CurrentValue;
-
-        public T CurrentValue => _valueInterpolator.Lerp(_startValue, _endValue, _progress);
+        
+        public T Value => _valueInterpolator.Lerp(_startValue, _targetValue, _progress);
         public bool IsFinished => _set;
 
         public AnimationDuration Duration { get; set; }
@@ -62,7 +60,7 @@ namespace Reactive {
         public event Action<T>? ValueChangedEvent;
 
         private readonly IValueInterpolator<T> _valueInterpolator;
-        private T _endValue;
+        private T _targetValue;
         private T _startValue;
 
         private float _progress;
@@ -72,8 +70,8 @@ namespace Reactive {
         public void SetValueImmediate(T value, bool silent = false) {
             _set = true;
             _startValue = value;
-            _endValue = value;
-            _endValue = _valueInterpolator.Lerp(_startValue, _endValue, 1f);
+            _targetValue = value;
+            _targetValue = _valueInterpolator.Lerp(_startValue, _targetValue, 1f);
 
             if (!silent) {
                 Progress = 1f;
@@ -117,11 +115,11 @@ namespace Reactive {
             _set = true;
             _elapsedTime = 0f;
 
-            OnFinish?.Invoke(CurrentValue);
+            OnFinish?.Invoke(Value);
         }
 
         public static implicit operator T(AnimatedState<T> state) {
-            return state.CurrentValue;
+            return state.Value;
         }
     }
 }

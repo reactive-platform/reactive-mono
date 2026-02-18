@@ -43,15 +43,15 @@ public class WebImage : Image {
             this.WithWebSource(
                 _src,
                 () => {
-                    _spinnerAlpha.Value = 1f;
+                    _spinnerAlpha.TargetValue = 1f;
                 },
                 _ => {
-                    _spinnerAlpha.Value = 0f;
+                    _spinnerAlpha.TargetValue = 0f;
                 }
             );
         } else {
             Sprite = null;
-            _spinnerAlpha.Value = 0f;
+            _spinnerAlpha.TargetValue = 0f;
         }
     }
 

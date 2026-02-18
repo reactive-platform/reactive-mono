@@ -21,7 +21,7 @@ namespace Reactive.BeatSaber.Components {
             set {
                 _interactable = value;
                 _backgroundButton.Interactable = value;
-                UpdateAnimations(_progressValue.Value);
+                UpdateAnimations(_progressValue.TargetValue);
                 NotifyPropertyChanged();
             }
         }
@@ -48,7 +48,7 @@ namespace Reactive.BeatSaber.Components {
         public void SetActive(bool active, bool animated = true, bool silent = false) {
             _active = active;
             if (animated) {
-                _progressValue.Value = active ? 1f : 0f;
+                _progressValue.TargetValue = active ? 1f : 0f;
             } else {
                 _progressValue.SetValueImmediate(active ? 1f : 0f);
             }

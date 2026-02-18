@@ -71,7 +71,7 @@ namespace Reactive.Components {
             Enabled = true;
 
             if (!immediate) {
-                _openProgress.Value = 1f;
+                _openProgress.TargetValue = 1f;
                 _openProgress.OnFinish = HandleOpenAnimationFinished;
                 ModalOpenedEvent?.Invoke(this, false);
             } else {
@@ -87,7 +87,7 @@ namespace Reactive.Components {
             OnClose(false);
 
             if (!immediate) {
-                _openProgress.Value = 0f;
+                _openProgress.TargetValue = 0f;
                 _openProgress.OnFinish = HandleCloseAnimationFinished;
                 
                 ModalClosedEvent?.Invoke(this, false);
