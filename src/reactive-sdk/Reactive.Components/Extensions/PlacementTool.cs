@@ -33,17 +33,17 @@ public struct PlacementData(
     /// <summary>
     /// Defines placement against anchor object.
     /// </summary>
-    public RelativePlacement Placement = placement;
+    public RelativePlacement Placement { get; init; } = placement;
 
     /// <summary>
     /// Defines an offset which is applied to the calculated position.
     /// </summary>
-    public Vector2 Offset = offset;
+    public Vector2 Offset { get; init; } = offset;
 
     /// <summary>
     /// Defines whether the object should be clipped within parent bounds or not.
     /// </summary>
-    public bool Clip = clip;
+    public bool Clip { get; init; } = clip;
 }
 
 [PublicAPI]
