@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -12,6 +9,8 @@ internal static class SyntaxExtensions {
     /// </summary>
     /// <returns></returns>
     public static ITypeSymbol? FindInitializerType(SyntaxNode syntax, SemanticModel model) {
+        /// Not directly a syntax extension, but still relates to syntax more than to semantics
+        
         var current = syntax;
 
         while (current != null) {
@@ -24,7 +23,7 @@ internal static class SyntaxExtensions {
                 case AssignmentExpressionSyntax assignment:
                     var leftSymbol = model.GetSymbolInfo(assignment.Left).Symbol;
 
-                    if (leftSymbol != null && GetReturnType(leftSymbol) is { } returnType) {
+                    if (leftSymbol != null && SemanticExtensions.GetReturnType(leftSymbol) is { } returnType) {
                         return returnType;
                     }
 
@@ -98,15 +97,5 @@ internal static class SyntaxExtensions {
 
             yield return expression;
         }
-    }
-
-    public static ITypeSymbol? GetReturnType(ISymbol? symbol) {
-        return symbol switch {
-            IMethodSymbol method => method.ReturnType,
-            IFieldSymbol field => field.Type,
-            ILocalSymbol local => local.Type,
-            IPropertySymbol property => property.Type,
-            _ => null
-        };
     }
 }

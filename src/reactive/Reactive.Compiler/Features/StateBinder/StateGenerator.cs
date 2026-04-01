@@ -74,7 +74,7 @@ internal class StateGenerator : IIncrementalGenerator {
             .Where(x => x.Symbol != null);
 
         var endpoint = tree
-            .Select(x => SyntaxExtensions.GetReturnType(x.Symbol!))
+            .Select(x => SemanticExtensions.GetReturnType(x.Symbol!))
             .FirstOrDefault(x => x != null);
 
         // Ignoring state type here as we simply need to ensure that the resulting 
@@ -151,7 +151,7 @@ internal class StateGenerator : IIncrementalGenerator {
 
         foreach (var nameGroup in propGroups) {
             var prop = nameGroup.Key!;
-            var propType = SyntaxExtensions.GetReturnType(prop);
+            var propType = SemanticExtensions.GetReturnType(prop);
             var propName = prop.Name;
 
             foreach (var name in nameGroup) {

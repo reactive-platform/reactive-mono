@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Reactive.Compiler;
 
-internal static class SemanticExtensions {
+internal static partial class SemanticExtensions {
     public static string GetTypeIdentifier(this ISymbol type) {
         return type
             .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
@@ -11,22 +11,6 @@ internal static class SemanticExtensions {
             .Replace("<", "_")
             .Replace(">", "")
             .Replace(",", "_");
-    }
-
-    
-    public static ITypeSymbol? GetExtensionType(this IPropertySymbol prop) {
-        return prop.ContainingType.ExtensionParameter?.Type ??
-            GetMethodInlineExtensionType(prop.GetMethod) ??
-            GetMethodInlineExtensionType(prop.SetMethod);
-    }
-    
-    /// <summary>
-    /// Returns an extension type for the method. Works only on methods with <c>Method(this T)</c> syntax,
-    /// extension blocks are not supported.
-    /// </summary>
-    private static ITypeSymbol? GetMethodInlineExtensionType(IMethodSymbol? method) {
-        return method is not { IsExtensionMethod: true } ? null : method.Parameters.First().Type;
-
     }
 
     public static TypedConstant? GetNamedArgument(this AttributeData data, string argument) {

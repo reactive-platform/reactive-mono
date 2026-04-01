@@ -56,7 +56,7 @@ internal class StateDependenciesAnalyzer : DiagnosticAnalyzer {
             }
             
             var symbol = semanticModel.GetSymbolInfo(ident).Symbol;
-            var returnType = SyntaxExtensions.GetReturnType(symbol);
+            var returnType = SemanticExtensions.GetReturnType(symbol);
 
             if (returnType.IsStateType()) {
                 yield return argument;
