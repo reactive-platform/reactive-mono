@@ -11,6 +11,7 @@
 
         <RootNamespace>Reactive.Compiler</RootNamespace>
         <PackageId>Reactive.Compiler</PackageId>
+        <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
     <ItemGroup>
@@ -20,5 +21,24 @@
         </PackageReference>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
     </ItemGroup>
-    
+
+    <!-- 
+        A very hacky fix towards dependencies. By default roslyn doesn't support referencing
+        another projects from an analyzer directly, so to "bypass" it, we simply include these types inside 
+        the compiler. How does this even resolve? Well, every feature is based on qualified paths rather
+        than on the actual semantic types, so we're basically importing types to use them as placeholders.
+        
+        Feel free to open a PR or an issue if you know a better way to handle this.
+    -->
+    <ItemGroup>
+        <PackageReference Include="PolySharp" Version="1.15.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        
+        <Compile Include="..\Reactive.Compiler.Models\**\*.cs"
+                 Exclude="..\Reactive.Compiler.Models\obj\**;..\Reactive.Compiler.Models\bin\**;..\Reactive.Compiler.Models\Properties\AssemblyInfo.cs;..\Reactive.Compiler.Models\AssemblyInfo.cs"
+                 LinkBase="Models"
+                 Visible="false" />
+    </ItemGroup>
 </Project>

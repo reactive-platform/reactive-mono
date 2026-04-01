@@ -50,8 +50,8 @@ internal class StateGenerator : IIncrementalGenerator {
                 if (type == null) return;
 
                 var ext = GenerateTypeExtension(type, typeGroup);
-                var identifier = GetTypeIdentifier(type);
-                
+                var identifier = type.GetTypeIdentifier();
+
                 var file = $"Reactive_{identifier}_StateExt.g.cs";
                 spc.AddSource(file, ext);
             }
@@ -156,6 +156,7 @@ internal class StateGenerator : IIncrementalGenerator {
 
             foreach (var name in nameGroup) {
                 var definition = """
+                    [Reactive.Compiler.RequiredAttribute(ShadowsName = "{3}")]
                     public {0}<{1}> {2} {{
                         set {{
                             value.ValueChangedEvent += x => obj.{3} = x;
@@ -189,20 +190,10 @@ internal class StateGenerator : IIncrementalGenerator {
             }}
             """;
 
-        var typeIdentifier = GetTypeIdentifier(type);
+        var typeIdentifier = type.GetTypeIdentifier();
         
         outer = string.Format(outer, typeIdentifier, type, inner.ToString().TrimEnd());
 
         return outer;
-    }
-
-    private static string GetTypeIdentifier(ISymbol type) {
-         return type
-            .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-            .Replace("global::", "")
-            .Replace(".", "_")
-            .Replace("<", "_")
-            .Replace(">", "")
-            .Replace(",", "_");
     }
 }

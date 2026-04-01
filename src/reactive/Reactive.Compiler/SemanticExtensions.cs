@@ -1,10 +1,34 @@
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace Reactive.Compiler;
 
 internal static class SemanticExtensions {
+    public static string GetTypeIdentifier(this ISymbol type) {
+        return type
+            .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+            .Replace("global::", "")
+            .Replace(".", "_")
+            .Replace("<", "_")
+            .Replace(">", "")
+            .Replace(",", "_");
+    }
+
+    
+    public static ITypeSymbol? GetExtensionType(this IPropertySymbol prop) {
+        return prop.ContainingType.ExtensionParameter?.Type ??
+            GetMethodInlineExtensionType(prop.GetMethod) ??
+            GetMethodInlineExtensionType(prop.SetMethod);
+    }
+    
+    /// <summary>
+    /// Returns an extension type for the method. Works only on methods with <c>Method(this T)</c> syntax,
+    /// extension blocks are not supported.
+    /// </summary>
+    private static ITypeSymbol? GetMethodInlineExtensionType(IMethodSymbol? method) {
+        return method is not { IsExtensionMethod: true } ? null : method.Parameters.First().Type;
+
+    }
+
     public static TypedConstant? GetNamedArgument(this AttributeData data, string argument) {
         var arg = data.NamedArguments.FirstOrDefault(x => x.Key == argument);
         return arg.Key == null ? null : arg.Value;
@@ -13,11 +37,13 @@ internal static class SemanticExtensions {
     /// <summary>
     /// Acquires all members of a type and its supertypes that match the provided string.
     /// </summary>
-    public static IEnumerable<ISymbol> GetMembersRecursive(this ITypeSymbol type, string name) {
+    public static IEnumerable<ISymbol> GetMembersRecursive(this ITypeSymbol type, string? name = null) {
         var current = type;
 
         do {
-            foreach (var member in current.GetMembers(name)) {
+            var members = name != null ? current.GetMembers(name) : current.GetMembers();
+
+            foreach (var member in members) {
                 yield return member;
             }
 
@@ -36,6 +62,13 @@ internal static class SemanticExtensions {
     public static AttributeData? GetAttribute(this ISymbol symbol, SemanticModel semanticModel, string name) {
         var compilation = semanticModel.Compilation;
         var attribute = compilation.GetTypeByMetadataName(name);
+
+        return GetAttribute(symbol, attribute!);
+    }
+
+    public static AttributeData? GetAttribute<T>(this ISymbol symbol, SemanticModel semanticModel) {
+        var compilation = semanticModel.Compilation;
+        var attribute = compilation.GetTypeByMetadataName(typeof(T).FullName!);
 
         return GetAttribute(symbol, attribute!);
     }
