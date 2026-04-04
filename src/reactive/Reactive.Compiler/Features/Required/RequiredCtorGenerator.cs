@@ -15,10 +15,14 @@ internal class RequiredCtorGenerator : IIncrementalGenerator {
                 transform: static (ctx, _) => {
                     var symbol = ctx.SemanticModel.GetDeclaredSymbol(ctx.Node);
 
+                    // Non-required properties aren't handled
                     var attr = symbol?.GetAttribute<RequiredAttribute>(ctx.SemanticModel);
-                    var arg = attr?.GetNamedArgument(nameof(RequiredAttribute.ShadowsName));
-
+                    if (attr == null) {
+                        return null;
+                    }
+                    
                     // Shadowing means that the prop is not defined in the class directly (e.g. an extension)
+                    var arg = attr.GetNamedArgument(nameof(RequiredAttribute.ShadowsName));
                     if (arg.HasValue) {
                         return null;
                     }
