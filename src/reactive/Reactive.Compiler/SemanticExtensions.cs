@@ -6,11 +6,12 @@ internal static partial class SemanticExtensions {
     public static string GetTypeIdentifier(this ISymbol type) {
         return type
             .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+            .Replace(" ", "")
             .Replace("global::", "")
             .Replace(".", "_")
-            .Replace("<", "_")
-            .Replace(">", "")
-            .Replace(",", "_");
+            .Replace("<", "ST")
+            .Replace(">", "ET")
+            .Replace(",", "SE");
     }
 
     public static TypedConstant? GetNamedArgument(this AttributeData data, string argument) {
