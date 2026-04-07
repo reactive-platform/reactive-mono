@@ -9,9 +9,9 @@ internal static partial class SemanticExtensions {
             .Replace(" ", "")
             .Replace("global::", "")
             .Replace(".", "_")
-            .Replace("<", "ST")
-            .Replace(">", "ET")
-            .Replace(",", "SE");
+            .Replace("<", "_")
+            .Replace(">", "_")
+            .Replace(",", "_");
     }
 
     public static TypedConstant? GetNamedArgument(this AttributeData data, string argument) {

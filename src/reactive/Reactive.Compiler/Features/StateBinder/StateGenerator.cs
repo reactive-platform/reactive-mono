@@ -37,7 +37,7 @@ internal class StateGenerator : IIncrementalGenerator {
                         SymbolEqualityComparer.Default
                     )
                     .GroupBy(
-                        x => x.Key.ContainingType,
+                        x => x.Key.ContainingType.OriginalDefinition,
                         SymbolEqualityComparer.Default
                     )
             );
@@ -46,7 +46,7 @@ internal class StateGenerator : IIncrementalGenerator {
         context.RegisterSourceOutput(
             groupedByType,
             static (spc, typeGroup) => {
-                var type = typeGroup.Key;
+                var type = (INamedTypeSymbol?)typeGroup.Key;
                 if (type == null) return;
 
                 var ext = GenerateTypeExtension(type, typeGroup);
@@ -138,15 +138,17 @@ internal class StateGenerator : IIncrementalGenerator {
             }
 
             var matchedPropName = match.Groups[1].Value;
-            if (containingType.GetMembersRecursive(matchedPropName).FirstOrDefault() is { } member) {
-                return (member, statePropName);
+            var symbol = containingType.GetMembersRecursive(matchedPropName).FirstOrDefault();
+            
+            if (symbol is IPropertySymbol prop) {
+                return (prop.OriginalDefinition, statePropName);
             }
         }
 
         return null;
     }
 
-    private static string GenerateTypeExtension(ISymbol type, IEnumerable<IGrouping<ISymbol?, string>> propGroups) {
+    private static string GenerateTypeExtension(INamedTypeSymbol type, IEnumerable<IGrouping<ISymbol?, string>> propGroups) {
         var inner = new StringBuilder();
 
         foreach (var nameGroup in propGroups) {
@@ -184,7 +186,7 @@ internal class StateGenerator : IIncrementalGenerator {
         var outer = """
             [System.CodeDom.Compiler.GeneratedCode("Reactive_StateGenerator", "1.0")]
             internal static class Reactive_{0}_StateGenExt {{
-                extension({1} obj) {{
+                extension{3}({1} obj) {4} {{
             {2}
                 }}
             }}
@@ -192,7 +194,17 @@ internal class StateGenerator : IIncrementalGenerator {
 
         var typeIdentifier = type.GetTypeIdentifier();
         
-        outer = string.Format(outer, typeIdentifier, type, inner.ToString().TrimEnd());
+        var genericArguments = CompilerHelper.GenerateGenericsDecl(type);
+        var genericConstrainments = CompilerHelper.GenerateConstrainments(type);
+        
+        outer = string.Format(
+            outer,
+            typeIdentifier,
+            type,
+            inner.ToString().TrimEnd(),
+            genericArguments,
+            genericConstrainments
+        );
 
         return outer;
     }
