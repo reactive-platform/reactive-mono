@@ -55,19 +55,19 @@ namespace Reactive.Yoga {
                 case "undefined":
                     unit = Unit.Undefined;
                     break;
-                
+
                 case "auto":
                     unit = Unit.Auto;
                     break;
-                
+
                 case "fit-content":
                     unit = Unit.FitContent;
                     break;
-                
+
                 case "max-content":
                     unit = Unit.MaxContent;
                     break;
-                
+
                 case "stretch":
                     unit = Unit.Stretch;
                     break;
@@ -84,7 +84,7 @@ namespace Reactive.Yoga {
                         unit = Unit.Point;
                         break;
                     }
-                    
+
                     throw new ArgumentOutOfRangeException(nameof(str));
                 }
             }
@@ -98,6 +98,10 @@ namespace Reactive.Yoga {
 
         public static bool operator !=(YogaValue left, YogaValue right) {
             return !(left == right);
+        }
+
+        public static YogaValue operator -(YogaValue value) {
+            return value with { value = value.value * -1 };
         }
 
         public bool Equals(YogaValue other) {
