@@ -61,27 +61,28 @@ internal static partial class SemanticExtensions {
     #endregion
 
     #region GetDerivedAttribute
+    
+    public static AttributeData? GetDerivedAttribute(this ISymbol symbol, SemanticModel semanticModel, string name) {
+        var attribute = semanticModel.Compilation.GetTypeByMetadataName(name);
+        if (attribute == null) return null;
 
-    public static AttributeData? GetDerivedAttribute(this IMethodSymbol symbol, SemanticModel semanticModel, string name) {
-        var compilation = semanticModel.Compilation;
-        var attribute = compilation.GetTypeByMetadataName(name);
+        ISymbol? currentSymbol = symbol;
 
-        return GetDerivedAttribute(symbol, attribute!);
-    }
-
-    public static AttributeData? GetDerivedAttribute(this IMethodSymbol symbol, INamedTypeSymbol attribute) {
-        IMethodSymbol? currentMethod = symbol;
-
-        do {
-            var attrs = currentMethod.GetAttributes();
-            var attr = attrs.FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, attribute));
+        while (currentSymbol != null) {
+            var attr = currentSymbol.GetAttributes()
+                .FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, attribute));
 
             if (attr != null) {
                 return attr;
             }
-
-            currentMethod = currentMethod.OverriddenMethod;
-        } while (currentMethod != null);
+            
+            currentSymbol = currentSymbol switch {
+                IMethodSymbol method => method.OverriddenMethod,
+                IPropertySymbol prop => prop.OverriddenProperty,
+                // Constructors can't be overriden
+                _ => null 
+            };
+        }
 
         return null;
     }

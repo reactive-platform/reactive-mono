@@ -4,13 +4,23 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reactive.Compiler;
 
 internal static class SyntaxExtensions {
+    public static SyntaxNode? GetEnclosingMember(this SyntaxNode node) {
+        return node.Ancestors().FirstOrDefault(n =>
+            n is MethodDeclarationSyntax or
+                ConstructorDeclarationSyntax or
+                PropertyDeclarationSyntax or
+                AccessorDeclarationSyntax or
+                IndexerDeclarationSyntax
+        );
+    }
+
     /// <summary>
     /// Attempts to find a type of the initializer expression.
     /// </summary>
     /// <returns></returns>
     public static ITypeSymbol? FindInitializerType(SyntaxNode syntax, SemanticModel model) {
         /// Not directly a syntax extension, but still relates to syntax more than to semantics
-        
+
         var current = syntax;
 
         while (current != null) {

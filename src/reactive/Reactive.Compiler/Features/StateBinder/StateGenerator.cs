@@ -96,8 +96,11 @@ internal class StateGenerator : IIncrementalGenerator {
     }
 
     private static string[]? GetPatterns(AssignmentExpressionSyntax assignment, SemanticModel semanticModel) {
-        var methodSymbol = semanticModel.GetEnclosingSymbol(assignment.SpanStart);
-        if (methodSymbol is not IMethodSymbol method) {
+        if (assignment.GetEnclosingMember() is not { } methodSyntax) {
+            return null;
+        }
+
+        if (semanticModel.GetDeclaredSymbol(methodSyntax) is not { } method) {
             return null;
         }
 
@@ -139,7 +142,7 @@ internal class StateGenerator : IIncrementalGenerator {
 
             var matchedPropName = match.Groups[1].Value;
             var symbol = containingType.GetMembersRecursive(matchedPropName).FirstOrDefault();
-            
+
             if (symbol is IPropertySymbol prop) {
                 return (prop.OriginalDefinition, statePropName);
             }
@@ -193,10 +196,10 @@ internal class StateGenerator : IIncrementalGenerator {
             """;
 
         var typeIdentifier = type.GetTypeIdentifier();
-        
+
         var genericArguments = CompilerHelper.GenerateGenericsDecl(type);
         var genericConstrainments = CompilerHelper.GenerateConstrainments(type);
-        
+
         outer = string.Format(
             outer,
             typeIdentifier,
