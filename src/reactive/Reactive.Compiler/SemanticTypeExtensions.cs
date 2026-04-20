@@ -12,6 +12,7 @@ partial class SemanticExtensions {
             IFieldSymbol field => field.Type,
             ILocalSymbol local => local.Type,
             IPropertySymbol property => property.Type,
+            IParameterSymbol param => param.Type,
             _ => null
         };
     }
