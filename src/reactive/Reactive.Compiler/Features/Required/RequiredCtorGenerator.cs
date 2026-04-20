@@ -56,7 +56,7 @@ internal class RequiredCtorGenerator : IIncrementalGenerator {
                 [System.CodeDom.Compiler.GeneratedCode("Reactive_RequiredCtorGenerator", "1.0")]
                 partial class {1} {{
                     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-                    public {1}(Reactive.Compiler.Nothing _ = default) {{ }}
+                    public {2}(Reactive.Compiler.Nothing _ = default) {{ }}
                 }}
             """;
 
@@ -67,7 +67,8 @@ internal class RequiredCtorGenerator : IIncrementalGenerator {
         return string.Format(
             definition,
             namespaceName,
-            type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)
+            type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
+            type.Name
         );
     }
 }
