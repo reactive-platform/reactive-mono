@@ -79,7 +79,7 @@ internal class StateGenerator : IIncrementalGenerator {
 
         // Ignoring state type here as we simply need to ensure that the resulting 
         // object is IState, the target type is taken from the target property
-        if (endpoint == null || StateGeneratorUtils.GetStateTargetType(endpoint) == null) {
+        if (endpoint == null || !endpoint.IsStateType()) {
             return null;
         }
 

@@ -1,4 +1,3 @@
-using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace Reactive.Compiler;
@@ -6,20 +5,27 @@ namespace Reactive.Compiler;
 internal static class StateGeneratorUtils {
     public const string StateType = "IState";
     public const string StateNamespace = "Reactive";
-    
+
     public const string StatePath = $"{StateNamespace}.{StateType}";
     public const string AttributePath = "Reactive.Compiler.StateGenAttribute";
 
     public static ITypeSymbol? GetStateTargetType(ITypeSymbol symbol) {
-        var state = symbol.AllInterfaces.FirstOrDefault(x =>
-            x.ContainingNamespace?.ToString() == StateNamespace &&
-            x.Name == StateType
-        );
+        INamedTypeSymbol? type;
 
-        return state?.TypeArguments.First();
+        if (symbol is INamedTypeSymbol t && IsStateTypeSelf(symbol)) {
+            type = t;
+        } else {
+            type = symbol.AllInterfaces.FirstOrDefault(IsStateTypeSelf);
+        }
+
+        return type?.TypeArguments.First();
     }
 
     public static bool IsStateType(this ISymbol? symbol) {
-        return symbol is ITypeSymbol type && type.AllInterfaces.Any(x => x.Name == StateType);
+        return symbol is ITypeSymbol type && (IsStateTypeSelf(type) || type.AllInterfaces.Any(IsStateTypeSelf));
+    }
+
+    private static bool IsStateTypeSelf(ITypeSymbol symbol) {
+        return symbol.ContainingNamespace?.ToString() == StateNamespace && symbol.Name == StateType;
     }
 }
