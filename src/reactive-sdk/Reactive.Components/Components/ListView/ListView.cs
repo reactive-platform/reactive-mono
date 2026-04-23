@@ -1,37 +1,17 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Reactive.Compiler;
+using Reactive.Components.Basic;
+using Reactive.Yoga;
 using UnityEngine;
 
 namespace Reactive.Components {
     /// <summary>
-    /// A <see cref="ListView{LItem,LCell}"/> overload with an ability to make cells in-place.
+    /// A component that spawns physical cells directly in the layout flow.
     /// </summary>
     [PublicAPI]
-    public class ListView<TItem> : ListView<TItem, ListCell<TItem>> {
-        /// <summary>
-        /// Defines a cell constructor. Must be specified.
-        /// </summary>
-        public ListCell<TItem>.Constructor? ConstructCell { get; set; }
-
-        protected override void OnInstantiate() {
-            cellsPool.Construct = CreateCell;
-        }
-
-        private ListCell<TItem> CreateCell() {
-            if (ConstructCell == null) {
-                throw new UninitializedComponentException("The ConstructCell property must be specified");
-            }
-
-            return new ListCell<TItem>(ConstructCell);
-        }
-    }
-
-    /// <summary>
-    /// A kind of Table which spawns cells directly in the layout flow.
-    /// </summary>
-    [PublicAPI]
-    public class ListView<TItem, TCell> : ReactiveComponent, ILayoutDriver where TCell : IListCell<TItem>, IReactiveComponent, new() {
+    public partial class ListView<TItem, TCell> : ReactiveComponent, ILayoutDriver where TCell : class, IReactiveComponent {
         #region Layout Driver
 
         // Avoid using collection expression as it create a new instance of List each time.
@@ -53,49 +33,55 @@ namespace Reactive.Components {
             get => _items;
             set {
                 _items = value;
-                Refresh();
+                RefreshCells();
             }
         }
 
-        private IReadOnlyList<TItem> _items = new List<TItem>();
+        [Required]
+        public Func<IState<TItem>, TCell> ConstructCell { get; set; }
 
-        public void Refresh() {
-            RefreshCells();
-            OnRefresh();
-            WhenRefreshed?.Invoke(this);
-        }
+        private IReadOnlyList<TItem> _items = Array.Empty<TItem>();
+
+        protected virtual void OnRefreshInternal() { }
+        protected virtual void OnCellInitInternal(TCell cell) { }
 
         #endregion
 
         #region Cells
 
-        internal readonly ReactivePool<TCell> cellsPool = new() { DetachOnDespawn = true };
+        private readonly List<(State<TItem>, TCell)> _cells = new();
         private Layout _container = null!;
 
         private void RefreshCells() {
-            cellsPool.DespawnAll();
+            for (var i = 0; i < _items.Count; i++) {
+                var item = _items[i];
 
-            foreach (var item in _items) {
-                var cell = cellsPool.Spawn(false);
-                cell.Init(item);
-                cell.Enabled = true;
-                
-                OnCellConstruct(cell);
-                WhenCellConstructed?.Invoke(cell);
-                
-                _container.Children.Add(cell);
+                State<TItem> state;
+                TCell cell;
+
+                if (i >= _cells.Count) {
+                    state = new State<TItem>(item);
+                    cell = ConstructCell(state);
+
+                    _cells.Add((state, cell));
+                    _container.Children.Add(cell);
+                } else {
+                    (state, cell) = _cells[^1];
+
+                    state.Value = item;
+                    cell.Enabled = true;
+                }
+
+                OnCellInitInternal(cell);
             }
+
+            // Disable remaining cells if there's any
+            for (var i = _items.Count; i < _cells.Count; i++) {
+                _cells[i].Item2.Enabled = false;
+            }
+
+            OnRefreshInternal();
         }
-
-        #endregion
-
-        #region Abstraction
-
-        public Action<ListView<TItem, TCell>>? WhenRefreshed;
-        public Action<TCell>? WhenCellConstructed;
-
-        protected virtual void OnRefresh() { }
-        protected virtual void OnCellConstruct(TCell cell) { }
 
         #endregion
 
@@ -103,7 +89,7 @@ namespace Reactive.Components {
 
         protected sealed override GameObject Construct() {
             return new Layout()
-                .AsFlexGroup(direction: Yoga.FlexDirection.Column)
+                .AsFlexGroup(direction: FlexDirection.Column)
                 .Bind(ref _container)
                 .Use();
         }
