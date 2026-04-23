@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace Reactive {
     [PublicAPI]
-    public class State<T> : IState<T> {
+    public class State<T> : IMutableState<T> {
         public State(T initialValue) {
             _value = initialValue;
         }
