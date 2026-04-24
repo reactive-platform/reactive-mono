@@ -104,8 +104,7 @@ internal class StateGenerator : IIncrementalGenerator {
             return null;
         }
 
-        var attr = method.GetDerivedAttribute(semanticModel, StateGeneratorUtils.AttributePath);
-        if (attr == null) {
+        if (method.GetDerivedAttribute<StateGenAttribute>(semanticModel) is not { } attr) {
             return null;
         }
 
@@ -144,6 +143,11 @@ internal class StateGenerator : IIncrementalGenerator {
             var symbol = containingType.GetMembersRecursive(matchedPropName).FirstOrDefault();
 
             if (symbol is IPropertySymbol prop) {
+                // Raw states are excluded from the generation process
+                if (symbol.GetDerivedAttribute<RawStateAttribute>(semanticModel) != null) {
+                    continue;
+                } 
+                
                 return (prop.OriginalDefinition, statePropName);
             }
         }
@@ -161,14 +165,14 @@ internal class StateGenerator : IIncrementalGenerator {
 
             foreach (var name in nameGroup) {
                 var definition = """
-                    [Reactive.Compiler.RequiredAttribute(ShadowsName = "{3}")]
-                    public {0}<{1}> {2} {{
-                        set {{
-                            value.ValueChangedEvent += x => obj.{3} = x;
-                        }}
-                    }}
+                                 [Reactive.Compiler.RequiredAttribute(ShadowsName = "{3}")]
+                                 public {0}<{1}> {2} {{
+                                     set {{
+                                         value.ValueChangedEvent += x => obj.{3} = x;
+                                     }}
+                                 }}
 
-                    """;
+                                 """;
 
                 // Replace placeholders
                 definition = string.Format(
@@ -187,13 +191,13 @@ internal class StateGenerator : IIncrementalGenerator {
         }
 
         var outer = """
-            [System.CodeDom.Compiler.GeneratedCode("Reactive_StateGenerator", "1.0")]
-            internal static class Reactive_{0}_StateGenExt {{
-                extension{3}({1} obj) {4} {{
-            {2}
-                }}
-            }}
-            """;
+                    [System.CodeDom.Compiler.GeneratedCode("Reactive_StateGenerator", "1.0")]
+                    internal static class Reactive_{0}_StateGenExt {{
+                        extension{3}({1} obj) {4} {{
+                    {2}
+                        }}
+                    }}
+                    """;
 
         var typeIdentifier = type.GetTypeIdentifier();
 
