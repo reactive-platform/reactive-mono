@@ -42,4 +42,11 @@
     <ItemGroup>
         <ProjectReference Include="..\Reactive.Compiler.Models\Reactive.Compiler.Models.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="PolySharp" Version="1.15.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+    </ItemGroup>
 </Project>

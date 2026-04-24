@@ -1,5 +1,6 @@
 using System;
 using JetBrains.Annotations;
+using Reactive.Compiler;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -11,7 +12,7 @@ namespace Reactive.Components.Basic {
     }
 
     [PublicAPI]
-    public class ScrollArea : ReactiveComponent {
+    public partial class ScrollArea : ReactiveComponent {
         #region Events
 
         public event Action<float>? ScrollDestinationPosChangedEvent;
@@ -22,31 +23,42 @@ namespace Reactive.Components.Basic {
 
         #region Props
 
+        [Required]
+        public ScrollContext ScrollContext {
+            get;
+            set {
+                field = value;
+                SetDestinationPos(value.ScrollPos, value.Immediately);
+            }
+        }
+
+        [Required]
         public IReactiveComponent? ScrollContent {
             get => _scrollContent;
             set {
                 _scrollContent?.Use(null);
                 _scrollContent = value;
+
                 if (_scrollContent != null) {
                     _scrollContent.Use(_viewport);
                     _contentTransform = _scrollContent.ContentTransform;
+
                     ReloadContent();
                 }
             }
         }
 
         public ScrollOrientation ScrollOrientation {
-            get => _scrollOrientation;
+            get;
             set {
-                _scrollOrientation = value;
+                field = value;
                 ReloadContent();
             }
-        }
+        } = ScrollOrientation.Vertical;
 
         public float ScrollSize { get; set; } = 10f;
         public float? ScrollbarScrollSize { get; set; }
 
-        private ScrollOrientation _scrollOrientation = ScrollOrientation.Vertical;
         private IReactiveComponent? _scrollContent;
 
         #endregion
@@ -65,23 +77,6 @@ namespace Reactive.Components.Basic {
             }
             RefreshContentPos(false);
             RefreshScrollbar();
-        }
-
-        #endregion
-
-        #region Scroll
-
-        public void ScrollTo(float pos, bool immediately = false) {
-            SetDestinationPos(pos, immediately);
-        }
-
-        public void ScrollToStart(bool immediately = false) {
-            SetDestinationPos(0f, immediately);
-        }
-
-        public void ScrollToEnd(bool immediately = false) {
-            if (_contentTransform == null) return;
-            SetDestinationPos(_contentTransform.rect.height, immediately);
         }
 
         #endregion
