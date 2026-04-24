@@ -61,11 +61,15 @@ internal static partial class SemanticExtensions {
     #endregion
 
     #region GetDerivedAttribute
-    
-    public static AttributeData? GetDerivedAttribute(this ISymbol symbol, SemanticModel semanticModel, string name) {
-        var attribute = semanticModel.Compilation.GetTypeByMetadataName(name);
-        if (attribute == null) return null;
 
+    public static AttributeData? GetDerivedAttribute<T>(this ISymbol symbol, SemanticModel semanticModel) {
+        var compilation = semanticModel.Compilation;
+        var attribute = compilation.GetTypeByMetadataName(typeof(T).FullName!);
+
+        return GetDerivedAttribute(symbol, attribute!);
+    }
+
+    public static AttributeData? GetDerivedAttribute(this ISymbol symbol, INamedTypeSymbol attribute) {
         ISymbol? currentSymbol = symbol;
 
         while (currentSymbol != null) {
