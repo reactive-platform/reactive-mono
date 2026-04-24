@@ -10,7 +10,7 @@ namespace Reactive.Compiler;
 public class RawStateAnalyzer : DiagnosticAnalyzer {
     private static readonly DiagnosticDescriptor RawStateAgreementRule = new(
         "RV004",
-        "By defining a raw state you take the responsibility of binding and unbinding passed state objects properly.",
+        "By defining a raw state you take the responsibility of binding and unbinding passed state objects properly",
         "Property {0} is a raw state and won't be used by the state generator. Please note that by defining a raw state you take the responsibility of binding and unbinding passed state objects properly.",
         "Usage",
         DiagnosticSeverity.Info,
@@ -20,7 +20,7 @@ public class RawStateAnalyzer : DiagnosticAnalyzer {
     private static readonly DiagnosticDescriptor RawStateInvalidTypeRule = new(
         "RV005",
         "Raw states must be of type IState<T>",
-        "Defining a raw state requires the property to implement IState<T>.",
+        "Defining a raw state requires the property to implement IState<T>",
         "Usage",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
@@ -47,8 +47,8 @@ public class RawStateAnalyzer : DiagnosticAnalyzer {
         if (symbol.GetDerivedAttribute<RawStateAttribute>(context.SemanticModel) == null) {
             return;
         }
-        
-        context.ReportDiagnostic(Diagnostic.Create(RawStateAgreementRule, prop.GetLocation(), symbol.Name));
+
+        context.ReportDiagnostic(Diagnostic.Create(RawStateAgreementRule, prop.Identifier.GetLocation(), symbol.Name));
 
         // Raw states must implement IState
         if (!symbol.Type.IsStateType()) {
