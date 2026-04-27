@@ -11,7 +11,11 @@ public enum ScrollUpdateType {
     /// Controller measurements (e.g. ContentSize, ViewSize).
     Measurements,  
     /// Controller scroll (ActualScrollPos).
-    InternalScroll
+    Scroll,
+    /// <summary>
+    /// Controller scroll has just finished.
+    /// </summary>
+    ScrollCompleted
 }
 
 [PublicAPI]
@@ -67,9 +71,27 @@ public class ScrollContext : IState<ScrollContext> {
             return range > 0 ? ActualScrollPos / range : 0f;
         }
     }
+    
+    public float NormalizedPageHeight {
+        get => Mathf.Clamp01(ViewSize / ContentSize);
+    }
 
     public float MaxScrollPos {
         get => ContentSize - ViewSize;
+    }
+
+    public bool CanScrollUp {
+        get => ScrollPos > 0;
+    }
+
+    public bool CanScrollDown {
+        get => ContentSize > ViewSize;
+    }
+
+    public bool CanScroll {
+        // Basically the same logic as CanScrollDown, but this might change
+        // in the future, so moved into a separate property
+        get => ContentSize > ViewSize;
     }
     
     /// <summary>
@@ -146,13 +168,17 @@ public class ScrollContext : IState<ScrollContext> {
     /// <summary>
     /// Sets internal scroll of the scroll controller at the moment. Shouldn't be called manually.
     /// </summary>
-    public void SetInternalScrollPos(float pos) {
+    public void SetActualScrollPos(float pos) {
         if (Mathf.Approximately(ActualScrollPos, pos)) {
             return;
         }
         
         ActualScrollPos = pos;
-        NotifyValueChanged(ScrollUpdateType.InternalScroll);
+        NotifyValueChanged(ScrollUpdateType.Scroll);
+    }
+
+    public void NotifyActualScrollCompleted() {
+        NotifyValueChanged(ScrollUpdateType.ScrollCompleted);
     }
 
     #region State Impl

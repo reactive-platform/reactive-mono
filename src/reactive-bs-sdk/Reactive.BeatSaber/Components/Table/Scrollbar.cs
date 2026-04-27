@@ -1,58 +1,70 @@
 using System;
 using JetBrains.Annotations;
+using Reactive.Compiler;
 using Reactive.Components;
 using Reactive.Yoga;
 using UnityEngine;
+using static Reactive.Components.ScrollUpdateType;
 
 namespace Reactive.BeatSaber.Components {
     /// <summary>
     /// Scrollbar for ReactiveComponent lists
     /// </summary>
     [PublicAPI]
-    public class Scrollbar : ReactiveComponent, IScrollbar {
-        #region Impl
+    public partial class Scrollbar : ReactiveComponent {
+        #region Props
 
-        float IScrollbar.PageHeight {
+        public Action? OnScrollUpClicked;
+        public Action? OnScrollDownClicked;
+
+        [Required, RawState]
+        public ScrollContext ScrollContext {
+            get => _scrollContext!;
             set {
-                _normalizedPageHeight = Mathf.Clamp01(value);
-                RefreshHandle();
+                if (_scrollContext != null) {
+                    _scrollContext.ValueChangedEvent -= HandleContextUpdated;
+                }
+
+                _scrollContext = value;
+                _scrollContext.ValueChangedEvent += HandleContextUpdated;
+
+                HandleContextUpdated(value);
             }
         }
 
-        float IScrollbar.Progress {
-            set {
-                _progress = Mathf.Clamp01(value);
-                RefreshHandle();
-            }
+        public bool HideIfNothingToScroll {
+            get => _hideIfNothingToScroll.Value;
+            set => _hideIfNothingToScroll.Value = value;
         }
 
-        bool IScrollbar.CanScrollUp {
-            set => _upButton.Interactable = value;
-        }
-
-        bool IScrollbar.CanScrollDown {
-            set => _downButton.Interactable = value;
-        }
-
-        public event Action? ScrollBackwardButtonPressedEvent;
-        public event Action? ScrollForwardButtonPressedEvent;
-
-        void IScrollbar.SetActive(bool active) {
-            Enabled = active;
-        }
+        // Since ScrollContext itself is a state, we cannot bind directly 
+        // to it while having a null object, hence we introduce another state 
+        // to hold null! value by default and initialize it only when the context is set
+        // (states are lazy by default so it won't throw)
+        private IMutableState<ScrollContext> _scrollContextState = null!;
+        private IMutableState<bool> _hideIfNothingToScroll;
+        private ScrollContext? _scrollContext;
 
         #endregion
 
-        #region Handle
+        #region Logic
 
         private float _padding = 0.25f;
-        private float _progress;
-        private float _normalizedPageHeight = 1f;
 
         private void RefreshHandle() {
+            var pageHeight = ScrollContext.NormalizedPageHeight;
+            var pos = ScrollContext.NormalizedScrollPos;
+
             var num = _handleContainerRect.rect.size.y - 2f * _padding;
-            _handleRect.sizeDelta = new Vector2(0f, _normalizedPageHeight * num);
-            _handleRect.anchoredPosition = new Vector2(0f, -_progress * (1f - _normalizedPageHeight) * num - _padding);
+
+            _handleRect.sizeDelta = new(0f, pageHeight * num);
+            _handleRect.anchoredPosition = new(0f, -pos * (1f - pageHeight) * num - _padding);
+        }
+
+        private void HandleContextUpdated(ScrollContext context) {
+            // Update the state to reflect changes in the ui
+            _scrollContextState.Value = context;
+            RefreshHandle();
         }
 
         #endregion
@@ -61,109 +73,154 @@ namespace Reactive.BeatSaber.Components {
 
         private RectTransform _handleContainerRect = null!;
         private RectTransform _handleRect = null!;
-        private ButtonBase _upButton = null!;
-        private ButtonBase _downButton = null!;
+
+        [StateGen]
+        private static BackgroundButton CreateButton(
+            float rotation,
+            Align alignItems,
+            IState<bool> enabled,
+            Action callback
+        ) {
+            var hovered = Remember(false);
+            var interactable = Remember(false);
+
+            return new BackgroundButton {
+                FlexItem = {
+                    FlexGrow = 1f
+                },
+
+                FlexController = {
+                    JustifyContent = Justify.Center,
+                    AlignItems = alignItems
+                },
+
+                Image = {
+                    ContentTransform = {
+                        slocalScale = hovered.Map(x => Vector3.one * (x ? 1.2f : 1f))
+                    },
+
+                    Sprite = BeatSaberResources.Sprites.transparentPixel,
+                    Material = null,
+
+                    sColor = RememberDerived(x => {
+                        if (x.interactable) {
+                            return Color.white.ColorWithAlpha(x.hovered ? 1f : 0.5f);
+                        } else {
+                            return Color.black.ColorWithAlpha(0.5f);
+                        }
+                    }, (hovered, interactable)),
+                },
+
+                Do = x => x
+                    .WithListener(y => y.WrappedButton.Interactable, y => interactable.Value = y)
+                    .WithListener(y => y.WrappedButton.IsHovered, y => hovered.Value = y),
+
+                OnClick = callback,
+
+                Children = {
+                    new Background {
+                        FlexItem = {
+                            Size = 2.5f.pt
+                        },
+
+                        ContentTransform = {
+                            localEulerAngles = new(0f, 0f, rotation)
+                        },
+
+                        Sprite = GameResources.ArrowIcon,
+                        PreserveAspect = true,
+                        Material = GameResources.UINoGlowMaterial
+                    }
+                }
+            };
+        }
 
         protected override GameObject Construct() {
-            static BackgroundButton CreateButton(float rotation, Action callback) {
-                return new BackgroundButton {
-                    Image = {
-                        Sprite = BeatSaberResources.Sprites.transparentPixel,
-                        Material = null
-                    },
-                    OnClick = callback,
-
-                    Children = {
-                        new Background {
-                            ContentTransform = {
-                                localEulerAngles = new(0f, 0f, rotation)
-                            },
-
-                            Sprite = GameResources.ArrowIcon,
-                            PreserveAspect = true,
-                            Material = GameResources.UINoGlowMaterial
-                        }.Export(out Image image).AsFlexItem(size: 2.5f)
-                    }
-                }.AsFlexItem(flexGrow: 1f).Export(out ColoredButton button).With(
-                    y => {
-                        y.WrappedButton.WithListener(
-                            x => x.Interactable,
-                            _ => RefreshImage()
-                        ).WithListener(
-                            x => x.IsHovered,
-                            _ => RefreshImage()
-                        );
-                    }
-                );
-
-                void RefreshImage() {
-                    var hovered = button.IsHovered;
-                    image.ContentTransform.localScale = hovered ? Vector3.one * 1.2f : Vector3.one;
-                    image.Color = button.Interactable ?
-                        hovered ? Color.white : Color.white.ColorWithAlpha(0.5f) :
-                        Color.black.ColorWithAlpha(0.5f);
-                }
-            }
+            _scrollContextState = Remember<ScrollContext>(null!);
+            _hideIfNothingToScroll = Remember(false);
 
             return new Layout {
+                sEnabled = RememberDerived(
+                    x => x.Item1.Value.CanScroll,
+                    (
+                        // TODO: fix dep analyzer
+#pragma warning disable RV101
+                        _scrollContextState.Where(x => x.UpdateType is ScrollCompleted or Measurements),
+#pragma warning restore RV101
+                        _hideIfNothingToScroll
+                    )
+                ),
+
+                FlexController = {
+                    FlexDirection = FlexDirection.Column,
+                    AlignItems = Align.Center
+                },
+
                 Children = {
-                    //handle container
+                    // Handle container
                     new Background {
+                        FlexItem = {
+                            FlexGrow = 1f,
+                            Size = new() { x = 1.4f.pt },
+                            Margin = new() { top = 4f, bottom = 4f }
+                        },
+
                         Sprite = BeatSaberResources.Sprites.background,
                         PixelsPerUnit = 20f,
                         Color = Color.black.ColorWithAlpha(0.5f),
 
                         Children = {
-                            //handle
+                            // Handle
                             new Image {
                                 ContentTransform = {
                                     anchorMin = new(0f, 1f),
                                     anchorMax = new(1f, 1f),
                                     pivot = new(0.5f, 1f)
                                 },
+
                                 Sprite = GameResources.VerticalIndicatorIcon,
                                 Color = Color.white.ColorWithAlpha(0.5f),
                                 ImageType = UnityEngine.UI.Image.Type.Sliced
                             }.Bind(ref _handleRect)
                         }
-                    }.AsFlexItem(
-                        flexGrow: 1f,
-                        size: new() { x = 1.4f },
-                        margin: new() { top = 4f, bottom = 4f }
-                    ).Bind(ref _handleContainerRect),
-                    //
+                    }.Bind(ref _handleContainerRect),
+
                     new Layout {
+                        FlexController = {
+                            FlexDirection = FlexDirection.Column
+                        },
+
                         Children = {
-                            //up button
-                            CreateButton(180f, HandleUpButtonClicked)
-                                .AsFlexGroup(alignItems: Align.FlexStart, justifyContent: Justify.Center)
-                                .Bind(ref _upButton),
-                            //down button
-                            CreateButton(0f, HandleDownButtonClicked)
-                                .AsFlexGroup(alignItems: Align.FlexEnd, justifyContent: Justify.Center)
-                                .Bind(ref _downButton)
+                            // Up button
+                            CreateButton(
+                                rotation: 180f,
+                                alignItems: Align.FlexStart,
+                                enabled: _scrollContextState
+                                    .Where(x => x.UpdateType is Intent)
+                                    .Map(x => x.CanScrollUp),
+                                callback: () => {
+                                    OnScrollUpClicked?.Invoke();
+                                }),
+
+                            // Down button
+                            CreateButton(
+                                rotation: 0f,
+                                alignItems: Align.FlexEnd,
+                                enabled: _scrollContextState
+                                    .Where(x => x.UpdateType is Intent)
+                                    .Map(x => x.CanScrollDown),
+                                callback: () => {
+                                    OnScrollDownClicked?.Invoke();
+                                })
                         }
-                    }.AsFlexGroup(direction: FlexDirection.Column).WithRectExpand()
+                    }.WithRectExpand()
                 }
-            }.AsFlexGroup(direction: FlexDirection.Column, alignItems: Align.Center).Use();
+            }.Use();
         }
 
         protected override void OnInitialize() {
             this.AsFlexItem(size: new() { x = 2f });
             WithinLayoutIfDisabled = true;
-            RefreshHandle();
-        }
-
-        #endregion
-
-        #region Callbacks
-
-        private void HandleUpButtonClicked() {
-            ScrollBackwardButtonPressedEvent?.Invoke();
-        }
-
-        private void HandleDownButtonClicked() {
-            ScrollForwardButtonPressedEvent?.Invoke();
         }
 
         #endregion
