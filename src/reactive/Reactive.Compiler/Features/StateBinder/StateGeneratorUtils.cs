@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Reactive.Compiler;
 
@@ -19,6 +20,14 @@ internal static class StateGeneratorUtils {
         }
 
         return type?.TypeArguments.First();
+    }
+
+    public static bool IsStateExpression(this ExpressionSyntax node, SemanticModel semanticModel) {
+        return SyntaxExtensions.BuildAccessTree(node)
+            .Select(x => (x, semanticModel.GetSymbolInfo(x).Symbol))
+            .Where(x => x.Symbol != null)
+            .Select(x => SemanticExtensions.GetReturnType(x.Symbol!))
+            .Any(x => x.IsStateType());
     }
 
     public static bool IsStateType(this ISymbol? symbol) {
