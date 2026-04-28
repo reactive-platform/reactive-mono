@@ -68,18 +68,10 @@ internal class StateGenerator : IIncrementalGenerator {
         if (GetPatterns(assignment, semanticModel) is not { } patterns) {
             return null;
         }
-
-        var tree = SyntaxExtensions.BuildAccessTree(assignment.Right)
-            .Select(x => (x, semanticModel.GetSymbolInfo(x).Symbol))
-            .Where(x => x.Symbol != null);
-
-        var endpoint = tree
-            .Select(x => SemanticExtensions.GetReturnType(x.Symbol!))
-            .FirstOrDefault(x => x != null);
-
+        
         // Ignoring state type here as we simply need to ensure that the resulting 
         // object is IState, the target type is taken from the target property
-        if (endpoint == null || !endpoint.IsStateType()) {
+        if (!assignment.Right.IsStateExpression(semanticModel)) {
             return null;
         }
 

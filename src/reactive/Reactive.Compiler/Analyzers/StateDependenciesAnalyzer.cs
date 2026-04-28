@@ -37,30 +37,12 @@ internal class StateDependenciesAnalyzer : DiagnosticAnalyzer {
             .OfType<ArgumentSyntax>()
             .ToArray();
 
-        var validItems = SelectStateArguments(context.SemanticModel, tupleItems);
-        
+        var validItems = tupleItems
+            .Where(x => x.Expression.IsStateExpression(context.SemanticModel));
+
         foreach (var node in tupleItems.Except(validItems)) {
             var diagnostic = Diagnostic.Create(NonStateValuePassedRule, node.GetLocation(), node.ToString());
             context.ReportDiagnostic(diagnostic);
-        }
-    }
-
-    private static IEnumerable<SyntaxNode> SelectStateArguments(SemanticModel semanticModel, IEnumerable<SyntaxNode> arguments) {
-        foreach (var argument in arguments) {
-            var ident = argument.ChildNodes()
-                .OfType<IdentifierNameSyntax>()
-                .FirstOrDefault();
-
-            if (ident == null) {
-                continue;
-            }
-            
-            var symbol = semanticModel.GetSymbolInfo(ident).Symbol;
-            var returnType = SemanticExtensions.GetReturnType(symbol);
-
-            if (returnType.IsStateType()) {
-                yield return argument;
-            }
         }
     }
 
