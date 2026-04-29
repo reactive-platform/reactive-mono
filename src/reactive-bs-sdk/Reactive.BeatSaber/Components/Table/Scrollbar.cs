@@ -38,12 +38,12 @@ namespace Reactive.BeatSaber.Components {
         /// <summary>
         /// How buttons should affect the target scroll controller.
         /// </summary>
-        public ScrollbarScrollMode ScrollMode { get; set; }
-        
+        public ScrollbarScrollMode ScrollMode { get; set; } = ScrollbarScrollMode.Page;
+
         /// <summary>
         /// Determines the scroll size when <see cref="ScrollMode"/> is set to Fixed.
         /// </summary>
-        public float FixedScrollSize { get; set; }
+        public float FixedScrollSize { get; set; } = 10f;
 
         /// <summary>
         /// Whether the scrollbar should be hidden when a controller has nothing to scroll.
@@ -229,7 +229,19 @@ namespace Reactive.BeatSaber.Components {
                                     .Where(x => x.UpdateType is Intent)
                                     .Map(x => x.CanScrollUp),
                                 callback: () => {
-                                    ScrollContext.PageUp();
+                                    switch (ScrollMode) {
+                                        case ScrollbarScrollMode.Page:
+                                            ScrollContext.PageUp();
+                                            break;
+
+                                        case ScrollbarScrollMode.Line:
+                                            ScrollContext.LineUp();
+                                            break;
+
+                                        case ScrollbarScrollMode.Fixed:
+                                            ScrollContext.ScrollRelative(FixedScrollSize);
+                                            break;
+                                    }
                                 }),
 
                             // Down button
@@ -240,7 +252,19 @@ namespace Reactive.BeatSaber.Components {
                                     .Where(x => x.UpdateType is Intent)
                                     .Map(x => x.CanScrollDown),
                                 callback: () => {
-                                    ScrollContext.PageDown();
+                                    switch (ScrollMode) {
+                                        case ScrollbarScrollMode.Page:
+                                            ScrollContext.PageDown();
+                                            break;
+
+                                        case ScrollbarScrollMode.Line:
+                                            ScrollContext.LineDown();
+                                            break;
+
+                                        case ScrollbarScrollMode.Fixed:
+                                            ScrollContext.ScrollRelative(-FixedScrollSize);
+                                            break;
+                                    }
                                 })
                         }
                     }.WithRectExpand()
