@@ -7,15 +7,18 @@ using UnityEngine;
 using static Reactive.Components.ScrollUpdateType;
 
 namespace Reactive.BeatSaber.Components {
+    public enum ScrollbarScrollMode {
+        Page,
+        Line,
+        Fixed
+    }
+
     /// <summary>
     /// Scrollbar for ReactiveComponent lists
     /// </summary>
     [PublicAPI]
     public partial class Scrollbar : ReactiveComponent {
         #region Props
-
-        public Action? OnScrollUpClicked;
-        public Action? OnScrollDownClicked;
 
         [Required, RawState]
         public ScrollContext ScrollContext {
@@ -32,6 +35,19 @@ namespace Reactive.BeatSaber.Components {
             }
         }
 
+        /// <summary>
+        /// How buttons should affect the target scroll controller.
+        /// </summary>
+        public ScrollbarScrollMode ScrollMode { get; set; }
+        
+        /// <summary>
+        /// Determines the scroll size when <see cref="ScrollMode"/> is set to Fixed.
+        /// </summary>
+        public float FixedScrollSize { get; set; }
+
+        /// <summary>
+        /// Whether the scrollbar should be hidden when a controller has nothing to scroll.
+        /// </summary>
         public bool HideIfNothingToScroll {
             get => _hideIfNothingToScroll.Value;
             set => _hideIfNothingToScroll.Value = value;
@@ -52,13 +68,16 @@ namespace Reactive.BeatSaber.Components {
         private float _padding = 0.25f;
 
         private void RefreshHandle() {
-            var pageHeight = ScrollContext.NormalizedPageHeight;
-            var pos = ScrollContext.NormalizedScrollPos;
+            var pageHeight = _scrollContext?.NormalizedPageHeight ?? 1;
 
-            var num = _handleContainerRect.rect.size.y - 2f * _padding;
+            var areaHeight = _handleContainerRect.rect.size.y - 2f * _padding;
+            var handleHeight = pageHeight * areaHeight;
 
-            _handleRect.sizeDelta = new(0f, pageHeight * num);
-            _handleRect.anchoredPosition = new(0f, -pos * (1f - pageHeight) * num - _padding);
+            var pos = _scrollContext?.NormalizedScrollPos ?? 0;
+            var handlePos = (areaHeight - handleHeight) * pos;
+
+            _handleRect.sizeDelta = new(0f, pageHeight * areaHeight);
+            _handleRect.localPosition = new(0f, handlePos * -1f);
         }
 
         private void HandleContextUpdated(ScrollContext context) {
@@ -141,12 +160,9 @@ namespace Reactive.BeatSaber.Components {
 
             return new Layout {
                 sEnabled = RememberDerived(
-                    x => x.Item1.Value.CanScroll,
+                    x => !x.Item2.Value || x.Item1.Value.CanScroll,
                     (
-                        // TODO: fix dep analyzer
-#pragma warning disable RV101
                         _scrollContextState.Where(x => x.UpdateType is ScrollCompleted or Measurements),
-#pragma warning restore RV101
                         _hideIfNothingToScroll
                     )
                 ),
@@ -155,6 +171,15 @@ namespace Reactive.BeatSaber.Components {
                     FlexDirection = FlexDirection.Column,
                     AlignItems = Align.Center
                 },
+
+                // This will be the default value for the Scrollbar
+                // as layout and component properties are shared
+                FlexItem = {
+                    Size = new() { x = 2.pt }
+                },
+
+                // Same as for FlexItem
+                WithinLayoutIfDisabled = true,
 
                 Children = {
                     // Handle container
@@ -165,7 +190,12 @@ namespace Reactive.BeatSaber.Components {
                             Margin = new() { top = 4f, bottom = 4f }
                         },
 
+                        ContentTransform = {
+                            pivot = new(0.5f, 1f)
+                        },
+
                         Sprite = BeatSaberResources.Sprites.background,
+                        ImageType = UnityEngine.UI.Image.Type.Sliced,
                         PixelsPerUnit = 20f,
                         Color = Color.black.ColorWithAlpha(0.5f),
 
@@ -199,7 +229,7 @@ namespace Reactive.BeatSaber.Components {
                                     .Where(x => x.UpdateType is Intent)
                                     .Map(x => x.CanScrollUp),
                                 callback: () => {
-                                    OnScrollUpClicked?.Invoke();
+                                    ScrollContext.PageUp();
                                 }),
 
                             // Down button
@@ -210,7 +240,7 @@ namespace Reactive.BeatSaber.Components {
                                     .Where(x => x.UpdateType is Intent)
                                     .Map(x => x.CanScrollDown),
                                 callback: () => {
-                                    OnScrollDownClicked?.Invoke();
+                                    ScrollContext.PageDown();
                                 })
                         }
                     }.WithRectExpand()
@@ -219,8 +249,7 @@ namespace Reactive.BeatSaber.Components {
         }
 
         protected override void OnInitialize() {
-            this.AsFlexItem(size: new() { x = 2f });
-            WithinLayoutIfDisabled = true;
+            RefreshHandle();
         }
 
         #endregion

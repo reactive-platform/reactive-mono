@@ -66,10 +66,7 @@ public class ScrollContext : IState<ScrollContext> {
     /// Helper to get or set scroll position in a 0..1 range.
     /// </summary>
     public float NormalizedScrollPos {
-        get {
-            var range = ContentSize - ViewSize;
-            return range > 0 ? ActualScrollPos / range : 0f;
-        }
+        get => Mathf.Clamp01(ActualScrollPos / MaxScrollPos);
     }
     
     public float NormalizedPageHeight {
@@ -85,7 +82,7 @@ public class ScrollContext : IState<ScrollContext> {
     }
 
     public bool CanScrollDown {
-        get => ContentSize > ViewSize;
+        get => ScrollPos < MaxScrollPos;
     }
 
     public bool CanScroll {
@@ -159,16 +156,18 @@ public class ScrollContext : IState<ScrollContext> {
     /// </summary>
     /// <param name="contentSize">The size of the content.</param>
     /// <param name="viewSize">The size of the viewport.</param>
-    public void SetInternalMeasurements(float contentSize, float viewSize) {
+    /// <param name="lineSize">The size of a single line. Can be left 0 on non-list views.</param>
+    public void ControllerSetMeasurements(float contentSize, float viewSize, float lineSize) {
         ContentSize = contentSize;
         ViewSize = viewSize;
+        LineSize = lineSize;
         NotifyValueChanged(ScrollUpdateType.Measurements);
     }
 
     /// <summary>
     /// Sets internal scroll of the scroll controller at the moment. Shouldn't be called manually.
     /// </summary>
-    public void SetActualScrollPos(float pos) {
+    public void ControllerSetScrollPos(float pos) {
         if (Mathf.Approximately(ActualScrollPos, pos)) {
             return;
         }
@@ -177,7 +176,7 @@ public class ScrollContext : IState<ScrollContext> {
         NotifyValueChanged(ScrollUpdateType.Scroll);
     }
 
-    public void NotifyActualScrollCompleted() {
+    public void ControllerNotifyScrollCompleted() {
         NotifyValueChanged(ScrollUpdateType.ScrollCompleted);
     }
 

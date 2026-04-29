@@ -13,38 +13,35 @@ namespace Reactive.Components.Basic {
 
     [PublicAPI]
     public partial class ScrollArea : ReactiveComponent {
-        #region Events
-
-        public event Action<float>? ScrollDestinationPosChangedEvent;
-        public event Action<float>? ScrollPosChangedEvent;
-        public event Action? ScrollWithJoystickFinishedEvent;
-
-        #endregion
-
         #region Props
 
-        [Required]
+        [Required, RawState]
         public ScrollContext ScrollContext {
-            get;
+            get => _scrollContext!;
             set {
-                field = value;
-                SetDestinationPos(value.ScrollPos, value.Immediately);
+                _scrollContext?.ValueChangedEvent -= HandleContextUpdated;
+                _scrollContext = value;
+
+                if (_contentTransform != null) {
+                    RefreshMeasurements();
+                }
+
+                _scrollContext.ValueChangedEvent += HandleContextUpdated;
+                HandleContextUpdated(_scrollContext);
             }
         }
 
         [Required]
-        public IReactiveComponent? ScrollContent {
-            get => _scrollContent;
+        public IReactiveComponent ScrollContent {
+            get => _scrollContent!;
             set {
                 _scrollContent?.Use(null);
                 _scrollContent = value;
 
-                if (_scrollContent != null) {
-                    _scrollContent.Use(_viewport);
-                    _contentTransform = _scrollContent.ContentTransform;
+                _scrollContent.Use(_viewport);
+                _contentTransform = _scrollContent.ContentTransform;
 
-                    ReloadContent();
-                }
+                ReloadContent();
             }
         }
 
@@ -56,126 +53,109 @@ namespace Reactive.Components.Basic {
             }
         } = ScrollOrientation.Vertical;
 
-        public float ScrollSize { get; set; } = 10f;
-        public float? ScrollbarScrollSize { get; set; }
+        public float JoystickScrollSize { get; set; } = 10f;
+        public Action? OnScrollWithJoystickFinished { get; set; }
 
         private IReactiveComponent? _scrollContent;
+        private RectTransform? _contentTransform;
+        private ScrollContext? _scrollContext;
 
         #endregion
 
         #region Setup
 
-        private RectTransform? _contentTransform;
         private float _lastScrollDeltaTime;
 
         protected override void OnUpdate() {
-            if (_contentTransform == null) return;
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
+            // ReSharper disable CompareOfFloatsByEqualityOperator
             if (_lastScrollDeltaTime != -1f && _lastScrollDeltaTime != Time.deltaTime) {
-                ScrollWithJoystickFinishedEvent?.Invoke();
+                OnScrollWithJoystickFinished?.Invoke();
                 _lastScrollDeltaTime = -1f;
             }
-            RefreshContentPos(false);
-            RefreshScrollbar();
-        }
 
-        #endregion
-
-        #region Scrollbar
-
-        public IScrollbar? Scrollbar {
-            get => _scrollbar;
-            set {
-                if (_scrollbar != null) {
-                    _scrollbar.ScrollBackwardButtonPressedEvent -= HandleUpButtonClicked;
-                    _scrollbar.ScrollForwardButtonPressedEvent -= HandleDownButtonClicked;
-                    _scrollbar.SetActive(false);
-                }
-                _scrollbar = value;
-                if (_scrollbar != null) {
-                    _scrollbar.ScrollBackwardButtonPressedEvent += HandleUpButtonClicked;
-                    _scrollbar.ScrollForwardButtonPressedEvent += HandleDownButtonClicked;
-                    _scrollbar.SetActive(true);
-                    RefreshScrollbar();
-                }
-            }
-        }
-
-        public bool HideScrollbarWhenNothingToScroll {
-            get => _hideScrollbarWhenNothingToScroll;
-            set {
-                _hideScrollbarWhenNothingToScroll = value;
-                RefreshScrollbar();
-            }
-        }
-
-        private bool _hideScrollbarWhenNothingToScroll = true;
-        private IScrollbar? _scrollbar;
-
-        private void RefreshScrollbar() {
-            if (_scrollbar == null || _contentTransform == null) {
-                return;
-            }
-
-            _scrollbar.PageHeight = ScrollPageSize / ContentSize;
-            _scrollbar.Progress = ContentPos / ScrollMaxSize;
-
-            _scrollbar.CanScrollDown = Math.Abs(_destinationPos - ScrollMaxSize) > 0.01f;
-            _scrollbar.CanScrollUp = _destinationPos > 0.01f;
-
-            if (_hideScrollbarWhenNothingToScroll) {
-                _scrollbar.SetActive(ContentSize > ScrollPageSize);
-            }
+            UpdateContentPos(false);
         }
 
         #endregion
 
         #region Content
 
-        private float ContentPos => Translate(_contentTransform!.localPosition);
-        private float ContentSize => Translate(_contentTransform!.rect);
-        private float ScrollPageSize => Translate(_viewport.rect);
-        private float ScrollMaxSize => ScrollPageSize <= 0f ? 0f : ContentSize - ScrollPageSize;
-        private Vector2 DestinationPos => Translate(_destinationPos);
-
+        private bool _posSet;
         private float _destinationPos;
 
         private void ReloadContent() {
-            if (_contentTransform == null) return;
-            //
             if (ScrollOrientation is ScrollOrientation.Vertical) {
-                _contentTransform.anchorMin = new(0f, 0f);
+                _contentTransform!.anchorMin = new(0f, 0f);
                 _contentTransform.anchorMax = new(1f, 0f);
                 _contentTransform.sizeDelta = new(0f, _contentTransform.sizeDelta.y);
                 _contentTransform.pivot = new(1f, 1f);
             } else {
-                _contentTransform.anchorMin = new(0f, 0f);
+                _contentTransform!.anchorMin = new(0f, 0f);
                 _contentTransform.anchorMax = new(0f, 1f);
                 _contentTransform.sizeDelta = new(_contentTransform.sizeDelta.x, 0f);
                 _contentTransform.pivot = new(1f, 1f);
             }
+
+            RefreshMeasurements();
         }
 
-        private void SetDestinationPos(float pos, bool immediately = false) {
-            if (_contentTransform == null || Math.Abs(_destinationPos - pos) < 0.01f) return;
-            _destinationPos = ScrollMaxSize <= 0f ? 0f : Mathf.Clamp(pos, 0f, ScrollMaxSize);
-            ScrollDestinationPosChangedEvent?.Invoke(_destinationPos);
-            //applying immediately if needed
-            if (immediately) RefreshContentPos(true);
+        private void SetDestinationPos(float pos, bool immediately) {
+            if (Mathf.Approximately(_destinationPos, pos)) {
+                return;
+            }
+
+            RefreshContentSizeIfNeeded();
+
+            _destinationPos = Mathf.Clamp(pos, 0f, ScrollContext.MaxScrollPos);
+            _posSet = false;
+
+            if (immediately) {
+                UpdateContentPos(true);
+            }
         }
 
-        private void RefreshContentPos(bool immediately) {
-            //calculating pos
+        private void UpdateContentPos(bool immediately) {
+            if (_posSet) {
+                return;
+            }
+
+            // Dynamically checking the content size to reflect changes
+            RefreshContentSizeIfNeeded();
+
+            // Calculating pos
             var sourcePos = (Vector2)_contentTransform!.localPosition;
-            var destinationPos = immediately switch {
-                false => Vector2.Lerp(sourcePos, DestinationPos, Time.deltaTime * 4f),
-                _ => DestinationPos
-            };
-            //returning if equal
-            if (sourcePos == destinationPos) return;
-            _contentTransform!.localPosition = destinationPos;
-            //notifying listeners
-            ScrollPosChangedEvent?.Invoke(Translate(destinationPos));
+            var destinationPos = Translate(_destinationPos);
+
+            if (!immediately) {
+                destinationPos = Vector2.Lerp(sourcePos, destinationPos, Time.deltaTime * 4f);
+            }
+
+            var translatedDestinationPos = Translate(destinationPos);
+            
+            // Returning if equal
+            if (sourcePos == destinationPos) {
+                _posSet = true;
+                ScrollContext.ControllerSetScrollPos(translatedDestinationPos);
+                ScrollContext.ControllerNotifyScrollCompleted();
+                return;
+            }
+
+            _contentTransform.localPosition = destinationPos;
+
+            ScrollContext.ControllerSetScrollPos(translatedDestinationPos);
+        }
+
+        private void RefreshMeasurements() {
+            var contentSize = Translate(_contentTransform!.rect);
+            var viewSize = Translate(_viewport.rect);
+
+            ScrollContext.ControllerSetMeasurements(contentSize, viewSize, 0f);
+        }
+
+        private void RefreshContentSizeIfNeeded() {
+            if (Translate(_contentTransform!.rect) != ScrollContext.ContentSize) {
+                RefreshMeasurements();
+            }
         }
 
         #endregion
@@ -206,30 +186,31 @@ namespace Reactive.Components.Basic {
         private RectTransform _viewport = null!;
 
         protected override GameObject Construct() {
-            //container
+            // Container
             return new Background {
-                Sprite = ReactiveResources.TransparentPixel,
-                Children = {
-                    //viewport
-                    new ReactiveComponent {
-                        Name = "Viewport",
-                        ContentTransform = {
-                            pivot = new(1f, 1f)
-                        }
-                    }.WithNativeComponent(out RectMask2D _).WithRectExpand().Bind(ref _viewport)
+                    Sprite = ReactiveResources.TransparentPixel,
+                    Children = {
+                        // Viewport
+                        new ReactiveComponent {
+                                Name = "Viewport",
+                                ContentTransform = {
+                                    pivot = new(1f, 1f)
+                                }
+                            }
+                            .WithNativeComponent(out RectMask2D _)
+                            .WithRectExpand()
+                            .Bind(ref _viewport)
+                    }
                 }
-            }.WithNativeComponent(out _pointerEventsHandler).With(
-                _ => _pointerEventsHandler.PointerScrollEvent += HandlePointerScroll
-            ).Use();
-        }
-
-        protected override void OnInitialize() {
-            SetDestinationPos(0f, true);
+                .WithNativeComponent(out _pointerEventsHandler)
+                .With(_ => _pointerEventsHandler.PointerScrollEvent += HandlePointerScroll)
+                .Use();
         }
 
         protected override void OnRectDimensionsChanged() {
-            if (_scrollContent == null) return;
-            RefreshContentPos(true);
+            // It's assumed that ScrollContext is initialized here because it's a Required prop
+            RefreshMeasurements();
+            UpdateContentPos(true);
         }
 
         #endregion
@@ -237,27 +218,21 @@ namespace Reactive.Components.Basic {
         #region Callbacks
 
         private void HandlePointerScroll(PointerEventsHandler handler, PointerEventData eventData) {
-            var destinationPos = _destinationPos;
-            var mul = ScrollSize * -0.1f;
-            if (ScrollOrientation is ScrollOrientation.Vertical) {
-                destinationPos -= eventData.scrollDelta.y * mul;
-            } else {
-                destinationPos += eventData.scrollDelta.y * mul;
-            }
+            var mul = JoystickScrollSize * -0.1f;
+
+            var neg = ScrollOrientation is ScrollOrientation.Vertical ? -1 : 1;
+            var destinationPos = _destinationPos + eventData.scrollDelta.y * mul * neg;
+
             _lastScrollDeltaTime = Time.deltaTime;
-            SetDestinationPos(destinationPos);
+
+            // Joystick input is considered a user intent
+            ScrollContext.ScrollTo(destinationPos, false);
         }
 
-        private void HandleUpButtonClicked() {
-            var destinationPos = _destinationPos;
-            destinationPos -= ScrollbarScrollSize ?? ScrollSize;
-            SetDestinationPos(destinationPos);
-        }
-
-        private void HandleDownButtonClicked() {
-            var destinationPos = _destinationPos;
-            destinationPos += ScrollbarScrollSize ?? ScrollSize;
-            SetDestinationPos(destinationPos);
+        private void HandleContextUpdated(ScrollContext context) {
+            if (context.UpdateType is ScrollUpdateType.Intent) {
+                SetDestinationPos(context.ScrollPos, context.Immediately);
+            }
         }
 
         #endregion
