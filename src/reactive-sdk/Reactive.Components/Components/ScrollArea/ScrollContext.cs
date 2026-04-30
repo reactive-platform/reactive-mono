@@ -185,10 +185,13 @@ public class ScrollContext : IState<ScrollContext> {
     ScrollContext IState<ScrollContext>.Value => this;
 
     public event Action<ScrollContext>? ValueChangedEvent;
+    public event Action? StateUpdatedEvent;
 
     private void NotifyValueChanged(ScrollUpdateType type) {
         UpdateType = type;
+        
         ValueChangedEvent?.Invoke(this);
+        StateUpdatedEvent?.Invoke();
         
         UpdateType = ScrollUpdateType.None;
     }

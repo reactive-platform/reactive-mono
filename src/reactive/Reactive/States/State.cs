@@ -13,15 +13,18 @@ namespace Reactive {
             set {
                 _value = value;
                 ValueChangedEvent?.Invoke(value);
+                StateUpdatedEvent?.Invoke();
             }
         }
 
         public event Action<T>? ValueChangedEvent;
+        public event Action? StateUpdatedEvent;
 
         private T _value;
 
         public void ClearBindings() {
             ValueChangedEvent = null;
+            StateUpdatedEvent = null;
         }
 
         public static implicit operator T(State<T> value) {

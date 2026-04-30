@@ -45,6 +45,7 @@ namespace Reactive {
             private set {
                 _progress = value;
                 ValueChangedEvent?.Invoke(Value);
+                StateUpdatedEvent?.Invoke();
             }
         }
         
@@ -58,6 +59,7 @@ namespace Reactive {
         public Action<T>? OnStart { get; set; }
 
         public event Action<T>? ValueChangedEvent;
+        public event Action? StateUpdatedEvent;
 
         private readonly IValueInterpolator<T> _valueInterpolator;
         private T _targetValue;

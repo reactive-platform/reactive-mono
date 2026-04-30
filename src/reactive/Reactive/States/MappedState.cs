@@ -15,6 +15,7 @@ public class MappedState<T, TNew> : IState<TNew>, IDisposable {
     public TNew Value => _predicate(_state.Value);
     
     public event Action<TNew>? ValueChangedEvent;
+    public event Action? StateUpdatedEvent;
 
     private readonly IState<T> _state;
     private readonly Func<T, TNew> _predicate;
@@ -27,6 +28,7 @@ public class MappedState<T, TNew> : IState<TNew>, IDisposable {
 
     private void HandleValueChanged(T value) {
         ValueChangedEvent?.Invoke(_predicate(value));
+        StateUpdatedEvent?.Invoke();
     }
 
     public void Dispose() {

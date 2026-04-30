@@ -18,6 +18,7 @@ public class BranchedState<T> : IState<T>, IDisposable {
     public T Value { get; private set; }
 
     public event Action<T>? ValueChangedEvent;
+    public event Action? StateUpdatedEvent;
 
     private readonly IState<T> _state;
     private readonly Func<T, bool> _predicate;
