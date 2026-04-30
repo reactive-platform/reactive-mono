@@ -57,7 +57,7 @@ namespace Reactive.BeatSaber.Components {
         // to it while having a null object, hence we introduce another state 
         // to hold null! value by default and initialize it only when the context is set
         // (states are lazy by default so it won't throw)
-        private IMutableState<ScrollContext> _scrollContextState = null!;
+        private IMutableState<ScrollContext?> _scrollContextState = null!;
         private IMutableState<bool> _hideIfNothingToScroll;
         private ScrollContext? _scrollContext;
 
@@ -76,8 +76,8 @@ namespace Reactive.BeatSaber.Components {
             var pos = _scrollContext?.NormalizedScrollPos ?? 0;
             var handlePos = (areaHeight - handleHeight) * pos;
 
-            _handleRect.sizeDelta = new(0f, pageHeight * areaHeight);
-            _handleRect.localPosition = new(0f, handlePos * -1f);
+            _handleRect.sizeDelta = new(0f, handleHeight);
+            _handleRect.localPosition = new(0f, (_padding + handlePos) * -1f);
         }
 
         private void HandleContextUpdated(ScrollContext context) {
@@ -94,88 +94,75 @@ namespace Reactive.BeatSaber.Components {
         private RectTransform _handleRect = null!;
 
         [StateGen]
-        private static BackgroundButton CreateButton(
-            float rotation,
-            Align alignItems,
-            IState<bool> enabled,
-            Action callback
-        ) {
+        private static IReactiveComponent CreateButton(bool topButton, IState<bool> enabled, Action callback) {
             var hovered = Remember(false);
-            var interactable = Remember(false);
 
-            return new BackgroundButton {
-                FlexItem = {
-                    FlexGrow = 1f
+            // Wrapping in a background to get a wider clickable area
+            return new Background {
+                Name = "ButtonArea",
+
+                ContentTransform = {
+                    anchorMin = new(0f, topButton ? 0.5f : 0f),
+                    anchorMax = new(1f, topButton ? 1f : 0.5f),
+                    sizeDelta = Vector2.zero,
                 },
 
-                FlexController = {
-                    JustifyContent = Justify.Center,
-                    AlignItems = alignItems
-                },
+                Sprite = BeatSaberResources.Sprites.transparentPixel,
+                Material = null,
 
-                Image = {
-                    ContentTransform = {
-                        slocalScale = hovered.Map(x => Vector3.one * (x ? 1.2f : 1f))
-                    },
-
-                    Sprite = BeatSaberResources.Sprites.transparentPixel,
-                    Material = null,
-
-                    sColor = RememberDerived(x => {
-                        if (x.interactable) {
-                            return Color.white.ColorWithAlpha(x.hovered ? 1f : 0.5f);
-                        } else {
-                            return Color.black.ColorWithAlpha(0.5f);
-                        }
-                    }, (hovered, interactable)),
-                },
-
-                Do = x => x
-                    .WithListener(y => y.WrappedButton.Interactable, y => interactable.Value = y)
-                    .WithListener(y => y.WrappedButton.IsHovered, y => hovered.Value = y),
-
-                OnClick = callback,
+                Do = x => x.WithPointerEvents(
+                    onDown: _ => callback(),
+                    onEnter: _ => hovered.Value = true,
+                    onLeave: _ => hovered.Value = false
+                ),
 
                 Children = {
-                    new Background {
-                        FlexItem = {
-                            Size = 2.5f.pt
-                        },
+                    new Image {
+                        Name = "Button",
 
                         ContentTransform = {
-                            localEulerAngles = new(0f, 0f, rotation)
+                            pivot = new(0.5f, 0),
+                            sizeDelta = Vector2.one * 2.5f,
+                            anchorMin = new(0.5f, topButton ? 1f : 0f),
+                            anchorMax = new(0.5f, topButton ? 1f : 0f),
+
+                            localEulerAngles = new(0f, 0f, topButton ? 180f : 0),
+                            slocalScale = hovered.Map(x => Vector3.one * (x ? 1.2f : 1f))
                         },
 
                         Sprite = GameResources.ArrowIcon,
+                        Material = GameResources.UINoGlowMaterial,
                         PreserveAspect = true,
-                        Material = GameResources.UINoGlowMaterial
+                        
+                        sColor = RememberDerived(x => {
+                            if (x.enabled.Value) {
+                                return Color.white.ColorWithAlpha(x.hovered ? 1f : 0.5f);
+                            } else {
+                                return Color.black.ColorWithAlpha(0.5f);
+                            }
+                        }, (hovered, enabled)),
                     }
                 }
             };
         }
 
         protected override GameObject Construct() {
-            _scrollContextState = Remember<ScrollContext>(null!);
+            _scrollContextState = Remember<ScrollContext?>(null);
             _hideIfNothingToScroll = Remember(false);
 
             return new Layout {
                 sEnabled = RememberDerived(
-                    x => !x.Item2.Value || x.Item1.Value.CanScroll,
+                    x => !x.Item2.Value || (x.Item1.Value?.CanScroll ?? true),
                     (
-                        _scrollContextState.Where(x => x.UpdateType is ScrollCompleted or Measurements),
+                        _scrollContextState.Where(x => x!.UpdateType is ScrollCompleted or Measurements),
                         _hideIfNothingToScroll
                     )
                 ),
 
-                FlexController = {
-                    FlexDirection = FlexDirection.Column,
-                    AlignItems = Align.Center
-                },
-
                 // This will be the default value for the Scrollbar
                 // as layout and component properties are shared
                 FlexItem = {
-                    Size = new() { x = 2.pt }
+                    Size = new() { x = 4.pt }
                 },
 
                 // Same as for FlexItem
@@ -184,14 +171,14 @@ namespace Reactive.BeatSaber.Components {
                 Children = {
                     // Handle container
                     new Background {
-                        FlexItem = {
-                            FlexGrow = 1f,
-                            Size = new() { x = 1.4f.pt },
-                            Margin = new() { top = 4f, bottom = 4f }
-                        },
+                        Name = "HandleContainer",
 
                         ContentTransform = {
-                            pivot = new(0.5f, 1f)
+                            pivot = new(0.5f, 1f),
+                            anchorMin = new(0.5f, 0f),
+                            anchorMax = new(0.5f, 1f),
+                            offsetMin = new() { x = -0.7f, y = 4f },
+                            offsetMax = new() { x = 0.7f, y = -4f },
                         },
 
                         Sprite = BeatSaberResources.Sprites.background,
@@ -202,6 +189,8 @@ namespace Reactive.BeatSaber.Components {
                         Children = {
                             // Handle
                             new Image {
+                                Name = "Handle",
+
                                 ContentTransform = {
                                     anchorMin = new(0f, 1f),
                                     anchorMax = new(1f, 1f),
@@ -215,64 +204,58 @@ namespace Reactive.BeatSaber.Components {
                         }
                     }.Bind(ref _handleContainerRect),
 
-                    new Layout {
-                        FlexController = {
-                            FlexDirection = FlexDirection.Column
-                        },
+                    // Up button
+                    CreateButton(
+                        topButton: true,
+                        enabled: _scrollContextState
+                            .Where(x => x!.UpdateType is Intent or Measurements)
+                            .Map(x => x!.CanScrollUp),
+                        callback: () => {
+                            switch (ScrollMode) {
+                                case ScrollbarScrollMode.Page:
+                                    ScrollContext.PageUp();
+                                    break;
 
-                        Children = {
-                            // Up button
-                            CreateButton(
-                                rotation: 180f,
-                                alignItems: Align.FlexStart,
-                                enabled: _scrollContextState
-                                    .Where(x => x.UpdateType is Intent)
-                                    .Map(x => x.CanScrollUp),
-                                callback: () => {
-                                    switch (ScrollMode) {
-                                        case ScrollbarScrollMode.Page:
-                                            ScrollContext.PageUp();
-                                            break;
+                                case ScrollbarScrollMode.Line:
+                                    ScrollContext.LineUp();
+                                    break;
 
-                                        case ScrollbarScrollMode.Line:
-                                            ScrollContext.LineUp();
-                                            break;
+                                case ScrollbarScrollMode.Fixed:
+                                    ScrollContext.ScrollRelative(FixedScrollSize);
+                                    break;
+                            }
+                        }),
 
-                                        case ScrollbarScrollMode.Fixed:
-                                            ScrollContext.ScrollRelative(FixedScrollSize);
-                                            break;
-                                    }
-                                }),
+                    // Down button
+                    CreateButton(
+                        topButton: false,
+                        enabled: _scrollContextState
+                            .Where(x => x!.UpdateType is Intent or Measurements)
+                            .Map(x => x!.CanScrollDown),
+                        callback: () => {
+                            switch (ScrollMode) {
+                                case ScrollbarScrollMode.Page:
+                                    ScrollContext.PageDown();
+                                    break;
 
-                            // Down button
-                            CreateButton(
-                                rotation: 0f,
-                                alignItems: Align.FlexEnd,
-                                enabled: _scrollContextState
-                                    .Where(x => x.UpdateType is Intent)
-                                    .Map(x => x.CanScrollDown),
-                                callback: () => {
-                                    switch (ScrollMode) {
-                                        case ScrollbarScrollMode.Page:
-                                            ScrollContext.PageDown();
-                                            break;
+                                case ScrollbarScrollMode.Line:
+                                    ScrollContext.LineDown();
+                                    break;
 
-                                        case ScrollbarScrollMode.Line:
-                                            ScrollContext.LineDown();
-                                            break;
-
-                                        case ScrollbarScrollMode.Fixed:
-                                            ScrollContext.ScrollRelative(-FixedScrollSize);
-                                            break;
-                                    }
-                                })
-                        }
-                    }.WithRectExpand()
+                                case ScrollbarScrollMode.Fixed:
+                                    ScrollContext.ScrollRelative(-FixedScrollSize);
+                                    break;
+                            }
+                        })
                 }
             }.Use();
         }
 
         protected override void OnInitialize() {
+            RefreshHandle();
+        }
+
+        protected override void OnRectDimensionsChanged() {
             RefreshHandle();
         }
 
