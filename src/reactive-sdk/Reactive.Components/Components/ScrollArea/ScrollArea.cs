@@ -64,6 +64,7 @@ namespace Reactive.Components.Basic {
 
         #region Setup
 
+        private float _prevContentSize;
         private float _lastScrollDeltaTime;
 
         protected override void OnUpdate() {
@@ -71,6 +72,15 @@ namespace Reactive.Components.Basic {
             if (_lastScrollDeltaTime != -1f && _lastScrollDeltaTime != Time.deltaTime) {
                 OnScrollWithJoystickFinished?.Invoke();
                 _lastScrollDeltaTime = -1f;
+            }
+
+            if (_contentTransform != null) {
+                var contentSize = Translate(_contentTransform.rect);
+                
+                if (_prevContentSize != contentSize) {
+                    RefreshMeasurements();
+                    _prevContentSize = contentSize;
+                }
             }
 
             UpdateContentPos(false);
@@ -131,7 +141,7 @@ namespace Reactive.Components.Basic {
             }
 
             var translatedDestinationPos = Translate(destinationPos);
-            
+
             // Returning if equal
             if (sourcePos == destinationPos) {
                 _posSet = true;
