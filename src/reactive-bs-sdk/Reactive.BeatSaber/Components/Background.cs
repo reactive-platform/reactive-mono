@@ -9,7 +9,7 @@ namespace Reactive.BeatSaber.Components;
 /// Layout wrapper for <see cref="Image"/>.
 /// </summary>
 [PublicAPI]
-public class Background : ComponentLayout<Image> {
+public class Background : ComponentLayout<Image>, IGraphic, ISkewedComponent, ISpriteRenderer {
     #region Adapter
 
     public Sprite? Sprite {
