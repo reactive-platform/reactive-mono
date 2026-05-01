@@ -76,7 +76,7 @@ namespace Reactive.Components.Basic {
 
             if (_contentTransform != null) {
                 var contentSize = Translate(_contentTransform.rect);
-                
+
                 if (_prevContentSize != contentSize) {
                     RefreshMeasurements();
                     _prevContentSize = contentSize;
@@ -198,22 +198,16 @@ namespace Reactive.Components.Basic {
         protected override GameObject Construct() {
             // Container
             return new Background {
+                    ContentTransform = {
+                        pivot = Vector2.one
+                    },
+
                     Sprite = ReactiveResources.TransparentPixel,
-                    Children = {
-                        // Viewport
-                        new ReactiveComponent {
-                                Name = "Viewport",
-                                ContentTransform = {
-                                    pivot = new(1f, 1f)
-                                }
-                            }
-                            .WithNativeComponent(out RectMask2D _)
-                            .WithRectExpand()
-                            .Bind(ref _viewport)
-                    }
                 }
+                .WithNativeComponent(out RectMask2D _)
                 .WithNativeComponent(out _pointerEventsHandler)
                 .With(_ => _pointerEventsHandler.PointerScrollEvent += HandlePointerScroll)
+                .Bind(ref _viewport)
                 .Use();
         }
 
