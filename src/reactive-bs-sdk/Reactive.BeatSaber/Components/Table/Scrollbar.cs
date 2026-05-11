@@ -154,7 +154,7 @@ namespace Reactive.BeatSaber.Components {
                 sEnabled = RememberDerived(
                     x => !x.Item2.Value || (x.Item1.Value?.CanScroll ?? true),
                     (
-                        _scrollContextState.Where(x => x!.UpdateType is ScrollCompleted or Measurements),
+                        _scrollContextState.Where(x => x!.UpdateType is ScrollFinished or Measurements),
                         _hideIfNothingToScroll
                     )
                 ),

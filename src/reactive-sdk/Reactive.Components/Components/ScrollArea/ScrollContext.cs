@@ -7,15 +7,15 @@ namespace Reactive.Components;
 public enum ScrollUpdateType {
     None,
     /// User intent to scroll (e.g. ScrollPos, ScrollItem).
-    Intent,       
+    Intent,
     /// Controller measurements (e.g. ContentSize, ViewSize).
-    Measurements,  
+    Measurements,
     /// Controller scroll (ActualScrollPos).
     Scroll,
     /// <summary>
     /// Controller scroll has just finished.
     /// </summary>
-    ScrollCompleted
+    ScrollFinished
 }
 
 [PublicAPI]
@@ -24,13 +24,6 @@ public class ScrollContext : IState<ScrollContext> {
     /// Determines the current scroll pos. Set by the user.
     /// </summary>
     public float ScrollPos { get; private set; }
-
-    /// <summary>
-    /// Determines the item that the controller should scroll to.
-    /// Has higher priority than <see cref="ScrollPos"/>, so if both are specified the first one is ignored.
-    /// Defaults to <see cref="ScrollPos"/> if the specified object isn't presented in the view.
-    /// </summary>
-    public object? ScrollItem { get; private set; }
 
     /// Whether the scroll animation should finish immediately. Set by the user.
     public bool Immediately { get; private set; }
@@ -46,7 +39,7 @@ public class ScrollContext : IState<ScrollContext> {
     /// Set by a component controlling the view.
     /// </summary>
     public float LineSize { get; private set; }
-    
+
     /// <summary>
     /// The size of the scroll content. Set by a component controlling the view.
     /// </summary>
@@ -56,7 +49,7 @@ public class ScrollContext : IState<ScrollContext> {
     /// The size of the viewport. Set by a component controlling the view.
     /// </summary>
     public float ViewSize { get; private set; }
-    
+
     /// <summary>
     /// Determines a kind of the last update. Returns None if called outside the ValueChanged cycle.
     /// </summary>
@@ -68,7 +61,7 @@ public class ScrollContext : IState<ScrollContext> {
     public float NormalizedScrollPos {
         get => Mathf.Clamp01(ActualScrollPos / MaxScrollPos);
     }
-    
+
     public float NormalizedPageHeight {
         get => Mathf.Clamp01(ViewSize / ContentSize);
     }
@@ -90,7 +83,7 @@ public class ScrollContext : IState<ScrollContext> {
         // in the future, so moved into a separate property
         get => ContentSize > ViewSize;
     }
-    
+
     /// <summary>
     /// Scrolls to the specified point.
     /// </summary>
@@ -99,30 +92,17 @@ public class ScrollContext : IState<ScrollContext> {
     /// <returns>An updated context.</returns>
     public void ScrollTo(float pos, bool immediately = false) {
         var newPos = Mathf.Clamp(pos, 0f, MaxScrollPos);
-        
+
         if (Mathf.Approximately(newPos, ScrollPos)) {
             return;
         }
 
         ScrollPos = newPos;
-        ScrollItem = null;
         Immediately = immediately;
-        
+
         NotifyValueChanged(ScrollUpdateType.Intent);
     }
 
-    /// <summary>
-    /// Scrolls to the specified item. Defaults 
-    /// </summary>
-    /// <param name="pos">The position to scroll to.</param>
-    /// <param name="immediately">Whether to apply the scroll immediately.</param>
-    /// <returns>An updated context.</returns>
-    public void ScrollTo(object item, bool immediately = false) {
-        ScrollItem = item;
-        Immediately = immediately;
-        NotifyValueChanged(ScrollUpdateType.Intent);
-    }
-    
     public void ScrollRelative(float offset, bool immediately = false) {
         ScrollTo(ScrollPos + offset, immediately);
     }
@@ -148,7 +128,7 @@ public class ScrollContext : IState<ScrollContext> {
     }
 
     public void LineUp(bool immediately = false) {
-        ScrollRelative(LineSize, immediately);
+        ScrollRelative(LineSize * -1, immediately);
     }
 
     /// <summary>
@@ -171,13 +151,13 @@ public class ScrollContext : IState<ScrollContext> {
         if (Mathf.Approximately(ActualScrollPos, pos)) {
             return;
         }
-        
+
         ActualScrollPos = pos;
         NotifyValueChanged(ScrollUpdateType.Scroll);
     }
 
     public void ControllerNotifyScrollCompleted() {
-        NotifyValueChanged(ScrollUpdateType.ScrollCompleted);
+        NotifyValueChanged(ScrollUpdateType.ScrollFinished);
     }
 
     #region State Impl
@@ -189,10 +169,10 @@ public class ScrollContext : IState<ScrollContext> {
 
     private void NotifyValueChanged(ScrollUpdateType type) {
         UpdateType = type;
-        
+
         ValueChangedEvent?.Invoke(this);
         StateUpdatedEvent?.Invoke();
-        
+
         UpdateType = ScrollUpdateType.None;
     }
 

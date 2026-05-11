@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using Reactive.Compiler;
 using UnityEngine;
 
 namespace Reactive.Components.Basic {
@@ -11,244 +12,157 @@ namespace Reactive.Components.Basic {
         Multiple
     }
 
-    /// <summary>
-    /// A <see cref="Table{TItem,TCell}"/> overload with an ability to make cells in-place.
-    /// </summary>
     [PublicAPI]
-    public class Table<TItem> : Table<TItem, TableCell<TItem>> {
-        /// <summary>
-        /// Defines a cell constructor. Must be specified.
-        /// </summary>
-        public TableCell<TItem>.Constructor? ConstructCell { get; set; }
-
-        protected override void OnInstantiate() {
-            cellsPool.Construct = CreateCell;
-        }
-
-        private TableCell<TItem> CreateCell() {
-            if (ConstructCell == null) {
-                throw new UninitializedComponentException("The ConstructCell property must be specified");
-            }
-
-            return new TableCell<TItem>(ConstructCell);
-        }
-    }
-
-    [PublicAPI]
-    public class Table<TItem, TCell> : ReactiveComponent, IModifiableTableComponent<TItem> where TCell : ITableCell<TItem>, IReactiveComponent, new() {
+    public partial class Table<TItem, TCell> : ReactiveComponent where TCell : class, IReactiveComponent {
         #region Props
 
-        public ScrollOrientation ScrollOrientation {
-            get => _scrollArea.ScrollOrientation;
-            set => _scrollArea.ScrollOrientation = value;
-        }
-
-        public IScrollbar? Scrollbar {
-            get => _scrollArea.Scrollbar;
-            set => _scrollArea.Scrollbar = value;
-        }
-
-        public string EmptyText {
-            get => EmptyLabel.Text;
-            set => EmptyLabel.Text = value;
-        }
-
-        public int? ScrollbarScrollSize {
-            get => (int?)_scrollArea.ScrollbarScrollSize;
-            set => _scrollArea.ScrollbarScrollSize = value.HasValue ? value * CellSize : null;
-        }
-
-        public Label EmptyLabel { get; private set; } = null!;
-
-        private void RefreshVisibility() {
-            RefreshScrollbar();
-            RefreshEmptyText();
-        }
-
-        private void RefreshScrollbar() {
-            var averageCellsCount = ViewportSize / CellSize;
-            var cellCount = Mathf.CeilToInt(averageCellsCount);
-            _scrollArea.Scrollbar?.SetActive(_filteredItems.Count > cellCount);
-        }
-
-        private void RefreshEmptyText() {
-            var visible = _filteredItems.Count > 0;
-            _scrollArea.Enabled = visible;
-            EmptyLabel.Enabled = !visible;
-        }
-
-        #endregion
-
-        #region Filter
-
-        public ITableFilter<TItem>? Filter {
-            get => _filter;
+        [Required, RawState]
+        public ScrollContext ScrollContext {
+            get => _scrollContext!;
             set {
-                if (_filter != null) {
-                    _filter.FilterUpdatedEvent -= HandleFilterUpdated;
+                if (_scrollContext != null) {
+                    _scrollContext.ValueChangedEvent -= HandleScrollContextUpdated;
                 }
-                _filter = value;
-                if (_filter != null) {
-                    _filter.FilterUpdatedEvent += HandleFilterUpdated;
-                }
+
+                _scrollArea.ScrollContext = value;
+                _scrollContext = value;
+                _scrollContext.ValueChangedEvent += HandleScrollContextUpdated;
+
+                DoInitialUpdate();
             }
         }
 
-        private readonly List<TItem> _filteredItems = new();
-        private ITableFilter<TItem>? _filter;
-
-        private void HandleFilterUpdated() {
-            Refresh();
-        }
-
-        private void RefreshFilter() {
-            _filteredItems.Clear();
-            if (_filter == null) {
-                _filteredItems.AddRange(Items);
-                return;
+        [Required]
+        public Func<CellContext<TItem>, TCell> ConstructCell {
+            get => _constructCell!;
+            set {
+                _constructCell = value;
+                DoInitialUpdate();
             }
-            foreach (var item in Items) {
-                if (!_filter.Matches(item)) continue;
-                _filteredItems.Add(item);
-            }
-            NotifyPropertyChanged(nameof(FilteredItems));
         }
-
-        #endregion
-
-        #region Table
 
         /// <summary>
         /// A collection of added items.
         /// </summary>
-        public IList<TItem> Items {
-            get {
-                lock (_itemsLocker) {
-                    return _items;
-                }
+        [Required]
+        public IReadOnlyList<TItem> Items {
+            get => _items!;
+            set {
+                // TODO: handle selection
+                _items = value;
+                DoInitialUpdate();
             }
         }
 
         /// <summary>
-        /// A collection of items which will be actually displayed in the table.
+        /// A collection of selected items.
         /// </summary>
-        public IReadOnlyList<TItem> FilteredItems => _filteredItems;
+        public IReadOnlyCollection<TItem> SelectedItems {
+            get => _selectedItems;
+            set {
+                switch (SelectionMode) {
+                    case SelectionMode.None when value.Count is not 0:
+                        throw new InvalidOperationException("Cannot set a non-empty selected cells list when SelectionMode is None");
 
-        /// <summary>
-        /// A collection of selected indexes.
-        /// </summary>
-        public IReadOnlyCollection<int> SelectedIndexes => _selectedIndexes;
+                    case SelectionMode.Single when value.Count > 1:
+                        throw new InvalidOperationException("Cannot set a selected cells list with len > 1 when SelectionMode is Single");
+                }
+
+                _selectedItems.AddRange(value);
+                RefreshSelected();
+            }
+        }
 
         /// <summary>
         /// An enum that determines how many cells you can select.
         /// </summary>
         public SelectionMode SelectionMode {
-            get => _selectionMode;
+            get;
             set {
-                _selectionMode = value;
-                ClearSelection();
-            }
-        }
+                if (value == field) {
+                    return;
+                }
 
-        IReadOnlyList<TItem> ITable<TItem>.Items {
-            get {
-                lock (_itemsLocker) {
-                    return _items;
+                field = value;
+
+                switch (value) {
+                    case SelectionMode.None:
+                        _selectedItems.Clear();
+                        break;
+
+                    case SelectionMode.Single when _selectedItems.Count > 1:
+                        var any = _selectedItems.First();
+
+                        _selectedItems.Clear();
+                        _selectedItems.Add(any);
+                        break;
+                }
+
+                RefreshSelected();
+            }
+        } = SelectionMode.Single;
+
+        public ScrollOrientation ScrollOrientation {
+            get => _scrollArea.ScrollOrientation;
+            set {
+                if (_scrollArea.ScrollOrientation == value) {
+                    return;
+                }
+
+                _scrollArea.ScrollOrientation = value;
+
+                if (_scrollContext != null) {
+                    RefreshCells();
                 }
             }
         }
 
-        private readonly object _itemsLocker = new();
-        private readonly List<TItem> _items = new();
-        private readonly HashSet<int> _selectedIndexes = new();
-        private SelectionMode _selectionMode = SelectionMode.Single;
+        public Action<IReadOnlyCollection<TItem>>? OnSelectedItemsChanged { get; set; }
 
-        public void Refresh(bool clearSelection = true) {
-            OnEarlyRefresh();
-            WhenEarlyRefreshed?.Invoke(this);
+        private Func<CellContext<TItem>, TCell>? _constructCell;
+        private IReadOnlyList<TItem>? _items;
+        private ScrollContext? _scrollContext;
+        private bool _needsInitialUpdate = true;
 
-            RefreshFilter();
-            RefreshVisibleCells(0f);
-            RefreshContentSize();
-            ScrollContentIfNeeded();
-            RefreshVisibility();
-            if (clearSelection) ClearSelection();
-            OnRefresh();
-
-            WhenRefreshed?.Invoke(this);
-        }
-
-        public void QueueRefreshCellSize() {
-            _cellSizeRefreshNeeded = true;
-        }
-
-        public void ScrollTo(int idx, bool animated = true) {
-            _scrollArea.ScrollTo(CellSize * idx);
-        }
-
-        public void Select(int idx) {
-            if (SelectionMode is SelectionMode.None) return;
-            //
-            if (SelectionMode is SelectionMode.Single && _selectedIndexes.Count > 0) {
-                _selectedIndexes.Clear();
+        private void DoInitialUpdate() {
+            // Required properties can be initialized in any order, so we call 
+            // this method in each setter to perform initialization no matter the order
+            if (_needsInitialUpdate && _constructCell != null && _scrollContext != null && _items != null) {
+                RefreshCells();
+                _needsInitialUpdate = false;
             }
-            _selectedIndexes.Add(idx);
-            ForceRefreshVisibleCells();
-            NotifyPropertyChanged(nameof(SelectedIndexes));
-        }
-
-        public void ClearSelection(int idx = -1) {
-            if (idx != -1) {
-                _selectedIndexes.Remove(idx);
-            } else {
-                _selectedIndexes.Clear();
-            }
-            ForceRefreshVisibleCells();
-            NotifyPropertyChanged(nameof(SelectedIndexes));
-        }
-
-        public void ScrollTo(TItem item, bool animated = true) {
-            var index = FindIndex(item);
-            ScrollTo(index, animated);
-        }
-
-        public void Select(TItem item) {
-            var index = FindIndex(item);
-            Select(index);
-        }
-
-        public void ClearSelection(TItem item) {
-            var index = FindIndex(item);
-            ClearSelection(index);
-        }
-
-        private int FindIndex(TItem item) {
-            return _filteredItems.FindIndex(x => x!.Equals(item));
         }
 
         #endregion
 
-        #region Cells
+        #region Selection
 
-        protected virtual float CellSize => ScrollOrientation is ScrollOrientation.Vertical ? _cellSize.y : _cellSize.x;
+        private readonly HashSet<TItem> _selectedItems = new();
 
-        internal readonly ReactivePool<TCell> cellsPool = new() { DetachOnDespawn = false };
-        private readonly Dictionary<ITableCell<TItem>, int> _cachedIndexes = new();
-        private bool _cellSizeRefreshNeeded;
-        private bool _selectionRefreshNeeded;
-        private Vector2 _cellSize;
-        private float _contentPos;
-        private float _destinationPos;
-        private int _visibleCellsCount;
-        private int _visibleCellsStartIndex;
-        private int _visibleCellsEndIndex;
+        private void RefreshSelected() {
+            foreach (var pair in _cells) {
+                // We only care about visible cells
+                if (!pair.Cell.Enabled) {
+                    return;
+                }
+
+                pair.Context.Selected = SelectedItems.Contains(pair.Context.Item);
+            }
+
+            OnSelectedItemsChanged?.Invoke(SelectedItems);
+        }
+
+        #endregion
+
+        #region Dimensions
+
+        private bool _needToRefreshCellSize = true;
 
         private void PlaceCell(Transform transform, int index) {
             if (ScrollOrientation is ScrollOrientation.Vertical) {
-                index++;
-                transform.localPosition = new(0f, index * -CellSize);
+                transform.localPosition = new(0f, -(_cellStartPos + (index + 1) * CellSize));
             } else {
-                transform.localPosition = new(index * -CellSize, 0f);
+                transform.localPosition = new(-(_cellStartPos + index * CellSize), 0f);
             }
         }
 
@@ -266,229 +180,156 @@ namespace Reactive.Components.Basic {
             }
         }
 
-        private void CalculateVisibleCellsRange(float pos) {
-            //start index
-            var start = Mathf.FloorToInt(pos / CellSize);
-            start = start < 0 ? 0 : start;
-            //end index
-            var end = start + _visibleCellsCount;
-            end = end > FilteredItems.Count ? FilteredItems.Count : end;
-            //clear cached cells if needed
-            if (start != _visibleCellsStartIndex || end != _visibleCellsEndIndex) {
-                _selectionRefreshNeeded = true;
-                _cachedIndexes.Clear();
-            }
-            //setting values
-            _visibleCellsStartIndex = start;
-            _visibleCellsEndIndex = end;
-        }
-
-        private void RefreshVisibleCells(float pos) {
-            if (_cellSizeRefreshNeeded && FilteredItems.Count > 0) {
-                var probeItem = _filteredItems[0];
-                var cell = GetOrSpawnCell(0, probeItem);
-
-                RefreshCellSize(cell);
-                _cellSizeRefreshNeeded = false;
+        private void RefreshCellSizeIfNeeded() {
+            if (!_needToRefreshCellSize || _items is not { Count: > 0 }) {
+                return;
             }
 
-            CalculateVisibleCellsRange(pos);
-
-            int i;
-            for (i = _visibleCellsStartIndex; i < _visibleCellsEndIndex; i++) {
-                //spawning and initializing
-                var item = _filteredItems[i];
-                var cell = GetOrSpawnCell(i - _visibleCellsStartIndex, item);
-
-                OnCellConstruct(cell);
-                WhenCellConstructed?.Invoke(cell);
-                
-                //updating state
-                if (_selectionRefreshNeeded) {
-                    var selected = _selectedIndexes.Contains(i);
-                    cell.OnCellStateChange(selected);
-                }
-                //placing and saving
-                PlaceCell(cell.ContentTransform, i);
-                _cachedIndexes[cell] = i;
-            }
-            _selectionRefreshNeeded = false;
-
-            //despawning redundant cells
-            i -= _visibleCellsStartIndex;
-            while (cellsPool.SpawnedComponents.Count > i) {
-                var cell = cellsPool.SpawnedComponents.Last();
-                cell.CellAskedToChangeSelectionEvent -= HandleCellWantsToChangeSelection;
-                cellsPool.Despawn(cell);
-            }
-        }
-
-        private void RefreshVisibleCells() {
-            RefreshVisibleCells(_contentPos);
-        }
-
-        private void ForceRefreshVisibleCells() {
-            _selectionRefreshNeeded = true;
-            RefreshVisibleCells(_contentPos);
-        }
-
-        private TCell GetOrSpawnCell(int index, TItem item) {
-            TCell cell;
-            if (cellsPool.SpawnedComponents.Count - 1 < index) {
-                cell = cellsPool.Spawn(false);
-
-                cell.Init(item);
-                cell.Use(_scrollContent);
-                cell.Enabled = true;
-                cell.CellAskedToChangeSelectionEvent += HandleCellWantsToChangeSelection;
-
-                AlignCell(cell.ContentTransform);
-            } else {
-                cell = cellsPool.SpawnedComponents[index];
-                cell.Init(item);
+            if (_cells.Count == 0) {
+                SpawnCell(Items[0], 0);
             }
 
-            return cell;
-        }
+            var cell = _cells[0].Cell;
 
-        #endregion
-
-        #region Abstraction
-
-        public Action<Table<TItem, TCell>>? WhenEarlyRefreshed;
-        public Action<Table<TItem, TCell>>? WhenRefreshed;
-        public Action<TCell>? WhenCellConstructed;
-
-        protected IEnumerable<KeyValuePair<TCell, TItem>> SpawnedCells => _cachedIndexes
-            .Select(pair => new KeyValuePair<TCell, TItem>((TCell)pair.Key, _filteredItems[pair.Value]));
-
-        protected virtual void OnEarlyRefresh() { }
-        protected virtual void OnRefresh() { }
-        protected virtual void OnCellConstruct(TCell cell) { }
-
-        #endregion
-
-        #region Content
-
-        private float ContentSize => ScrollOrientation is ScrollOrientation.Vertical ? _scrollContent.rect.height : _scrollContent.rect.width;
-        private float ViewportSize => ScrollOrientation is ScrollOrientation.Vertical ? _viewport.rect.height : _viewport.rect.width;
-
-        private void RefreshContentSize() {
-            if (ScrollOrientation is ScrollOrientation.Vertical) {
-                _scrollContent.sizeDelta = new(0f, FilteredItems.Count * CellSize);
-            } else {
-                _scrollContent.sizeDelta = new(FilteredItems.Count * CellSize, 0f);
-            }
-        }
-
-        private void RefreshCellSize(TCell cell) {
-            // To get the actual size
+            AlignCell(cell.ContentTransform);
             cell.RecalculateLayoutImmediate();
 
             _cellSize = cell.ContentTransform.rect.size;
-            _scrollArea.ScrollSize = CellSize;
+            _scrollArea.LineSize = CellSize;
 
-            RefreshVisibleCellsCount();
+            _needToRefreshCellSize = false;
         }
 
-        private void RefreshVisibleCellsCount() {
-            var averageCellsCount = CellSize != 0 ? ViewportSize / CellSize : 0;
-            var cellCount = Mathf.CeilToInt(averageCellsCount);
-            //adding because we need two more cells to fill the free space when scrolling
-            _visibleCellsCount = cellCount + 1;
+        #endregion
+
+        #region Cells
+
+        private record struct CellPair(CellContext<TItem> Context, TCell Cell, ScrollOrientation Orientation);
+
+        private float CellSize => ScrollOrientation is ScrollOrientation.Vertical ? _cellSize.y : _cellSize.x;
+
+        private readonly List<CellPair> _cells = new();
+        private Vector2 _cellSize;
+        private float _cellStartPos;
+
+        private CellPair SpawnCell(TItem item, int index) {
+            // Spawn a new cell if there's no cells left in the pool
+            var context = new CellContext<TItem>();
+            // Init before constructing
+            context.Init(item, index, Items.Count);
+
+            var cell = ConstructCell(context);
+            cell.Use(_scrollContent);
+
+            AlignCell(cell.ContentTransform);
+
+            var pair = new CellPair(context, cell, ScrollOrientation);
+            _cells.Add(pair);
+
+            return pair;
         }
 
-        private void ScrollContentIfNeeded() {
-            var needScrollToEnd = ContentSize - _contentPos <= ViewportSize;
-            var needScrollToStart = _contentPos < 0f || _filteredItems.Count <= (int)(ViewportSize / CellSize);
-            if (needScrollToEnd) {
-                _scrollArea.ScrollToEnd(true);
-            } else if (needScrollToStart) {
-                _scrollArea.ScrollToStart(true);
+        private void RefreshCells() {
+            RefreshCellSizeIfNeeded();
+
+            var scrollPos = ScrollContext.ActualScrollPos;
+
+            var startIdx = Mathf.FloorToInt((scrollPos + 0.01f) / CellSize);
+            var endIdx = Mathf.CeilToInt((scrollPos + ScrollContext.ViewSize - 0.01f) / CellSize);
+            var cellsCount = endIdx - startIdx;
+
+            _scrollContent.sizeDelta = new(0f, Items.Count * CellSize);
+            _cellStartPos = startIdx * CellSize;
+
+            var spawnedCellsCount = _cells.Count;
+            var delta = spawnedCellsCount - cellsCount;
+
+            for (var i = 0; i < cellsCount; i++) {
+                var itemIdx = i + startIdx;
+                var item = Items[itemIdx];
+
+                CellPair pair;
+                if (i > spawnedCellsCount - 1) {
+                    // Spawn a new cell if there's no more cells in the pool
+                    pair = SpawnCell(item, itemIdx);
+                } else {
+                    pair = _cells[i];
+
+                    pair.Context.Init(item, itemIdx, Items.Count);
+                    pair.Cell.Enabled = true;
+
+                    if (pair.Orientation != ScrollOrientation) {
+                        // Align cell if it has different orientation
+                        AlignCell(pair.Cell.ContentTransform);
+
+                        pair.Orientation = ScrollOrientation;
+                    }
+                }
+
+                PlaceCell(pair.Cell.ContentTransform, i);
+            }
+
+            // Remaining cells are just disabled
+            for (var i = 0; i < delta; i++) {
+                _cells[spawnedCellsCount + i - 1].Cell.Enabled = false;
             }
         }
 
-        protected override void OnRectDimensionsChanged() {
-            RefreshVisibleCellsCount();
-            RefreshVisibleCells();
+        private void RefreshCellsIfNeeded() {
+            var scrollPos = ScrollContext.ActualScrollPos;
+
+            if (scrollPos >= _cellStartPos + CellSize || scrollPos < _cellStartPos) {
+                RefreshCells();
+            }
         }
 
         #endregion
 
         #region Construct
 
-        protected RectTransform ScrollContent => _scrollContent;
-
         private RectTransform _scrollContent = null!;
-        private RectTransform _viewport = null!;
         private ScrollArea _scrollArea = null!;
 
-        protected virtual ScrollArea ConstructScrollArea() {
-            return new ScrollArea();
-        }
-
         protected sealed override GameObject Construct() {
-            //constructing
-            var content = new Layout {
-                Children = {
-                    //area
-                    ConstructScrollArea()
-                        .WithRectExpand()
-                        .Bind(ref _viewport)
-                        .Bind(ref _scrollArea),
-                    //empty label
-                    new Label {
-                        Text = "The monkey left you on your own!",
-                        FontSize = 3.2f,
-                        FontSizeMin = 1f,
-                        FontSizeMax = 5f,
-                        EnableAutoSizing = true,
-                        EnableWrapping = true
-                    }.WithRectExpand().Export(out var label)
+            // ScrollContext is required, but we proxy it via another
+            // required property, so it's okay to disable
+#pragma warning disable RV102
+            return new ScrollArea {
+#pragma warning restore RV102
+                    FinalizeScroll = FinalizeScroll,
+                    ScrollContent = new ReactiveComponent {
+                        Name = "Content"
+                    }.Bind(ref _scrollContent)
                 }
-            };
-            //initializing here instead of OnInitialize to leave it for inheritors
-            EmptyLabel = label;
-            RefreshEmptyText();
-
-            QueueRefreshCellSize();
-            ScrollbarScrollSize = 4;
-
-            _scrollArea.ScrollContent = new ReactiveComponent().Bind(ref _scrollContent);
-            _scrollContent.name = "Content";
-
-            _scrollArea.ScrollPosChangedEvent += HandlePosChanged;
-            _scrollArea.ScrollDestinationPosChangedEvent += HandleDestinationPosChanged;
-            _scrollArea.ScrollWithJoystickFinishedEvent += HandleJoystickScrollFinished;
-
-            return content.Use();
+                .Bind(ref _scrollArea)
+                .Use();
         }
 
         #endregion
 
         #region Callbacks
 
-        private void HandleCellWantsToChangeSelection(ITableCell<TItem> cell, bool selected) {
-            var idx = _cachedIndexes[cell];
-            if (selected) {
-                Select(idx);
-            } else {
-                ClearSelection(idx);
+        private void HandleCellContextUpdated(CellContext<TItem> context) {
+            if (context.UpdateType is CellUpdateType.Selection) {
+                if (context.Selected) {
+                    _selectedItems.Add(context.Item);
+                } else {
+                    _selectedItems.Remove(context.Item);
+                }
+
+                RefreshSelected();
             }
         }
 
-        private void HandleJoystickScrollFinished() {
-            _destinationPos = MathUtils.RoundStepped(_destinationPos, CellSize);
-            _scrollArea.ScrollTo(_destinationPos);
+        private void HandleScrollContextUpdated(ScrollContext context) {
+            if (context.UpdateType is ScrollUpdateType.Scroll or ScrollUpdateType.Measurements) {
+                RefreshCellsIfNeeded();
+            }
         }
 
-        private void HandleDestinationPosChanged(float pos) {
-            _destinationPos = pos;
-        }
-
-        private void HandlePosChanged(float pos) {
-            _contentPos = pos;
-            RefreshVisibleCells();
+        private float FinalizeScroll(ScrollContext context) {
+            // Adapting position so there's no semi-visible cells
+            return MathUtils.RoundStepped(context.ScrollPos, CellSize);
         }
 
         #endregion

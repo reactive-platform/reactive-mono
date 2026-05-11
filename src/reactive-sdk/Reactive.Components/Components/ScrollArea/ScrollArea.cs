@@ -22,7 +22,8 @@ namespace Reactive.Components.Basic {
                 _scrollContext?.ValueChangedEvent -= HandleContextUpdated;
                 _scrollContext = value;
 
-                if (_contentTransform != null) {
+                var didInitialUpdate = DoInitialUpdate();
+                if (!didInitialUpdate && _scrollContent != null) {
                     RefreshMeasurements();
                 }
 
@@ -41,7 +42,7 @@ namespace Reactive.Components.Basic {
                 _scrollContent.Use(_viewport);
                 _contentTransform = _scrollContent.ContentTransform;
 
-                ReloadContent();
+                DoInitialUpdate();
             }
         }
 
@@ -53,12 +54,22 @@ namespace Reactive.Components.Basic {
             }
         } = ScrollOrientation.Vertical;
 
-        public float JoystickScrollSize { get; set; } = 10f;
-        public Action? OnScrollWithJoystickFinished { get; set; }
+        public float LineSize { get; set; }
+        public Func<ScrollContext, float>? FinalizeScroll { get; set; }
 
         private IReactiveComponent? _scrollContent;
         private RectTransform? _contentTransform;
         private ScrollContext? _scrollContext;
+        private bool _needsInitialUpdate = true;
+
+        private bool DoInitialUpdate() {
+            if (_needsInitialUpdate && _scrollContext != null && _scrollContent != null) {
+                ReloadContent();
+                _needsInitialUpdate = false;
+            }
+
+            return !_needsInitialUpdate;
+        }
 
         #endregion
 
@@ -70,12 +81,12 @@ namespace Reactive.Components.Basic {
         protected override void OnUpdate() {
             // ReSharper disable CompareOfFloatsByEqualityOperator
             if (_lastScrollDeltaTime != -1f && _lastScrollDeltaTime != Time.deltaTime) {
-                OnScrollWithJoystickFinished?.Invoke();
+                FinalizeScrollPos();
                 _lastScrollDeltaTime = -1f;
             }
 
-            if (_contentTransform != null) {
-                var contentSize = Translate(_contentTransform.rect);
+            if (_scrollContent != null) {
+                var contentSize = Translate(_contentTransform!.rect);
 
                 if (_prevContentSize != contentSize) {
                     RefreshMeasurements();
@@ -84,6 +95,12 @@ namespace Reactive.Components.Basic {
             }
 
             UpdateContentPos(false);
+        }
+
+        private void FinalizeScrollPos() {
+            if (FinalizeScroll != null) {
+                _destinationPos = FinalizeScroll.Invoke(ScrollContext);
+            }
         }
 
         #endregion
@@ -120,7 +137,10 @@ namespace Reactive.Components.Basic {
             _posSet = false;
 
             if (immediately) {
+                FinalizeScrollPos();
                 UpdateContentPos(true);
+                
+                _lastScrollDeltaTime = -1f;
             }
         }
 
@@ -159,7 +179,7 @@ namespace Reactive.Components.Basic {
             var contentSize = Translate(_contentTransform!.rect);
             var viewSize = Translate(_viewport.rect);
 
-            ScrollContext.ControllerSetMeasurements(contentSize, viewSize, 0f);
+            ScrollContext.ControllerSetMeasurements(contentSize, viewSize, LineSize);
         }
 
         private void RefreshContentSizeIfNeeded() {
@@ -222,10 +242,8 @@ namespace Reactive.Components.Basic {
         #region Callbacks
 
         private void HandlePointerScroll(PointerEventsHandler handler, PointerEventData eventData) {
-            var mul = JoystickScrollSize * -0.1f;
-
             var neg = ScrollOrientation is ScrollOrientation.Vertical ? -1 : 1;
-            var destinationPos = _destinationPos + eventData.scrollDelta.y * mul * neg;
+            var destinationPos = _destinationPos + eventData.scrollDelta.y * LineSize * neg;
 
             _lastScrollDeltaTime = Time.deltaTime;
 
