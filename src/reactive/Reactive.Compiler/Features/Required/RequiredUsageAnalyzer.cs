@@ -26,20 +26,16 @@ partial class RequiredAnalyzer {
                 .Where(x => x.Left is IdentifierNameSyntax)
                 .Select(x => semanticModel.GetSymbolInfo(x.Left).Symbol);
 
-            foreach (var symbol in assigned) {
-                // Checking whether this property shadows another one
-                if (symbol!.GetAttribute<RequiredAttribute>(semanticModel) is { } attr) {
-                    var shadowsName = attr.GetNamedArgument(nameof(RequiredAttribute.ShadowsName));
+            var setNames = assigned
+                .Select(x => x!.GetAttribute<SetsRequiredAttribute>(semanticModel))
+                .OfType<AttributeData>()
+                .Select(x => x.GetNamedArgument(nameof(SetsRequiredAttribute.Names)))
+                .SelectMany(x => x?.Values.Select(y => y.Value))
+                .OfType<string>();
 
-                    if (shadowsName != null) {
-                        required.Remove((string)shadowsName.Value.Value!);
-
-                        continue;
-                    }
-                }
-
-                // If property is assigned we remove it from the required list
-                required.Remove(symbol!.Name);
+            // If property is assigned we remove it from the required list
+            foreach (var name in setNames) {
+                required.Remove(name);
             }
         }
 

@@ -66,9 +66,9 @@ internal class RequiredCtorGenerator : IIncrementalGenerator {
             return null;
         }
 
-        // Shadowing means that the prop is not defined in the class directly (e.g. an extension)
-        var arg = attr.GetNamedArgument(nameof(RequiredAttribute.ShadowsName));
-        if (arg.HasValue) {
+        // Property cannot be required and set required members simultaneously
+        var arg = symbol?.GetAttribute<SetsRequiredAttribute>(ctx.SemanticModel);
+        if (arg != null) {
             return null;
         }
 

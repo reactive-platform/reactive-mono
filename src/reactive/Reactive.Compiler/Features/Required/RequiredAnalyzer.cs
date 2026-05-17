@@ -16,7 +16,7 @@ internal partial class RequiredAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
-    private static readonly DiagnosticDescriptor ShadowedPropMissingRule = new(
+    private static readonly DiagnosticDescriptor SetRequiredPropMissingRule = new(
         "RV103",
         "The shadowed property you've specified doesn't exist in the target type",
         "Property \'{0}\' doesn't exist in type \'{1}\'",
@@ -25,10 +25,10 @@ internal partial class RequiredAnalyzer : DiagnosticAnalyzer {
         isEnabledByDefault: true
     );
 
-    private static readonly DiagnosticDescriptor ShadowedOutsideExtensionRule = new(
+    private static readonly DiagnosticDescriptor RequiredAndSetsRequiredRule = new(
         "RV104",
-        "Shadowing is not supported outside extension properties",
-        "Shadowing is not supported outside extension properties",
+        "A property cannot be required and set required members simultaneously",
+        "\'{0}\' property is required and sets required members which is not allowed",
         "Usage",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
@@ -45,8 +45,8 @@ internal partial class RequiredAnalyzer : DiagnosticAnalyzer {
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
         RequiredPropsRule,
-        ShadowedPropMissingRule,
-        ShadowedOutsideExtensionRule,
+        SetRequiredPropMissingRule,
+        RequiredAndSetsRequiredRule,
         RequiredCtorRule
     );
 
