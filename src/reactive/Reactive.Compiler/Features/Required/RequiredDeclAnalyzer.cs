@@ -33,14 +33,13 @@ partial class RequiredAnalyzer {
         var setsParam = setsAttr.GetNamedArgument(nameof(SetsRequiredAttribute.Names));
         var setsMembers = setsParam?.Values
             .Select(y => y.Value)
-            .OfType<string[]>()
-            .SelectMany(x => x);
+            .OfType<string>();
 
         if (setsMembers == null) {
             return;
         }
 
-        var requiredMembers = type.GetMembers()
+        var requiredMembers = type.GetMembersRecursive()
             .OfType<IPropertySymbol>()
             .Where(x => x.GetAttribute<RequiredAttribute>(context.SemanticModel) != null)
             .Select(x => x.Name);
