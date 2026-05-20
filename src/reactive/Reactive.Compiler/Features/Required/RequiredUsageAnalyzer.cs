@@ -40,7 +40,7 @@ partial class RequiredAnalyzer {
         }
 
         foreach (var name in required) {
-            var diagnostic = Diagnostic.Create(RequiredPropsRule, node.Type.GetLocation(), name);
+            var diagnostic = Diagnostic.Create(RequiredInitPropsRule, node.Type.GetLocation(), name);
 
             context.ReportDiagnostic(diagnostic);
         }

@@ -7,7 +7,7 @@ namespace Reactive.Compiler;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal partial class RequiredAnalyzer : DiagnosticAnalyzer {
-    private static readonly DiagnosticDescriptor RequiredPropsRule = new(
+    private static readonly DiagnosticDescriptor RequiredInitPropsRule = new(
         "RV102",
         "All required fields must be initialized in order to instantiate the component",
         "Required property \'{0}\' must be initialized",
@@ -33,6 +33,24 @@ internal partial class RequiredAnalyzer : DiagnosticAnalyzer {
         DiagnosticSeverity.Error,
         isEnabledByDefault: true
     );
+    
+    private static readonly DiagnosticDescriptor RequiredStaticPropRule = new(
+        "RV105",
+        "Static properties cannot be required",
+        "Static property \'{0}\' cannot be required",
+        "Usage",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
+    
+    private static readonly DiagnosticDescriptor RequiredStaticClassRule = new(
+        "RV106",
+        "Properties declared in a static class cannot be required",
+        "Property \'{0}\' declared in a static class hence cannot be required",
+        "Usage",
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true
+    );
 
     private static readonly DiagnosticDescriptor RequiredCtorRule = new(
         "RV107",
@@ -44,9 +62,11 @@ internal partial class RequiredAnalyzer : DiagnosticAnalyzer {
     );
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-        RequiredPropsRule,
+        RequiredInitPropsRule,
         SetRequiredPropMissingRule,
         RequiredAndSetsRequiredRule,
+        RequiredStaticClassRule,
+        RequiredStaticPropRule,
         RequiredCtorRule
     );
 
@@ -54,7 +74,8 @@ internal partial class RequiredAnalyzer : DiagnosticAnalyzer {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.RegisterSyntaxNodeAction(AnalyzeInitializer, SyntaxKind.ObjectCreationExpression);
-        context.RegisterSyntaxNodeAction(AnalyzeRequiredDeclaration, SyntaxKind.PropertyDeclaration);
+        context.RegisterSyntaxNodeAction(AnalyzeSetsDeclaration, SyntaxKind.PropertyDeclaration);
+        context.RegisterSyntaxNodeAction(AnalyzeDeclaration, SyntaxKind.PropertyDeclaration);
         context.RegisterSyntaxNodeAction(AnalyzeCtor, SyntaxKind.ConstructorDeclaration);
     }
 }
