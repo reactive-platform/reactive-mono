@@ -46,7 +46,7 @@ internal class RequiredCtorGenerator : IIncrementalGenerator {
                         HasRequiredProperties: group.Any(g => g.HasRequiredProperties),
                         HasRequiredSuperclass: group.Any(g => g.HasRequiredSuperclass)
                     ))
-                    .Where(y => !y.TypeSymbol.IsAbstract);
+                    .Where(y => y.TypeSymbol is { IsAbstract: false, IsStatic: false });
             });
 
         context.RegisterSourceOutput(candidates, (spc, data) => {
@@ -62,13 +62,13 @@ internal class RequiredCtorGenerator : IIncrementalGenerator {
 
         // Non-required properties aren't handled
         var attr = symbol?.GetAttribute<RequiredAttribute>(ctx.SemanticModel);
-        if (attr == null) {
+        if (symbol is not { IsStatic: false } || attr == null) {
             return null;
         }
 
-        // Shadowing means that the prop is not defined in the class directly (e.g. an extension)
-        var arg = attr.GetNamedArgument(nameof(RequiredAttribute.ShadowsName));
-        if (arg.HasValue) {
+        // Property cannot be required and set required members simultaneously
+        var arg = symbol?.GetAttribute<SetsRequiredAttribute>(ctx.SemanticModel);
+        if (arg != null) {
             return null;
         }
 
@@ -86,6 +86,7 @@ internal class RequiredCtorGenerator : IIncrementalGenerator {
         // also rely on this generator, so we won't miss a hierarchy stage
         var hasRequiredMembers = symbol.BaseType?
             .GetMembers()
+            .Where(x => !x.IsStatic)
             .Any(x => x.GetDerivedAttribute<RequiredAttribute>(ctx.SemanticModel) != null)
             ?? false;
         
