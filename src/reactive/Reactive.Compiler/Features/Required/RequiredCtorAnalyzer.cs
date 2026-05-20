@@ -16,7 +16,7 @@ partial class RequiredAnalyzer {
         }
 
         var requiredMembers = symbol.ContainingType
-            .GetMembers()
+            .GetMembersRecursive()
             .Where(x => x.GetAttribute<RequiredAttribute>(context.SemanticModel) != null)
             .ToImmutableHashSet(SymbolEqualityComparer.Default);
 
