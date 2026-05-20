@@ -157,7 +157,7 @@ internal class StateGenerator : IIncrementalGenerator {
 
             foreach (var name in nameGroup) {
                 var definition = """
-                                 [Reactive.Compiler.RequiredAttribute(ShadowsName = "{3}")]
+                                 [Reactive.Compiler.SetsRequiredAttribute(Names = ["{3}"])]
                                  public {0}<{1}> {2} {{
                                      set {{
                                          value.ValueChangedEvent += x => obj.{3} = x;
