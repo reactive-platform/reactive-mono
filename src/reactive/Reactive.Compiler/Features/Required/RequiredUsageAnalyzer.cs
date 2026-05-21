@@ -24,17 +24,24 @@ partial class RequiredAnalyzer {
             var assigned = node.Initializer.ChildNodes()
                 .OfType<AssignmentExpressionSyntax>()
                 .Where(x => x.Left is IdentifierNameSyntax)
-                .Select(x => semanticModel.GetSymbolInfo(x.Left).Symbol);
+                .Select(x => semanticModel.GetSymbolInfo(x.Left).Symbol)
+                .ToArray();
 
+            // Properties set by another properties with SetsRequired attributes
             var setNames = assigned
                 .Select(x => x!.GetAttribute<SetsRequiredAttribute>(semanticModel))
                 .OfType<AttributeData>()
                 .Select(x => x.GetNamedArgument(nameof(SetsRequiredAttribute.Names)))
                 .SelectMany(x => x?.Values.Select(y => y.Value))
                 .OfType<string>();
+            
+            // Required properties set directly
+            var reqNames = assigned
+                .Where(x => x!.GetAttribute<RequiredAttribute>(semanticModel) != null)
+                .Select(x => x!.Name);
 
             // If property is assigned we remove it from the required list
-            foreach (var name in setNames) {
+            foreach (var name in setNames.Concat(reqNames)) {
                 required.Remove(name);
             }
         }
