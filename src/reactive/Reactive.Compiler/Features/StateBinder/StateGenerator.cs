@@ -157,10 +157,10 @@ internal class StateGenerator : IIncrementalGenerator {
 
             foreach (var name in nameGroup) {
                 var definition = """
-                                 [Reactive.Compiler.SetsRequiredAttribute(Names = ["{3}"])]
-                                 public {0}<{1}> {2} {{
+                                 [Reactive.Compiler.SetsRequiredAttribute(Names = ["{4}"])]
+                                 public {0}<{2}, {1}<{2}>> {3} {{
                                      set {{
-                                         value.ValueChangedEvent += x => obj.{3} = x;
+                                         value.Attach(x => obj.{4} = x);
                                      }}
                                  }}
 
@@ -169,7 +169,8 @@ internal class StateGenerator : IIncrementalGenerator {
                 // Replace placeholders
                 definition = string.Format(
                     definition,
-                    StateGeneratorUtils.StatePath, // State<>
+                    StateGeneratorUtils.StateBinderPath, // StateBinder<>
+                    StateGeneratorUtils.StatePath, // IState<>
                     propType,                      // State target type (State<T>)
                     name,                          // Prop name
                     propName                       // Target prop name
