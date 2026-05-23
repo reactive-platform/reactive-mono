@@ -8,6 +8,7 @@ internal static class StateGeneratorUtils {
     public const string StateNamespace = "Reactive";
 
     public const string StatePath = $"{StateNamespace}.{StateType}";
+    public const string StateBinderPath = "Reactive.Compiler.StateBinder";
     public const string AttributePath = "Reactive.Compiler.StateGenAttribute";
 
     public static ITypeSymbol? GetStateTargetType(ITypeSymbol symbol) {
