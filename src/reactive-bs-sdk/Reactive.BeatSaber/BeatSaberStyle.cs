@@ -36,6 +36,20 @@ namespace Reactive.BeatSaber {
             Color = Color.white
         };
 
+        public static ReadOnlyColorSet CellTextColors = new() {
+            Color = Color.white with { a = 0.75f },
+            NotInteractableColor = Color.white with { a = 0.35f },
+            HoveredColor = Color.white,
+            ActiveColor = new(0f, 0.75f, 1f, 1f),
+        };
+        
+        public static ReadOnlyColorSet CellColors = new() {
+            Color = Color.black with { a = 0.5f },
+            NotInteractableColor = Color.black with { a = 0.25f },
+            HoveredColor = Color.white with { a = 0.2f },
+            ActiveColor = Color.white with { a = 0.1f }
+        };
+        
         public static readonly Color PrimaryButtonColor = new(0, 0.5f, 1f);
 
         public static readonly Color TextColor = Color.white;
