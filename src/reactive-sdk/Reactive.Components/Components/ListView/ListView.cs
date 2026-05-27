@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using Reactive.Compiler;
 using Reactive.Components.Basic;
@@ -26,61 +27,197 @@ namespace Reactive.Components {
 
         #region ListView
 
-        /// <summary>
-        /// A collection of added items.
-        /// </summary>
-        public IReadOnlyList<TItem> Items {
-            get => _items;
-            set {
-                _items = value;
-                RefreshCells();
+        [Required]
+        public Func<CellContext<TItem>, TCell> ConstructCell {
+            get;
+            init {
+                field = value;
+                _constructCellSet = true;
+
+                DoInitialUpdate();
             }
         }
 
+        /// <summary>
+        /// A collection of added items.
+        /// </summary>
         [Required]
-        public Func<IState<TItem>, TCell> ConstructCell { get; set; }
+        public IReadOnlyList<TItem> Items {
+            get;
+            set {
+                field = value;
+                _itemsSet = true;
 
-        private IReadOnlyList<TItem> _items = Array.Empty<TItem>();
+                if (_initialized) {
+                    RefreshCells();
+                } else {
+                    DoInitialUpdate();
+                }
+            }
+        }
 
-        protected virtual void OnRefreshInternal() { }
-        protected virtual void OnCellInitInternal(TCell cell) { }
+        /// <summary>
+        /// A collection of selected items.
+        /// </summary>
+        public IReadOnlyCollection<TItem> SelectedItems {
+            get => _selectedItems;
+            set {
+                switch (SelectionMode) {
+                    case SelectionMode.None when value.Count is not 0:
+                        throw new InvalidOperationException("Cannot set a non-empty selected cells list when SelectionMode is None");
+
+                    case SelectionMode.Single when value.Count > 1:
+                        throw new InvalidOperationException("Cannot set a selected cells list with len > 1 when SelectionMode is Single");
+                }
+
+                _selectedItems.Clear();
+                _selectedItems.AddRange(value);
+
+                // Refresh only if called after Items and ConstructCell
+                if (_itemsSet && _constructCellSet) {
+                    RefreshSelection();
+
+                    OnSelectedItemsChanged?.Invoke(_selectedItems);
+                }
+            }
+        }
+
+        /// <summary>
+        /// An enum that determines how many cells you can select.
+        /// </summary>
+        public SelectionMode SelectionMode {
+            get;
+            set {
+                if (value == field) {
+                    return;
+                }
+
+                field = value;
+
+                switch (value) {
+                    case SelectionMode.None:
+                        _selectedItems.Clear();
+                        break;
+
+                    case SelectionMode.Single when _selectedItems.Count > 1:
+                        var any = _selectedItems.First();
+
+                        _selectedItems.Clear();
+                        _selectedItems.Add(any);
+                        break;
+                }
+
+                if (_itemsSet && _constructCellSet) {
+                    RefreshSelection();
+                }
+            }
+        } = SelectionMode.Single;
+
+        public Action<IReadOnlyCollection<TItem>>? OnSelectedItemsChanged { get; set; }
+
+        private bool _constructCellSet;
+        private bool _itemsSet;
+        private bool _initialized;
+
+        private void DoInitialUpdate() {
+            if (!_initialized && _itemsSet && _constructCellSet) {
+                RefreshCells();
+                _initialized = true;
+            }
+        }
+
+        #endregion
+
+        #region Selection
+
+        private readonly HashSet<TItem> _selectedItems = new();
+        private bool _blockContextUpdates;
+
+        private void RefreshSelection() {
+            foreach (var pair in _cells) {
+                // We only care about visible cells
+                if (!pair.Cell.Enabled) {
+                    return;
+                }
+
+                pair.Context.Selected = _selectedItems.Contains(pair.Context.Item);
+            }
+        }
+
+        private void HandleCellContextUpdated(CellContext<TItem> context) {
+            if (context.UpdateType is not CellUpdateType.Selection || _blockContextUpdates) {
+                return;
+            }
+
+            _blockContextUpdates = true;
+
+            if (context.Selected) {
+                switch (SelectionMode) {
+                    case SelectionMode.None:
+                        return;
+
+                    case SelectionMode.Single when Items.Count > 0:
+                        _selectedItems.Clear();
+                        _selectedItems.Add(context.Item);
+                        break;
+
+                    case SelectionMode.Multiple:
+                        _selectedItems.Add(context.Item);
+                        break;
+                }
+            } else {
+                _selectedItems.Remove(context.Item);
+            }
+
+            RefreshSelection();
+            OnSelectedItemsChanged?.Invoke(_selectedItems);
+
+            _blockContextUpdates = false;
+        }
 
         #endregion
 
         #region Cells
 
-        private readonly List<(State<TItem>, TCell)> _cells = new();
+        private readonly List<(CellContext<TItem> Context, TCell Cell)> _cells = new();
+
         private Layout _container = null!;
 
         private void RefreshCells() {
-            for (var i = 0; i < _items.Count; i++) {
-                var item = _items[i];
+            _blockContextUpdates = true;
 
-                State<TItem> state;
+            for (var i = 0; i < Items!.Count; i++) {
+                var item = Items[i];
+
+                CellContext<TItem> context;
                 TCell cell;
 
                 if (i >= _cells.Count) {
-                    state = new State<TItem>(item);
-                    cell = ConstructCell(state);
+                    context = new CellContext<TItem>();
+                    context.ValueChangedEvent += HandleCellContextUpdated;
 
-                    _cells.Add((state, cell));
+                    context.Init(item, i, Items.Count);
+
+                    cell = ConstructCell(context);
+
+                    _cells.Add((context, cell));
                     _container.Children.Add(cell);
                 } else {
-                    (state, cell) = _cells[^1];
+                    (context, cell) = _cells[^1];
 
-                    state.Value = item;
+                    context.Init(item, i, Items.Count);
+                    context.Selected = _selectedItems.Contains(item);
+
                     cell.Enabled = true;
                 }
-
-                OnCellInitInternal(cell);
             }
 
             // Disable remaining cells if there's any
-            for (var i = _items.Count; i < _cells.Count; i++) {
+            for (var i = Items.Count; i < _cells.Count; i++) {
                 _cells[i].Item2.Enabled = false;
             }
 
-            OnRefreshInternal();
+            _blockContextUpdates = false;
         }
 
         #endregion
