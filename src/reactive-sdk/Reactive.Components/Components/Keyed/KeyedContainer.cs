@@ -1,10 +1,12 @@
+using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Reactive.Compiler;
 using UnityEngine;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public class KeyedContainer<TKey> : ReactiveComponent, ILayoutDriver {
+    public partial class KeyedContainer<TKey> : ReactiveComponent, ILayoutDriver {
         #region Driver Adapter
 
         ICollection<ILayoutItem> ILayoutDriver.Children => _layout.Children;
@@ -19,84 +21,95 @@ namespace Reactive.Components {
         #region Setup
 
         public IReactiveComponent? DummyView {
-            get => _dummyView;
+            get;
             set {
-                if (_dummyView != null) {
-                    _layout.Children.Remove(_dummyView);
+                if (field != null) {
+                    _layout.Children.Remove(field);
                 }
-                _dummyView = value;
-                if (_dummyView != null) {
-                    _layout.Children.Add(_dummyView);
+
+                field = value;
+
+                if (field != null) {
+                    _layout.Children.Add(field);
+                    
+                    if (_keyEverSet && Key == null) {
+                        _selectedView = field;
+                        _selectedView.Enabled = true;
+                    }
                 }
             }
         }
 
-        public IKeyedControl<TKey>? Control {
-            get => _control;
+        /// <summary>
+        /// Sets a collection of key-view pairs. Fallbacks to DummyView if an already selected key is missing in the updated collection.
+        /// </summary>
+        [Required]
+        public IReadOnlyDictionary<TKey, IReactiveComponent> Views {
+            get => _views!;
             set {
-                if (_control != null) {
-                    _control.SelectedKeyChangedEvent -= HandleSelectedKeyChanged;
+                if (_views != null) {
+                    // Items that aren't presented in the new collection are considered removed
+                    foreach (var (key, comp) in _views) {
+                        if (value.ContainsKey(key)) {
+                            continue;
+                        }
+                        
+                        _layout.Children.Remove(comp);
+                        comp.Enabled = false;
+                    }
+
+                    // If a view was selected but isn't presented in the new collection, we fall back to the DummyView
+                    if (_keyEverSet && (Key == null || !value.ContainsKey(Key))) {
+                        _selectedView = DummyView;
+                        _selectedView?.Enabled = true;
+                    }
                 }
-                _control = value;
-                if (_control != null) {
-                    _control.SelectedKeyChangedEvent += HandleSelectedKeyChanged;
+
+                _views = value;
+
+                foreach (var comp in value.Values) {
+                    _layout.Children.Add(comp);
+                    comp.Enabled = false;
                 }
             }
         }
 
-        public IDictionary<TKey, IReactiveComponent> Items => _items;
+        /// <summary>
+        /// Specifies the key that determines the current view.
+        /// </summary>
+        [Required]
+        public TKey? Key {
+            get;
+            set {
+                field = value;
+                _keyEverSet = true;
 
-        private readonly ObservableDictionary<TKey, IReactiveComponent> _items = new();
+                _selectedView?.Enabled = false;
+
+                if (value == null) {
+                    _selectedView = DummyView;
+                } else if (_views?.TryGetValue(value, out var view) ?? false) {
+                    _selectedView = view;
+                } else if (_views != null) {
+                    throw new KeyNotFoundException();
+                }
+
+                _selectedView?.Enabled = true;
+
+                OnKeyChanged?.Invoke(value);
+            }
+        }
+        
+        public Action<TKey?>? OnKeyChanged { get; set; }
+
+        private IReadOnlyDictionary<TKey, IReactiveComponent>? _views;
+        private IReactiveComponent? _selectedView;
+        private bool _keyEverSet;
+        
         private Layout _layout = null!;
-        private IKeyedControl<TKey>? _control;
-        private IReactiveComponent? _selectedComponent;
-        private IReactiveComponent? _dummyView;
-
-        public bool Select(TKey? key) {
-            if (_selectedComponent != null) {
-                _selectedComponent.Enabled = false;
-            }
-            var validKey = false;
-            if (key != null && _items.TryGetValue(key, out var value)) {
-                _selectedComponent = value;
-                _selectedComponent.Enabled = true;
-                validKey = true;
-            }
-            if (_dummyView != null) {
-                _dummyView.Enabled = !validKey;
-            }
-            return validKey;
-        }
-
-        protected override void OnInitialize() {
-            _items.ItemAddedEvent += HandleItemAdded;
-            _items.ItemRemovedEvent += HandleItemRemoved;
-        }
 
         protected override GameObject Construct() {
             return new Layout().Bind(ref _layout).Use();
-        }
-
-        #endregion
-
-        #region Callbacks
-
-        private void HandleSelectedKeyChanged(TKey key) {
-            Select(key);
-        }
-
-        private void HandleItemRemoved(TKey key, IReactiveComponent component) {
-            _layout.Children.Remove(component);
-            component.Enabled = false;
-        }
-
-        private void HandleItemAdded(TKey key, IReactiveComponent component) {
-            _layout.Children.Add(component);
-            component.Enabled = false;
-
-            if (_selectedComponent == null) {
-                HandleSelectedKeyChanged(key);
-            }
         }
 
         #endregion
