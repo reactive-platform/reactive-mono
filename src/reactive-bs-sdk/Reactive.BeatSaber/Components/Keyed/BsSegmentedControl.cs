@@ -23,7 +23,7 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
         get => _items!;
         set {
             _items = value;
-            _listView.Items = value.Keys.ToArray();
+            _repeater.Items = value.Keys.ToArray();
 
             DoInitialUpdate();
         }
@@ -63,7 +63,7 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
         _key = value;
 
         if (updateListView) {
-            _listView.SelectedItems = [value];
+            _repeater.SelectedItems = [value];
         }
 
         OnKeyChanged?.Invoke(value);
@@ -73,13 +73,13 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
 
     #region Construct
 
-    private ListView<T, Background> _listView = null!;
+    private Repeater<T, Background> _repeater = null!;
     private State<float> _skew = null!;
 
     protected override GameObject Construct() {
         _skew = Remember(BeatSaberStyle.Skew);
 
-        return new ListView<T, Background> {
+        return new Repeater<T, Background> {
             FlexController = {
                 FlexDirection = FlexDirection.Row,
                 FlexWrap = Wrap.NoWrap,
@@ -189,7 +189,7 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
                     }
                 };
             }
-        }.Bind(ref _listView).Use();
+        }.Bind(ref _repeater).Use();
     }
 
     #endregion

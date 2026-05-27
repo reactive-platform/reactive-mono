@@ -9,10 +9,10 @@ using UnityEngine;
 
 namespace Reactive.Components {
     /// <summary>
-    /// A component that spawns physical cells directly in the layout flow.
+    /// Spawns physical cells directly in the layout flow.
     /// </summary>
     [PublicAPI]
-    public partial class ListView<TItem, TCell> : ReactiveComponent, ILayoutDriver where TCell : class, IReactiveComponent {
+    public partial class Repeater<TItem, TCell> : ReactiveComponent, ILayoutDriver where TCell : class, IReactiveComponent {
         #region Layout Driver
 
         // Avoid using collection expression as it create a new instance of List each time.
