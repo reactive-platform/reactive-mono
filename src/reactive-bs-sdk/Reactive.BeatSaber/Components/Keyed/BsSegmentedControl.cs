@@ -15,7 +15,18 @@ namespace Reactive.BeatSaber.Components;
 public record struct BsSegmentedControlItem(string? Text, Sprite? Icon);
 
 [PublicAPI]
-public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent {
+public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent, ILayoutDriver {
+    #region Layout Driver
+
+    public ICollection<ILayoutItem> Children { get; } = Array.Empty<ILayoutItem>();
+
+    public ILayoutController? LayoutController {
+        get => _repeater.LayoutController;
+        set => _repeater.LayoutController = value;
+    }
+
+    #endregion
+
     #region PublicAPI
 
     [Required]
@@ -143,17 +154,20 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
                         var i = x.Value.Index;
                         var s = x.Value.TotalCells;
 
+                        var horizontal = _repeater.FlexController.FlexDirection is FlexDirection.Row;
+                        var sprites = BeatSaberResources.Sprites;
+
                         if (i == 0 && s == 1) {
-                            return BeatSaberResources.Sprites.background;
+                            return sprites.background;
                         }
                         if (i == 0) {
-                            return BeatSaberResources.Sprites.backgroundLeft;
+                            return horizontal ? sprites.backgroundLeft : sprites.backgroundTop;
                         }
                         if (i == s - 1) {
-                            return BeatSaberResources.Sprites.backgroundRight;
+                            return horizontal ? sprites.backgroundRight : sprites.backgroundBottom;
                         }
 
-                        return BeatSaberResources.Sprites.rectangle;
+                        return sprites.rectangle;
                     }),
 
                     Do = x => x.WithPointerEvents(
@@ -166,7 +180,7 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
                         new Label {
                             Alignment = TextAlignmentOptions.Capline,
                             sFontStyle = _skew.Map(x => x > 0 ? FontStyles.Italic : FontStyles.Normal),
-                            
+
                             sColor = fgColor,
 
                             sText = item.Map(x => x?.Text).Where(x => x != null),
