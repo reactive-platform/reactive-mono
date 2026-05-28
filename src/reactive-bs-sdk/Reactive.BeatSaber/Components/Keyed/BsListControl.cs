@@ -165,14 +165,14 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent {
                     sEnabled = selected.Map(x => x?.Icon != null)
                 },
 
-                CreateButton(true, () => SetKey(_selectedIdx.Value - 1), prevAvailable),
-                CreateButton(false, () => SetKey(_selectedIdx.Value + 1), nextAvailable)
+                CreateButton(true, () => SetKey(_selectedIdx.Value - 1), prevAvailable, _skew),
+                CreateButton(false, () => SetKey(_selectedIdx.Value + 1), nextAvailable, _skew)
             }
         }.Use();
     }
 
     [StateGen]
-    private static IReactiveComponent CreateButton(bool left, Action callback, IState<bool> interactable) {
+    private static IReactiveComponent CreateButton(bool left, Action callback, IState<bool> interactable, IState<float> skew) {
         var hovered = Remember(false);
 
         var highlighted = RememberDerived(
@@ -208,6 +208,8 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent {
             Sprite = left ? BeatSaberResources.Sprites.backgroundLeft : BeatSaberResources.Sprites.backgroundRight,
             Material = GameResources.UINoGlowMaterial,
             PixelsPerUnit = 12f,
+            
+            sSkew = skew.In(),
 
             Do = x => x.WithPointerEvents(
                 onEnter: _ => hovered.Value = true,
