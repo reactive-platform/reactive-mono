@@ -54,58 +54,45 @@ internal static class SyntaxExtensions {
     /// Walks through the expression building a hierarchy of access methods.
     /// </summary>
     public static IEnumerable<ExpressionSyntax> BuildAccessTree(ExpressionSyntax expression) {
-        yield return expression;
+        var stack = new Stack<ExpressionSyntax>();
+        stack.Push(expression);
 
-        while (true) {
-            switch (expression) {
+        while (stack.Count > 0) {
+            var current = stack.Pop();
+            yield return current;
+
+            switch (current) {
                 case InvocationExpressionSyntax invocation:
-                    // Extract the method target expression
-                    switch (invocation.Expression) {
-                        case MemberAccessExpressionSyntax member:
-                            expression = member.Expression;
-                            break;
-
-                        default:
-                            yield break;
+                    if (invocation.Expression is MemberAccessExpressionSyntax member) {
+                        stack.Push(member.Expression);
+                        yield return invocation;
                     }
+                    break;
+                
+                case ConditionalExpressionSyntax ternary:
+                    stack.Push(ternary.WhenFalse);
+                    stack.Push(ternary.WhenTrue);
+                    break;
 
-                    yield return invocation;
-                    continue;
-
-                // This kind of syntax is skipped as it does not carry any sensitive info
                 case PostfixUnaryExpressionSyntax unary:
-                    expression = unary.Operand;
-                    continue;
-
-                case MemberAccessExpressionSyntax memberAccess:
-                    expression = memberAccess.Expression;
-                    break;
-
-                case ConditionalAccessExpressionSyntax conditional:
-                    expression = conditional.Expression;
-                    break;
-
-                case ElementAccessExpressionSyntax elementAccess:
-                    expression = elementAccess.Expression;
-                    break;
-
-                case CastExpressionSyntax cast:
-                    expression = cast.Expression;
-                    break;
-
-                case ParenthesizedExpressionSyntax paren:
-                    expression = paren.Expression;
+                    stack.Push(unary.Operand);
                     break;
 
                 case IdentifierNameSyntax identifier:
                     yield return identifier;
-                    yield break;
-
+                    break;
+                
                 default:
-                    yield break;
+                    // A shenanigan that allows to support every possible case
+                    // without having to manually implement a case for each
+                    var prop = current.GetType().GetProperty("Expression");
+                    
+                    if (prop?.GetValue(current) is ExpressionSyntax innerExpression) {
+                        stack.Push(innerExpression);
+                    }
+                    
+                    break;
             }
-
-            yield return expression;
         }
     }
 }
