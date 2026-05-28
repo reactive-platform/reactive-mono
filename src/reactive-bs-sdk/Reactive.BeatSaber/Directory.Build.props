@@ -17,6 +17,5 @@
         <OutputCopy Include="$(OutputPath)/Reactive.Components.pdb" OutputPath="Libs/Reactive.Components.pdb" />
         <OutputCopy Include="$(OutputPath)/$(TargetFileName)" OutputPath="Plugins/$(TargetFileName)" />
         <OutputCopy Include="$(OutputPath)/$(TargetName).pdb" OutputPath="Plugins/$(TargetName).pdb" />
-        <OutputCopy Include="$(OutputPath)/manifest.json" OutputPath="Plugins/$(TargetName).manifest" />
     </ItemGroup>
 </Project>
