@@ -24,8 +24,12 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent {
             _items = value;
 
             if (_initialized) {
-                if (FindKey(Key) is var idx && idx != _selectedIdx.Value) {
-                    SetKey(idx);
+                var index = FindKey(Key);
+                
+                if (index != -1 && index != _selectedIdx.Value) {
+                    SetKey(index);
+                } else if (_items.Count > 0) {
+                    SetKey(0);
                 }
             } else {
                 DoInitialUpdate();
@@ -70,15 +74,7 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent {
     }
 
     private void SetKey(T key) {
-        var index = -1;
-
-        if (_items != null) {
-            for (var i = 0; i < _items.Count; i++) {
-                if (EqualityComparer<T>.Default.Equals(_items[i].Key, key)) {
-                    index = i;
-                }
-            }
-        }
+        var index = FindKey(key);
 
         if (index is -1) {
             throw new KeyNotFoundException();
