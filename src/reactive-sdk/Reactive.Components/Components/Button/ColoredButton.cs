@@ -30,7 +30,6 @@ namespace Reactive.Components {
         public GraphicState GraphicState => GraphicState.None
             .AddIf(GraphicState.NonInteractable, !Interactable)
             .AddIf(GraphicState.Hovered, Interactable && IsHovered)
-            .AddIf(GraphicState.Pressed, Interactable && IsPressed)
             .AddIf(GraphicState.Active, Interactable && Active);
         
         protected void UpdateColor() {

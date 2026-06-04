@@ -6,7 +6,6 @@ namespace Reactive.Components {
         None = 0,
         NonInteractable = 1,
         Hovered = 2,
-        Active = 4,
-        Pressed = 8
+        Active = 4
     }
 }

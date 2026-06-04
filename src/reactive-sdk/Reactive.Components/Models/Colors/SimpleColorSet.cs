@@ -48,13 +48,13 @@ namespace Reactive.Components {
         public event Action? SetUpdatedEvent;
 
         public Color GetColor(GraphicState state) {
-            if (state.IsHovered()) {
-                return state.IsActive() ? ActiveColor : _hoveredColor;
+            if (state.IsHovered) {
+                return state.IsActive ? ActiveColor : _hoveredColor;
             }
-            if (state.IsActive()) {
+            if (state.IsActive) {
                 return _activeColor;
             }
-            if (!state.IsInteractable()) {
+            if (!state.IsInteractable) {
                 return _notInteractableColor;
             }
             return _color;

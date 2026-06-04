@@ -28,19 +28,7 @@ namespace Reactive.BeatSaber.Components {
 
         public IColorSet KnobColors { get; set; } = defaultKnobColors;
 
-        private static readonly StateColorSet defaultKnobColors = new() {
-            States = {
-                GraphicState.Active.WithColor(BeatSaberStyle.ControlButtonColorSet.ActiveColor),
-                GraphicState.None.WithColor(BeatSaberStyle.ControlColorSet.Color),
-
-                GraphicState.NonInteractable
-                    .And(GraphicState.Active)
-                    .WithColor(BeatSaberStyle.ControlColorSet.Color.ColorWithAlpha(0.45f)),
-
-                GraphicState.NonInteractable
-                    .WithColor(BeatSaberStyle.ControlColorSet.Color.ColorWithAlpha(0.45f)),
-            }
-        };
+        private static readonly SimpleColorSet defaultKnobColors = new() {};
 
         private bool _active;
         private bool _interactable = true;

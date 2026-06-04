@@ -1,39 +1,47 @@
-﻿using System.Collections.Generic;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using UnityEngine;
+using static Reactive.Components.GraphicState;
 
 namespace Reactive.Components;
 
 [PublicAPI]
 public static class GraphicStateExtensions {
-    public static KeyValuePair<GraphicState, Color> WithColor(this GraphicState state, Color color) {
-        return new KeyValuePair<GraphicState, Color>(state, color);
-    }
-
-    public static GraphicState AddIf(this GraphicState state, GraphicState add, bool value) {
-        if (value) {
-            state |= add;
+    extension(in GraphicState state) {
+        public bool IsInteractable {
+            get => (state & NonInteractable) == 0;
         }
-        return state;
+
+        public bool IsHovered {
+            get => (state & Hovered) > 0;
+        }
+
+        public bool IsActive {
+            get => (state & Active) > 0;
+        }
+        
+        public GraphicState AddIf(GraphicState add, bool value) {
+            return value ? state | add : state;
+        }
+
+        public GraphicState And(GraphicState add) {
+            return state | add;
+        }
     }
 
-    public static GraphicState And(this GraphicState state, GraphicState add) {
-        return state | add;
-    }
+    extension(IMutableState<GraphicState> state) {
+        public bool IsInteractable {
+            get => state.Value.IsInteractable;
+            set => state.Value = state.Value.AddIf(NonInteractable, !value);
+        }
 
-    public static bool IsInteractable(this GraphicState state) {
-        return (state & GraphicState.NonInteractable) == 0;
-    }
+        public bool IsHovered {
+            get => state.Value.IsHovered;
+            set => state.Value = state.Value.AddIf(Hovered, value);
+        }
 
-    public static bool IsHovered(this GraphicState state) {
-        return (state & GraphicState.Hovered) > 0;
-    }
-
-    public static bool IsActive(this GraphicState state) {
-        return (state & GraphicState.Active) > 0;
-    }
-
-    public static bool IsPressed(this GraphicState state) {
-        return (state & GraphicState.Pressed) > 0;
+        public bool IsActive {
+            get => state.Value.IsActive;
+            set => state.Value = state.Value.AddIf(Active, value);
+        }
     }
 }
