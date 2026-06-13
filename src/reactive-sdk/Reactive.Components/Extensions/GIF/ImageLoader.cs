@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using B83.Image.GIF;
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Reactive.Components;
 
@@ -18,81 +19,153 @@ public static class ImageLoader {
     private static readonly Dictionary<string, CachedImage> images = new();
     private static readonly HttpClient client = new();
 
+    private static readonly Dictionary<string, SemaphoreSlim> semaphores = new();
+    private static readonly object semaphoresLock = new();
+
     /// <summary>
-    /// Loads an image from a remote url.
+    /// Loads an image from the provided location. Can be either a remote url, an assembly path or a file.
     /// </summary>
-    /// <param name="url">A url to fetch the data from.</param>
-    /// <returns>A loaded image or null.</returns>
+    /// <param name="location">A location to load the data from.</param>
+    /// <param name="token">A cancellation token.</param>
     public static async Task<CachedImage?> LoadImage(string location, CancellationToken token) {
+        var semaphore = GetSemaphore(location);
+        await semaphore.WaitAsync(token);
+
         if (images.TryGetValue(location, out var image)) {
             return image;
         }
 
-        var stream = await GetDataAsync(location, token);
+        try {
+            if (IsRemote(location)) {
+                if (IsPotentiallyAnimated(location)) {
+                    image = await LoadAnyRemote(location, token);
+                } else {
+                    // If the image isn't animated, use an optimized request version
+                    // to load directly to a native texture, avoiding managed allocations
+                    image = await LoadStaticRemote(location);
+                }
+            } else {
+                Stream? stream = null;
 
-        image = await LoadImage(stream, null, token);
-        
-        if (image != null) {
-            images[location] = image;
-        }
+                if (TryGetAssembly(location, out var asm, out var asmPath)) {
+                    //
+                    stream = asm!.GetManifestResourceStream(asmPath);
+                    //
+                } else if (File.Exists(location)) {
+                    //
+                    stream = File.OpenRead(location);
+                }
 
-        return image;
-    }
-
-    internal static async Task<Stream> GetDataAsync(string location, CancellationToken token) {
-        if (location.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || location.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) {
-            var response = await client.GetAsync(location, token);
-            return await response.Content.ReadAsStreamAsync();
-        } else if (File.Exists(location)) {
-            using (FileStream fileStream = File.OpenRead(location))
-            using (MemoryStream memoryStream = new(new byte[fileStream.Length], true))
-            {
-                await fileStream.CopyToAsync(memoryStream);
-                return memoryStream;
+                if (stream != null) {
+                    try {
+                        image = await LoadImageFromStream(stream, null, token);
+                    }
+                    finally {
+                        stream.Dispose();
+                    }
+                }
             }
-        } else {
-            AssemblyFromPath(location, out Assembly asm, out string newPath);
-            return await GetResourceAsync(asm, newPath);
+
+            if (image != null) {
+                images[location] = image;
+            }
+
+            return image;
+        }
+        finally {
+            semaphore.Release();
         }
     }
 
-    internal static void AssemblyFromPath(string inputPath, out Assembly assembly, out string path) {
-        string[] parameters = inputPath.Split(':');
+    /// <summary>
+    /// Loads an image from the specified buffer.
+    /// </summary>
+    /// <param name="bytes">A buffer to load from.</param>
+    /// <param name="token">A cancellation token.</param>
+    public static async Task<CachedImage?> LoadImageFromBytes(byte[] bytes, CancellationToken token) {
+        using var stream = new MemoryStream(bytes);
+        
+        return await LoadImageFromStream(stream, bytes, token);
+    }
+    
+    public static void RemoveCached(string location) {
+        images.Remove(location);
+    }
+
+    private static SemaphoreSlim GetSemaphore(string location) {
+        lock (semaphoresLock) {
+            if (!semaphores.TryGetValue(location, out var semaphore)) {
+                semaphore = new(1, 1);
+                semaphores[location] = semaphore;
+            }
+
+            return semaphore;
+        }
+    }
+
+    #region Remote
+
+    private static bool IsRemote(string location) {
+        return location.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            location.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsPotentiallyAnimated(string location) {
+        return location.EndsWith(".gif", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static async Task<CachedImage?> LoadStaticRemote(string location) {
+        using var req = UnityWebRequestTexture.GetTexture(location);
+
+        var source = new TaskCompletionSource<CachedImage?>();
+
+        req.SendWebRequest().completed += _ => {
+            // ReSharper disable once AccessToDisposedClosure
+            var tex = DownloadHandlerTexture.GetContent(req);
+            var sprite = SpriteUtils.CreateSprite(tex);
+
+            var cached = sprite != null ? new CachedImage(sprite) : null;
+
+            source.SetResult(cached);
+        };
+
+        return await source.Task;
+    }
+
+    private static async Task<CachedImage?> LoadAnyRemote(string location, CancellationToken token) {
+        using var stream = await client.GetStreamAsync(location);
+
+        return await LoadImageFromStream(stream, null, token);
+    }
+
+    #endregion
+
+    #region Assembly
+
+    private static bool TryGetAssembly(string location, out Assembly? assembly, out string? path) {
+        var parameters = location.Split(':');
+
         switch (parameters.Length) {
             case 1:
                 path = parameters[0];
                 assembly = Assembly.Load(path.Substring(0, path.IndexOf('.')));
-                break;
+                return true;
             case 2:
                 path = parameters[1];
                 assembly = Assembly.Load(parameters[0]);
-                break;
+                return true;
             default:
-                throw new Exception($"Could not process resource path {inputPath}");
+                assembly = null;
+                path = null;
+                return false;
         }
     }
 
-    internal static async Task<Stream> GetResourceAsync(Assembly asm, string resourceName) {
-        using Stream resourceStream = asm.GetManifestResourceStream(resourceName);
-        using MemoryStream memoryStream = new(new byte[resourceStream.Length], true);
+    #endregion
 
-        await resourceStream.CopyToAsync(memoryStream);
+    #region Stream
 
-        return memoryStream;
-    }
-
-    /// <summary>
-    /// Loads an image using a byte array.
-    /// </summary>
-    /// <param name="data">An array to load from.</param>
-    /// <returns>A loaded image or null.</returns>
-    public static Task<CachedImage?> LoadImage(byte[] data, CancellationToken token) {
-        using var stream = new MemoryStream(data);
-
-        return LoadImage(stream, data, token);
-    }
-
-    private static async Task<CachedImage?> LoadImage(Stream stream, byte[]? bytes, CancellationToken token) {
+    private static async Task<CachedImage?> LoadImageFromStream(Stream stream, byte[]? bytes, CancellationToken token) {
         // Try to load as GIF first
         if (await TryLoadGifImage(stream, token) is { } gif) {
             return new CachedImage(gif);
@@ -110,7 +183,7 @@ public static class ImageLoader {
 
             return new CachedImage(sprite!);
         } catch (Exception ex) {
-            Debug.LogWarning($"Failed to create static image: {ex.Message}");
+            Debug.LogWarning($"Failed to create a static image: {ex.Message}");
             return null;
         }
     }
@@ -121,11 +194,11 @@ public static class ImageLoader {
                 try {
                     // Important to leave open as it's just a wrapper
                     var reader = new BinaryReader(stream);
-                    
+
                     // Returns null if magic is invalid
                     return new GIFLoader().Load(reader);
                 } catch (Exception ex) {
-                    Debug.LogError($"Failed to load GIF: {ex}");
+                    Debug.LogError($"Failed to create a GIF: {ex}");
 
                     return null;
                 }
@@ -150,4 +223,6 @@ public static class ImageLoader {
 
         return buffer;
     }
+
+    #endregion
 }
