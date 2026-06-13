@@ -11,6 +11,8 @@ public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
     public CachedImage? LoadedImage;
 
     private CancellationTokenSource _tokenSource = new();
+    private Sprite? _initialSprite;
+    private string? _url;
     private Task? _loadTask;
 
     public void StopLoading() {
@@ -23,15 +25,21 @@ public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
     }
 
     public void LoadRemote(string url, Action? onStart, Action<bool>? onFinish) {
+        if (url == _url) {
+            return;
+        }
+
         StopLoading();
 
         LoadedImage = null;
+        _initialSprite = renderer.Sprite;
+        _url = url;
         _loadTask = LoadRemoteInternal(url, onStart, onFinish, _tokenSource.Token);
     }
 
     private async Task LoadRemoteInternal(
         string url,
-        Action? onStart, 
+        Action? onStart,
         Action<bool>? onFinish,
         CancellationToken token
     ) {
@@ -49,7 +57,10 @@ public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
                 return;
             }
 
-            renderer.Sprite = image.Sprite;
+            if (_initialSprite == renderer.Sprite) {
+                renderer.Sprite = image.Sprite;
+            }
+
             LoadedImage = image;
 
             onFinish?.Invoke(true);
@@ -57,7 +68,7 @@ public class ImageLoaderModule(ISpriteRenderer renderer) : IReactiveModule {
             // do nothing
         } catch (Exception ex) {
             Debug.LogError($"Image loading has failed: {ex}");
-            
+
             onFinish?.Invoke(false);
         }
     }
