@@ -31,11 +31,11 @@ public static class ImageLoader {
         var semaphore = GetSemaphore(location);
         await semaphore.WaitAsync(token);
 
-        if (images.TryGetValue(location, out var image)) {
-            return image;
-        }
-
         try {
+            if (images.TryGetValue(location, out var image)) {
+                return image;
+            }
+
             if (IsRemote(location)) {
                 if (IsPotentiallyAnimated(location)) {
                     image = await LoadAnyRemote(location, token);
@@ -84,10 +84,10 @@ public static class ImageLoader {
     /// <param name="token">A cancellation token.</param>
     public static async Task<CachedImage?> LoadImageFromBytes(byte[] bytes, CancellationToken token) {
         using var stream = new MemoryStream(bytes);
-        
+
         return await LoadImageFromStream(stream, bytes, token);
     }
-    
+
     public static void RemoveCached(string location) {
         images.Remove(location);
     }
