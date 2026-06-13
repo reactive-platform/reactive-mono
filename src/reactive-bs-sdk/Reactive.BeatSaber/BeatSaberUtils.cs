@@ -154,9 +154,9 @@ public static class BeatSaberUtils {
         _menuContainer = __instance.Container;
     }
 
-    [HarmonyPatch(typeof(BeatSaberInit), "InstallBindings")]
+    [HarmonyPatch(typeof(AppInit), "InitializeAsync")]
     [HarmonyPostfix]
-    private static void AppInstallerPostfix(BeatSaberInit __instance) {
+    private static void AppInstallerPostfix(AppInit __instance) {
         _appContainer = __instance.Container;
     }
 
