@@ -187,11 +187,18 @@ namespace Reactive.Components.Basic {
         }
 
         public void Select(int idx) {
-            if (SelectionMode is SelectionMode.None) return;
-            //
+            if (SelectionMode is SelectionMode.None) {
+                return;
+            }
+
+            if (idx < 0 || idx >= _filteredItems.Count) {
+                throw new IndexOutOfRangeException();
+            }
+
             if (SelectionMode is SelectionMode.Single && _selectedIndexes.Count > 0) {
                 _selectedIndexes.Clear();
             }
+
             _selectedIndexes.Add(idx);
             ForceRefreshVisibleCells();
             NotifyPropertyChanged(nameof(SelectedIndexes));
@@ -207,19 +214,34 @@ namespace Reactive.Components.Basic {
             NotifyPropertyChanged(nameof(SelectedIndexes));
         }
 
-        public void ScrollTo(TItem item, bool animated = true) {
+        public bool ScrollTo(TItem item, bool animated = true) {
             var index = FindIndex(item);
+            if (index == -1) {
+                return false;
+            }
+
             ScrollTo(index, animated);
+            return true;
         }
 
-        public void Select(TItem item) {
+        public bool Select(TItem item) {
             var index = FindIndex(item);
+            if (index == -1) {
+                return false;
+            }
+
             Select(index);
+            return true;
         }
 
-        public void ClearSelection(TItem item) {
+        public bool ClearSelection(TItem item) {
             var index = FindIndex(item);
+            if (index == -1) {
+                return false;
+            }
+
             ClearSelection(index);
+            return true;
         }
 
         private int FindIndex(TItem item) {
@@ -302,7 +324,7 @@ namespace Reactive.Components.Basic {
 
                 OnCellConstruct(cell);
                 WhenCellConstructed?.Invoke(cell);
-                
+
                 //updating state
                 if (_selectionRefreshNeeded) {
                     var selected = _selectedIndexes.Contains(i);
