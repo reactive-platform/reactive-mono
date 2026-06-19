@@ -105,13 +105,28 @@ public static class ImageLoader {
 
     #region Remote
 
+    private static readonly char[] _queryOrFragmentChars = ['?', '#'];
+
     private static bool IsRemote(string location) {
         return location.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
             location.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
     }
-
+    
     private static bool IsPotentiallyAnimated(string location) {
-        return location.EndsWith(".gif", StringComparison.OrdinalIgnoreCase);
+        if (string.IsNullOrWhiteSpace(location)) {
+            return false;
+        }
+        
+        var endIndex = location.IndexOfAny(_queryOrFragmentChars);
+        if (endIndex == -1) {
+            endIndex = location.Length;
+        }
+
+        if (endIndex < 4) {
+            return false;
+        }
+
+        return string.Compare(location, endIndex - 4, ".gif", 0, 4, StringComparison.OrdinalIgnoreCase) == 0;
     }
 
     private static async Task<CachedImage?> LoadStaticRemote(string location) {
