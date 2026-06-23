@@ -136,6 +136,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
 
     private TextMeshProUGUI _text = null!;
     private Vector2 _lastPreferredSize;
+    private float _lastRequestTime;
 
     protected override void Construct(RectTransform rect) {
         _text = rect.gameObject.AddComponent<CurvedTextMeshPro>();
@@ -162,6 +163,14 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
     }
 
     private void RequestLeafRecalculationOnDirty() {
+        var time = Time.time;
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        if (time == _lastRequestTime) {
+            return;
+        }
+        
+        _lastRequestTime = time;
+        
         var size = _text.GetPreferredValues();
 
         if (size == _lastPreferredSize) {

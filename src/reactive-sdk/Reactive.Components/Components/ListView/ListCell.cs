@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Reactive.Components;
@@ -46,9 +47,11 @@ public class ListCell<TItem> : ReactiveComponent, IListCell<TItem> {
         if (!IsInitialized) {
             _observableItem = new(item);
             ConstructAndInit();
+        } else if (EqualityComparer<TItem>.Default.Equals(_observableItem!.Value, item)) {
+            return;
         }
+        
         _observableItem!.Value = item;
-
         OnInit(item);
     }
 

@@ -25,11 +25,11 @@ namespace Reactive.Components {
     public interface ITable<TItem> : ITable {
         IReadOnlyList<TItem> Items { get; }
 
-        void ScrollTo(TItem item, bool animated = true);
+        bool ScrollTo(TItem item, bool animated = true);
 
-        void Select(TItem item);
+        bool Select(TItem item);
 
-        void ClearSelection(TItem item);
+        bool ClearSelection(TItem item);
     }
 
     /// <summary>
