@@ -1,13 +1,17 @@
-using System.Collections.Generic;
+using System;
 using JetBrains.Annotations;
+using Reactive.Compiler;
 using Reactive.Components;
 using TMPro;
 using UnityEngine;
 
 namespace Reactive.BeatSaber.Components;
 
+/// <summary>
+/// Beat Saber styled button with a label.
+/// </summary>
 [PublicAPI]
-public class BsPrimaryButton : BsPrimaryButtonBase, IComponentHolder<Label> {
+public class BsTextButton : ReactiveComponent, ISkewedComponent, IInteractableComponent, IComponentHolder<Label> {
     #region Adapter
 
     public string Text {
@@ -64,6 +68,26 @@ public class BsPrimaryButton : BsPrimaryButtonBase, IComponentHolder<Label> {
         get => _label.Alignment;
         set => _label.Alignment = value;
     }
+    
+    public bool ShowUnderline {
+        get => _button.ShowUnderline;
+        set => _button.ShowUnderline = value;
+    }
+    
+    public float Skew {
+        get => _button.Skew;
+        set => _button.Skew = value;
+    }
+
+    public bool Interactable {
+        get => _button.Interactable;
+        set => _button.Interactable = value;
+    }
+
+    public Action? OnClick {
+        get => _button.OnClick;
+        set => _button.OnClick = value;
+    }
 
     #endregion
 
@@ -72,31 +96,19 @@ public class BsPrimaryButton : BsPrimaryButtonBase, IComponentHolder<Label> {
     Label IComponentHolder<Label>.Component => _label;
 
     private Label _label = null!;
+    private BsButton _button = null!;
 
-    protected override IEnumerable<IReactiveComponent> ConstructContent() {
-        return [
-            new Label()
-                .AsFlexItem(size: "auto")
-                .Bind(ref _label)
-        ];
-    }
-
-    protected override void OnInitialize() {
-        base.OnInitialize();
-        FontStyle |= FontStyles.UpperCase;
-        Alignment = TextAlignmentOptions.Capline;
-    }
-
-    protected override void OnSkewChanged(float skew) {
-        ((ISkewedComponent)_label).Skew = skew;
-    }
-
-    protected override void OnColorChanged() {
-        var alpha = GraphicState.IsInteractable ?
-            GraphicState.IsHovered ? 1 : 0.75f
-            : 0.25f;
-
-        _label.Color = Color.white.ColorWithAlpha(alpha);
+    protected override GameObject Construct() {
+        return new BsButton {
+            ConstructContent = (graphic, skew) => new Label {
+                Do = x => x
+                    .AsFlexItem()
+                    .Bind(ref _label),
+                
+                sFontStyle = skew.Map(x => FontStyle | (x > 0 ? FontStyles.Italic : FontStyles.Normal)),
+                sColor = graphic.MapColorSet(BeatSaberStyle.BsButton.ContentColors).In()
+            }
+        }.Bind(ref _button).Use();
     }
 
     #endregion

@@ -43,7 +43,7 @@ namespace Reactive.BeatSaber.Components {
             set => _okButton.Enabled = value;
         }
 
-        protected BsButton CancelButton => _cancelButton;
+        protected BsTextButton CancelButton => _cancelButton;
 
         protected BsPrimaryButton OkButton => _okButton;
 
@@ -59,7 +59,7 @@ namespace Reactive.BeatSaber.Components {
         protected override bool AllowExternalClose => false;
 
         private DialogHeader _header = null!;
-        private BsButton _cancelButton = null!;
+        private BsTextButton _cancelButton = null!;
         private BsPrimaryButton _okButton = null!;
         private Label _okButtonLabel = null!;
         private Layout _layout = null!;
@@ -75,7 +75,7 @@ namespace Reactive.BeatSaber.Components {
                     //
                     new Layout {
                         Children = {
-                            new BsButton {
+                            new BsTextButton {
                                 Text = "Cancel",
                                 Skew = 0f,
                                 OnClick = OnCancelButtonClicked

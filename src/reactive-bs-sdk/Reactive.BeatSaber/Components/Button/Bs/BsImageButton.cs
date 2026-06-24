@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+using System;
 using JetBrains.Annotations;
+using Reactive.Compiler;
 using Reactive.Components;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace Reactive.BeatSaber.Components;
 /// Beat Saber styled button with an image.
 /// </summary>
 [PublicAPI]
-public class ImageBsButton : BsButtonBase, IComponentHolder<Image> {
+public class BsImageButton : ReactiveComponent, ISkewedComponent, IInteractableComponent, IComponentHolder<Image> {
     #region Adapter
 
     public Sprite? Sprite {
@@ -47,6 +48,26 @@ public class ImageBsButton : BsButtonBase, IComponentHolder<Image> {
         set => _image.PixelsPerUnit = value;
     }
 
+    public bool ShowUnderline {
+        get => _button.ShowUnderline;
+        set => _button.ShowUnderline = value;
+    }
+
+    public float Skew {
+        get => _button.Skew;
+        set => _button.Skew = value;
+    }
+
+    public bool Interactable {
+        get => _button.Interactable;
+        set => _button.Interactable = value;
+    }
+
+    public Action? OnClick {
+        get => _button.OnClick;
+        set => _button.OnClick = value;
+    }
+
     #endregion
 
     #region Setup
@@ -54,28 +75,18 @@ public class ImageBsButton : BsButtonBase, IComponentHolder<Image> {
     Image IComponentHolder<Image>.Component => _image;
 
     private Image _image = null!;
+    private BsButton _button = null!;
 
-    protected override IEnumerable<IReactiveComponent> ConstructContent() {
-        return [
-            new Image {
-                    PreserveAspect = true,
-                    Skew = BeatSaberStyle.Skew
+    protected override GameObject Construct() {
+        return new BsButton {
+            ConstructContent = (graphic, skew) => new Image {
+                    sSkew = skew.In(),
+                    sColor = graphic.MapColorSet(BeatSaberStyle.BsButton.ContentColors).In(),
+                    PreserveAspect = true
                 }
-                .AsFlexItem(size: "auto")
+                .AsFlexItem()
                 .Bind(ref _image)
-        ];
-    }
-
-    protected override void OnSkewChanged(float skew) {
-        _image.Skew = skew;
-    }
-
-    protected override void OnGraphicStateChanged() {
-        var alpha = GraphicState.IsInteractable() ?
-            GraphicState.IsHovered() ? 1 : 0.75f
-            : 0.25f;
-
-        _image.Color = Color.white.ColorWithAlpha(alpha);
+        }.Bind(ref _button).Use();
     }
 
     #endregion

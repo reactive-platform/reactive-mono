@@ -1,106 +1,118 @@
+using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Reactive.Compiler;
 using Reactive.Components;
-using TMPro;
+using Reactive.Yoga;
 using UnityEngine;
 
-namespace Reactive.BeatSaber.Components;
+namespace Reactive.BeatSaber.Components {
+    /// <summary>
+    /// A Beat Saber styled button without any content.
+    /// </summary>
+    [PublicAPI]
+    public partial class BsButton : ReactiveComponent, ILayoutDriver, ISkewedComponent, IInteractableComponent {
+        public delegate ILayoutItem ConstructContentDelegate(IState<GraphicState> graphic, IState<float> skew);
 
-/// <summary>
-/// Beat Saber styled button with a label.
-/// </summary>
-[PublicAPI]
-public class BsButton : BsButtonBase, IComponentHolder<Label> {
-    #region Adapter
+        #region Public API
 
-    public string Text {
-        get => _label.Text;
-        set => _label.Text = value;
+        public bool ShowUnderline {
+            get => _underlineEnabled.Value;
+            set => _underlineEnabled.Value = value;
+        }
+
+        public float Skew {
+            get => _skew.Value;
+            set => _skew.Value = value;
+        }
+
+        public bool Interactable {
+            get => _graphicState.IsInteractable;
+            set => _graphicState.IsInteractable = value;
+        }
+
+        [Required]
+        public ConstructContentDelegate ConstructContent {
+            init {
+                var layoutItem = value(_graphicState, _skew);
+                _background.Children.Add(layoutItem);
+            }
+        }
+
+        public Action? OnClick { get; set; }
+
+        #endregion
+
+        #region Layout Driver
+
+        public ICollection<ILayoutItem> Children { get; } = Array.Empty<ILayoutItem>();
+
+        public ILayoutController? LayoutController {
+            get => _background.LayoutController;
+            set => _background.LayoutController = value;
+        }
+
+        #endregion
+
+        #region Setup
+
+        private State<bool> _underlineEnabled = null!;
+        private State<float> _skew = null!;
+        private State<GraphicState> _graphicState = null!;
+
+        private Background _background = null!;
+
+        protected override GameObject Construct() {
+            _underlineEnabled = Remember(true);
+            _skew = Remember(BeatSaberStyle.Skew);
+            _graphicState = Remember(GraphicState.None);
+
+            var bgColor = _graphicState.MapColorSet(BeatSaberStyle.BsButton.BackgroundColors);
+
+            return new Background {
+                FlexController = {
+                    JustifyContent = Justify.SpaceAround,
+                    Padding = new() { left = 1.pt, right = 1.pt }
+                },
+
+                FlexItem = {
+                    Size = new() { y = 8.pt }
+                },
+
+                sColor = bgColor.Map(x => x.Color),
+                sGradientColor1 = bgColor.Map(x => x.GradientColor1),
+
+                UseGradient = true,
+                Sprite = BeatSaberResources.Sprites.background,
+                PixelsPerUnit = 12f,
+
+                sSkew = _skew,
+
+                Do = x => x.WithPointerEvents(
+                    onEnter: _ => _graphicState.IsHovered = true,
+                    onLeave: _ => _graphicState.IsHovered = false,
+                    onDown: _ => {
+                        if (_graphicState.IsInteractable) {
+                            GameResources.ButtonClickSignal.Raise();
+                            OnClick?.Invoke();
+                        }
+                    }),
+
+                Children = {
+                    new Image {
+                        Name = "Underline",
+                        sEnabled = _underlineEnabled,
+                        sSkew = _skew,
+                        
+                        Sprite = BeatSaberResources.Sprites.backgroundUnderline,
+                        ImageType = UnityEngine.UI.Image.Type.Sliced,
+                        Color = Color.white with { a = 0.5f },
+                        PixelsPerUnit = 12f,
+                    }.WithRectExpand()
+                }
+            }.Bind(ref _background).Use();
+        }
+
+        #endregion
     }
-
-    public bool RichText {
-        get => _label.RichText;
-        set => _label.RichText = value;
-    }
-
-    public float FontSize {
-        get => _label.FontSize;
-        set => _label.FontSize = value;
-    }
-
-    public float FontSizeMin {
-        get => _label.FontSizeMin;
-        set => _label.FontSizeMin = value;
-    }
-
-    public float FontSizeMax {
-        get => _label.FontSizeMax;
-        set => _label.FontSizeMax = value;
-    }
-
-    public bool EnableAutoSizing {
-        get => _label.EnableAutoSizing;
-        set => _label.EnableAutoSizing = value;
-    }
-
-    public FontStyles FontStyle {
-        get => _label.FontStyle;
-        set => _label.FontStyle = value;
-    }
-
-    public TMP_FontAsset Font {
-        get => _label.Font;
-        set => _label.Font = value;
-    }
-
-    public bool EnableWrapping {
-        get => _label.EnableWrapping;
-        set => _label.EnableWrapping = value;
-    }
-
-    public TextOverflowModes Overflow {
-        get => _label.Overflow;
-        set => _label.Overflow = value;
-    }
-
-    public TextAlignmentOptions Alignment {
-        get => _label.Alignment;
-        set => _label.Alignment = value;
-    }
-
-    #endregion
-
-    #region Setup
-
-    Label IComponentHolder<Label>.Component => _label;
-
-    private Label _label = null!;
-
-    protected override IEnumerable<IReactiveComponent> ConstructContent() {
-        return [
-            new Label()
-                .AsFlexItem(size: "auto")
-                .Bind(ref _label)
-        ];
-    }
-
-    protected override void OnInitialize() {
-        base.OnInitialize();
-        FontStyle |= FontStyles.UpperCase;
-        Alignment = TextAlignmentOptions.Capline;
-    }
-
-    protected override void OnSkewChanged(float skew) {
-        ((ISkewedComponent)_label).Skew = skew;
-    }
-
-    protected override void OnGraphicStateChanged() {
-        var alpha = GraphicState.IsInteractable() ?
-            GraphicState.IsHovered() ? 1 : 0.75f
-            : 0.25f;
-
-        _label.Color = Color.white.ColorWithAlpha(alpha);
-    }
-
-    #endregion
 }

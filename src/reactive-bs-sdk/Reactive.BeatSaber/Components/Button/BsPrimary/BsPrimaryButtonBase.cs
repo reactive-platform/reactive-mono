@@ -50,7 +50,6 @@ namespace Reactive.BeatSaber.Components {
 
         public GraphicState GraphicState => GraphicState.None
             .AddIf(GraphicState.Hovered, IsHovered)
-            .AddIf(GraphicState.Pressed, IsPressed)
             .AddIf(GraphicState.NonInteractable, !Interactable);
 
         public bool IsPressed => _button.IsPressed;

@@ -7,7 +7,5 @@ namespace Reactive.Components;
 /// </summary>
 [PublicAPI]
 public interface IInteractableComponent {
-    bool IsPressed { get; }
-    bool IsHovered { get; }
     bool Interactable { get; set; }
 }
