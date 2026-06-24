@@ -9,6 +9,8 @@ namespace Reactive.Components {
         Color ActiveColor,
         Color NotInteractableColor
     ) {
+        public static readonly ColorSet White = new(Color.white, Color.white, Color.white, Color.white);
+        
         public Color GetColor(GraphicState state) {
             if (state.IsHovered) {
                 return state.IsActive ? ActiveColor : HoveredColor;
@@ -22,7 +24,7 @@ namespace Reactive.Components {
             return Color;
         }
     }
-    
+
     [PublicAPI]
     public static class ColorSetExtensions {
         public static IState<Color> MapColorSet(this IState<GraphicState> state, ColorSet set) {

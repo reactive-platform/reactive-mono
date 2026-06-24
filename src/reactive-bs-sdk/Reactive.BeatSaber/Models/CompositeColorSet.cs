@@ -10,6 +10,8 @@ public readonly record struct CompositeColorSet(
     ColorSet GradientColors0,
     ColorSet GradientColors1
 ) {
+    public static readonly CompositeColorSet White = new(ColorSet.White, ColorSet.White, ColorSet.White);
+
     public CompositeColors GetColors(GraphicState state) {
         return new(
             Colors.GetColor(state),

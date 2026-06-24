@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using Reactive.Compiler;
 using Reactive.Components;
 using Reactive.Yoga;
 using UnityEngine;
@@ -52,31 +53,51 @@ namespace Reactive.BeatSaber.Components {
                 .WithCloseListener(HandleModalClosed)
                 .Bind(ref _circleModal);
 
-            return new AeroButtonLayout {
-                Children = {
-                    // Icon
-                    new Image {
-                        Sprite = GameResources.EditIcon,
-                        PreserveAspect = true,
-                        Skew = BeatSaberStyle.Skew,
-                        Color = BeatSaberStyle.SecondaryTextColor
-                    }.AsFlexItem(
-                        size: new() { x = 4f, y = "auto" }
-                    ),
+            return new BsAeroButton {
+                FlexController = {
+                    AlignItems = Align.Stretch
+                },
 
-                    // Color sample
-                    new Image {
-                        Sprite = GameResources.CircleIcon,
-                        PreserveAspect = true
-                    }.AsFlexItem(
-                        size: new() { x = 4f, y = "auto" }
-                    ).Bind(ref _colorSampleImage),
+                ConstructContent = (_, skew) => new Layout {
+                    FlexController = {
+                        JustifyContent = Justify.FlexStart,
+                        Padding = new() { left = 2.pt, top = 1.pt, right = 2.pt, bottom = 1.pt },
+                        Gap = 1.pt
+                    },
+
+                    FlexItem = {
+                        Flex = 1
+                    },
+
+                    Children = {
+                        new Image {
+                            FlexItem = {
+                                Size = new() { x = 4.pt, y = YogaValue.Auto }
+                            },
+
+                            Name = "Icon",
+                            sSkew = skew.In(),
+
+                            Sprite = GameResources.EditIcon,
+                            PreserveAspect = true,
+                            Skew = BeatSaberStyle.Skew,
+                            Color = BeatSaberStyle.SecondaryTextColor
+                        },
+
+                        new Image {
+                            FlexItem = {
+                                Size = new() { x = 4.pt, y = YogaValue.Auto }
+                            },
+
+                            Name = "Sample",
+                            sSkew = skew.In(),
+
+                            Sprite = GameResources.CircleIcon,
+                            PreserveAspect = true
+                        }.Bind(ref _colorSampleImage),
+                    }
                 }
-            }.AsFlexGroup(
-                justifyContent: Justify.FlexStart,
-                padding: new() { left = 2f, top = 1f, right = 2f, bottom = 1f },
-                gap: 1f
-            ).WithModal(_circleModal).Use();
+            }.Use();
         }
 
         #endregion
