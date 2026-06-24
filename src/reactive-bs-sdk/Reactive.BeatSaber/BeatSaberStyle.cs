@@ -69,6 +69,31 @@ namespace Reactive.BeatSaber {
                 HoveredColor = Color.white,
             };
         }
+        
+        public static class BsPrimaryButton {
+            public static CompositeColorSet BackgroundColors = new() {
+                Colors = new() {
+                    Color = Color.white,
+                    HoveredColor = Color.white,
+                },
+                GradientColors0 = new() {
+                    Color = new(0f, 0.5f, 1f),
+                    HoveredColor = new(0f, 0.7f, 1f),
+                },
+                GradientColors1 = new() {
+                    Color = new(0f, 0.5f, 1f, 0.5f),
+                    HoveredColor = new(0f, 0.7f, 1f, 0.5f),
+                }
+            };
+            
+            public static ColorSet ContentColors = new() {
+                Color = Color.white with { a = 0.75f },
+                HoveredColor = Color.white,
+            };
+
+            public static readonly Color BorderColor = new(0f, 0.75f, 1f, 0.7f);
+            public static readonly Color OutlineColor = new(0f, 0.75f, 1f, 0.3f);
+        }
 
         public static readonly Color PrimaryButtonColor = new(0, 0.5f, 1f);
 

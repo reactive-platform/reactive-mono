@@ -45,7 +45,7 @@ namespace Reactive.BeatSaber.Components {
 
         protected BsTextButton CancelButton => _cancelButton;
 
-        protected BsPrimaryButton OkButton => _okButton;
+        protected BsPrimaryTextButton OkButton => _okButton;
 
         #endregion
 
@@ -60,7 +60,7 @@ namespace Reactive.BeatSaber.Components {
 
         private DialogHeader _header = null!;
         private BsTextButton _cancelButton = null!;
-        private BsPrimaryButton _okButton = null!;
+        private BsPrimaryTextButton _okButton = null!;
         private Label _okButtonLabel = null!;
         private Layout _layout = null!;
 
@@ -81,7 +81,7 @@ namespace Reactive.BeatSaber.Components {
                                 OnClick = OnCancelButtonClicked
                             }.AsFlexItem(flexGrow: 1f).Bind(ref _cancelButton),
                             //
-                            new BsPrimaryButton {
+                            new BsPrimaryTextButton {
                                     Text = "OK",
                                     Skew = 0f,
                                     OnClick = OnOkButtonClicked
