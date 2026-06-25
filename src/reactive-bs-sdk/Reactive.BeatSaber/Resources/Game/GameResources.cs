@@ -35,6 +35,9 @@ public class GameResources : ScriptableObject {
         
         _instance.buttonClickSignal = Find<Signal>("UIButtonWasPressed");
         
+        _instance.closeIcon = Find<Sprite>("CloseIcon");
+        _instance.closeIcon = Find<Sprite>("CloseIcon");
+        _instance.searchIcon = Find<Sprite>("SearchIcon");
         _instance.arrowIcon = Find<Sprite>("ArrowIcon");
         _instance.editIcon = Find<Sprite>("EditIcon");
         _instance.caretIcon = Find<Sprite>("Caret");
@@ -67,6 +70,8 @@ public class GameResources : ScriptableObject {
     public Material uiFontMaterial;
     public Material uiFogBackgroundMaterial;
 
+    public Sprite closeIcon;
+    public Sprite searchIcon;
     public Sprite arrowIcon;
     public Sprite editIcon;
     public Sprite caretIcon;
@@ -97,6 +102,10 @@ public class GameResources : ScriptableObject {
     public static Material UIFontMaterial => _instance.uiFontMaterial;
 
     public static Sprite ArrowIcon => _instance.arrowIcon;
+    
+    public static Sprite SearchIcon => _instance.searchIcon;
+    
+    public static Sprite CloseIcon => _instance.closeIcon;
     
     public static Sprite EditIcon => _instance.editIcon;
     

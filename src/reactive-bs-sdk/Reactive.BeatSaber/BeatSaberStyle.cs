@@ -115,6 +115,15 @@ namespace Reactive.BeatSaber {
             };
         }
 
+        public static class BsInputField {
+            public static readonly ColorSet PlaceholderColors = new() {
+                Color = Color.white with { a = 0.25f },
+                HoveredColor = Color.white with { a = 0.25f }
+            };
+            
+            public static readonly ColorSet ContentColors = ColorSet.White;
+        }
+
         public static readonly Color PrimaryButtonColor = new(0, 0.5f, 1f);
 
         public static readonly Color TextColor = Color.white;
