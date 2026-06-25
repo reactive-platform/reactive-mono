@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 namespace Reactive.Components;
 
 /// <summary>
-/// An abstraction that is used to mark the graphic components.
+/// A marker interface that determines components that are either graphics or contain graphic elements inside.
 /// </summary>
 [PublicAPI]
 public interface IGraphic;

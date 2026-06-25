@@ -75,7 +75,7 @@ public static class ComponentExtensions {
             Children = { comp.WithRectExpand() }
         };
     }
-    
+
     /// <summary>
     /// Binds a held component to a variable. Has less priority than basic Bind.
     /// </summary>
@@ -85,7 +85,7 @@ public static class ComponentExtensions {
         variable = holder.Component;
         return holder;
     }
-        
+
     /// <summary>
     /// Exports a held component to a variable. Has less priority than basic Export.
     /// </summary>
@@ -97,4 +97,14 @@ public static class ComponentExtensions {
     }
 
     #endregion
+
+    extension<T>(T graphic) where T : IGraphic, IReactiveComponent {
+        /// <summary>
+        /// Disables pointer input on graphic components that use <see cref="PointerEventsHandler"/> as a pointer handler.
+        /// </summary>
+        public bool DisablePointerEvents {
+            get => !graphic.Content.GetComponent<PointerEventsHandler>().enabled;
+            set => graphic.Content.GetComponent<PointerEventsHandler>().enabled = !value;
+        }
+    }
 }
