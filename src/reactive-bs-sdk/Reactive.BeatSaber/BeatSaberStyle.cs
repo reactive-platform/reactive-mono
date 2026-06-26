@@ -70,7 +70,7 @@ namespace Reactive.BeatSaber {
                 HoveredColor = Color.white,
             };
         }
-        
+
         public static class BsPrimaryButton {
             public static CompositeColorSet BackgroundColors = new() {
                 Colors = new() {
@@ -86,7 +86,7 @@ namespace Reactive.BeatSaber {
                     HoveredColor = new(0f, 0.7f, 1f, 0.5f),
                 }
             };
-            
+
             public static ColorSet ContentColors = new() {
                 Color = Color.white with { a = 0.75f },
                 HoveredColor = Color.white,
@@ -95,7 +95,7 @@ namespace Reactive.BeatSaber {
             public static readonly Color BorderColor = new(0f, 0.75f, 1f, 0.7f);
             public static readonly Color OutlineColor = new(0f, 0.75f, 1f, 0.3f);
         }
-        
+
         public static class BsAeroButton {
             public static readonly CompositeColorSet BackgroundColors = new() {
                 Colors = new() {
@@ -120,8 +120,27 @@ namespace Reactive.BeatSaber {
                 Color = Color.white with { a = 0.25f },
                 HoveredColor = Color.white with { a = 0.25f }
             };
-            
+
             public static readonly ColorSet ContentColors = ColorSet.White;
+        }
+
+        public static class BsKeyboard {
+            public static readonly CompositeColorSet KeyBackgroundColors = new() {
+                Colors = ColorSet.White,
+                GradientColors1 = new() {
+                    HoveredColor = new(0f, 0.75f, 1f)
+                }
+            };
+
+            public static readonly ColorSet KeyBorderColors = new() {
+                Color = Color.white with { a = 0.25f },
+                HoveredColor = Color.white
+            };
+            
+            public static readonly ColorSet KeyContentColors = new() {
+                Color = Color.white with { a = 0.9f },
+                HoveredColor = Color.white
+            };
         }
 
         public static readonly Color PrimaryButtonColor = new(0, 0.5f, 1f);
