@@ -14,10 +14,14 @@ public class Keyboard : ReactiveComponent {
 
     public string? Text {
         get => _text.Value;
-        set => _text.Value = value;
+        set {
+            _text.Value = value;
+            OnTextChanged?.Invoke(value);
+        }
     }
 
     public Action<string?>? OnTextChanged { get; set; }
+    public Action? OnOkClicked { get; set; }
 
     #endregion
 
@@ -36,8 +40,7 @@ public class Keyboard : ReactiveComponent {
         var uppercase = Remember(false);
 
         var onClick = (char x) => {
-            _text.Value += x;
-            OnTextChanged?.Invoke(_text.Value);
+            Text += x;
         };
 
         return new Layout {
@@ -96,7 +99,11 @@ public class Keyboard : ReactiveComponent {
                             },
 
                             OnClick = () => {
-                                _text.Value = _text.Value?[..^1];
+                                if (Text == null) {
+                                    return;
+                                }
+
+                                Text = Text.Length == 1 ? null : Text[..^1];
                             },
 
                             ConstructContent = (state, _) => new Label {
@@ -109,6 +116,50 @@ public class Keyboard : ReactiveComponent {
                         }
                     }
                 }.AsFlexItem(),
+
+                new Layout {
+                    FlexController = {
+                        Gap = 1.pt
+                    },
+
+                    Children = {
+                        new KeyboardButton {
+                            FlexItem = {
+                                Size = new() { x = 40.pt, y = 7.pt }
+                            },
+
+                            OnClick = () => {
+                                Text += " ";
+                            },
+
+                            ConstructContent = (state, _) => new Label {
+                                Text = "SPACE",
+                                Alignment = TextAlignmentOptions.Capline,
+                                FontStyle = FontStyles.Italic,
+
+                                sColor = state.MapColorSet(BeatSaberStyle.BsKeyboard.KeyContentColors).In(),
+                            }.AsFlexItem()
+                        },
+
+                        new KeyboardButton {
+                            FlexItem = {
+                                Size = new() { x = 12.pt, y = 7.pt }
+                            },
+
+                            OnClick = () => {
+                                OnOkClicked?.Invoke();
+                            },
+
+                            ConstructContent = (state, _) => new Label {
+                                Text = "OK",
+                                Alignment = TextAlignmentOptions.Capline,
+                                FontStyle = FontStyles.Italic,
+
+                                sColor = state.MapColorSet(BeatSaberStyle.BsKeyboard.KeyContentColors).In(),
+                            }.AsFlexItem()
+                        }
+                    }
+                }.AsFlexItem()
             }
         }.Use();
     }

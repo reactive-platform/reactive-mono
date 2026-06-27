@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using Reactive.Compiler;
 using Reactive.Components;
@@ -10,12 +11,23 @@ using UnityEngine.EventSystems;
 namespace Reactive.BeatSaber.Components;
 
 [PublicAPI]
-public class InputField : ReactiveComponent, IGraphic {
+public partial class InputField : ReactiveComponent, IGraphic {
     #region Public API
 
-    public string? Text {
-        get => _text.Value;
-        set => _text.Value = value;
+    [RawState, Required]
+    [field: AllowNull]
+    public InputFieldContext Context {
+        get;
+        set {
+            if (field != null) {
+                field.ValueChangedEvent -= HandleContextUpdated;
+            }
+
+            field = value;
+            field.ValueChangedEvent += HandleContextUpdated;
+            
+            HandleContextUpdated(field);
+        }
     }
 
     public string Placeholder {
@@ -23,7 +35,10 @@ public class InputField : ReactiveComponent, IGraphic {
         set => _placeholder.Value = value;
     }
 
-    public Action<string>? OnTextChanged { get; set; }
+    private void HandleContextUpdated(InputFieldContext context) {
+        _focused.Value = context.Focused;
+        _text.Value = context.Text;
+    }
 
     #endregion
 
@@ -54,6 +69,7 @@ public class InputField : ReactiveComponent, IGraphic {
 
             OnClick = () => {
                 _focused.Value = true;
+                Context.Focused = true;
 
                 var dummyData = new PointerEventData(EventSystem.current);
 
@@ -141,7 +157,10 @@ public class InputField : ReactiveComponent, IGraphic {
 
                     CreateCloseButton(
                         closeButtonEnabled,
-                        () => _text.Value = null
+                        () => {
+                            _text.Value = null;
+                            Context.Text = null;
+                        }
                     )
                 }
             }
