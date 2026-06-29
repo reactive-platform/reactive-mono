@@ -12,8 +12,11 @@ namespace Reactive;
 public class DerivedState<T, TDeps> : StateBase<T>, IState<T>, IDisposable where TDeps : ITuple {
     public T Value {
         get {
-            _value ??= _predicate(_dependencies);
-            return _value;
+            if (!_hasValue) {
+                field = _predicate(_dependencies);
+            }
+            
+            return field;
         }
     }
 
@@ -21,7 +24,7 @@ public class DerivedState<T, TDeps> : StateBase<T>, IState<T>, IDisposable where
     private readonly Func<TDeps, T> _predicate;
     private readonly StateSubscription[] _subscriptions;
     private readonly int _occupiedSubsLen;
-    private T? _value;
+    private bool _hasValue;
 
     public DerivedState(Func<TDeps, T> predicate, TDeps dependencies) {
         _dependencies = dependencies;
@@ -46,7 +49,7 @@ public class DerivedState<T, TDeps> : StateBase<T>, IState<T>, IDisposable where
     private static void HandleStateUpdated(ref RefStateSubscription sub, object arg1, object arg2) {
         var self = (DerivedState<T, TDeps>)arg1;
 
-        self._value = default;
+        self._hasValue = false;
 
         if (self.HasCallbacks) {
             self.NotifyValueChanged(self.Value);

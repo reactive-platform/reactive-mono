@@ -68,7 +68,7 @@ internal class StateGenerator : IIncrementalGenerator {
         if (GetPatterns(assignment, semanticModel) is not { } patterns) {
             return null;
         }
-        
+
         // Ignoring state type here as we simply need to ensure that the resulting 
         // object is IState, the target type is taken from the target property
         if (!assignment.Right.IsStateExpression(semanticModel)) {
@@ -138,8 +138,8 @@ internal class StateGenerator : IIncrementalGenerator {
                 // Raw states are excluded from the generation process
                 if (symbol.GetDerivedAttribute<RawStateAttribute>(semanticModel) != null) {
                     continue;
-                } 
-                
+                }
+
                 return (prop.OriginalDefinition, statePropName);
             }
         }
@@ -150,47 +150,30 @@ internal class StateGenerator : IIncrementalGenerator {
     private static string GenerateTypeExtension(INamedTypeSymbol type, IEnumerable<IGrouping<ISymbol?, string>> propGroups) {
         var inner = new StringBuilder();
 
+        var binder = StateGeneratorUtils.IsUnityObject(type) ? "AddCallbackUnity" : "AddCallback";
+
         foreach (var nameGroup in propGroups) {
             var prop = nameGroup.Key!;
-            var propType = SemanticExtensions.GetReturnType(prop);
-            var propName = prop.Name;
+            var propType = SemanticExtensions.GetReturnType(prop)!;
+            var sourcePropName = prop.Name;
 
-            foreach (var name in nameGroup) {
-                var definition = """
-                                 [Reactive.Compiler.SetsRequiredAttribute(Names = ["{4}"])]
-                                 public {0}<{2}, {1}<{2}>> {3} {{
-                                     set {{
-                                         value.Attach(x => obj.{4} = x);
-                                     }}
-                                 }}
+            foreach (var propName in nameGroup) {
+                var propExtension = GenerateProp(propType, propName, sourcePropName, binder);
 
-                                 """;
-
-                // Replace placeholders
-                definition = string.Format(
-                    definition,
-                    StateGeneratorUtils.StateBinderPath, // StateBinder<>
-                    StateGeneratorUtils.StatePath, // IState<>
-                    propType,                      // State target type (State<T>)
-                    name,                          // Prop name
-                    propName                       // Target prop name
-                );
-
-                // Prettify
-                definition = definition.Insert(0, "\t\t").Replace("\n", "\n\t\t");
-
-                inner.AppendLine(definition);
+                inner.AppendLine(propExtension);
             }
         }
 
-        var outer = """
-                    [System.CodeDom.Compiler.GeneratedCode("Reactive_StateGenerator", "1.0")]
-                    internal static class Reactive_{0}_StateGenExt {{
-                        extension{3}({1} obj) {4} {{
-                    {2}
-                        }}
-                    }}
-                    """;
+        var outer =
+            """
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            [System.CodeDom.Compiler.GeneratedCode("Reactive_StateGenerator", "1.0")]
+            internal static class Reactive_{0}_StateGenExt {{
+                extension{3}({1} obj) {4} {{
+            {2}
+                }}
+            }}
+            """;
 
         var typeIdentifier = type.GetTypeIdentifier();
 
@@ -206,6 +189,31 @@ internal class StateGenerator : IIncrementalGenerator {
             genericConstrainments
         );
 
-        return outer;
+        return outer.Insert(0, "\t\t").Replace("\n", "\n\t\t");
+    }
+
+    private static string GenerateProp(ITypeSymbol stateType, string propName, string sourcePropName, string binderMethodName) {
+        var definition =
+            """
+            [Reactive.Compiler.SetsRequiredAttribute(Names = ["{4}"])]
+            public {0}<{2}, {1}<{2}>> {3} {{
+                set {{
+                    value.{5}(obj, static (x, y) => x.{4} = y);
+                }}
+            }}
+
+            """;
+
+        definition = string.Format(
+            definition,
+            StateGeneratorUtils.StateBinderPath, // StateBinder<>
+            StateGeneratorUtils.StatePath,       // IState<>
+            stateType,                           // State target type (State<T>)
+            propName,                            // Prop name
+            sourcePropName,                      // Target prop name
+            binderMethodName                     // Binder name (e.g. AddCallback)
+        );
+
+        return definition;
     }
 }

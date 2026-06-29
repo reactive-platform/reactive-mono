@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq.Expressions;
 using JetBrains.Annotations;
 
 namespace Reactive {
@@ -41,18 +40,7 @@ namespace Reactive {
             /// <param name="callback">A callback to bind.</param>
             /// <param name="lazy">Whether the callback should be invoked immediately.</param>
             public StateSubscription AddCallback(Action<T> callback, bool lazy = false) {
-                var sub = state.AddCallback(Wrapper, callback, null!);
-
-                if (!lazy) {
-                    var refHandle = new RefStateSubscription(true);
-                    Wrapper(ref refHandle, state.Value, callback, null!);
-
-                    if (!refHandle.GetIsValid()) {
-                        state.RemoveCallback(sub);
-                    }
-                }
-
-                return sub;
+                return state.AddCallbackInternal(lazy, Wrapper, callback, null!);
 
                 static void Wrapper(ref RefStateSubscription sub, T val, object arg1, object arg2) {
                     ((Action<T>)arg1)(val);
@@ -65,31 +53,15 @@ namespace Reactive {
             /// <param name="comp">A component to capture.</param>
             /// <param name="callback">A callback to bind.</param>
             /// <param name="lazy">Whether the callback should be invoked immediately.</param>
-            public StateSubscription AddCallback<TComp>(TComp comp, Action<TComp, T> callback, bool lazy = false) where TComp : IReactiveComponent {
-                var sub = state.AddCallback(Wrapper, comp, callback);
-
-                if (!lazy) {
-                    var refHandle = new RefStateSubscription(true);
-                    Wrapper(ref refHandle, state.Value, comp, callback);
-
-                    if (!refHandle.GetIsValid()) {
-                        state.RemoveCallback(sub);
-                    }
-                }
-
-                return sub;
+            public StateSubscription AddCallback<TComp>(TComp comp, Action<TComp, T> callback, bool lazy = false) where TComp : ILifetimeProvider {
+                return state.AddCallbackInternal(lazy, Wrapper, comp, callback);
 
                 static void Wrapper(ref RefStateSubscription sub, T val, object arg1, object arg2) {
                     var comp = (TComp)arg1;
                     var callback = (Action<TComp, T>)arg2;
 
-                    // Return if component is not valid yet
-                    if (!comp.IsInitialized) {
-                        return;
-                    }
-
                     // Unsubscribe if component is not valid anymore
-                    if (comp.IsDestroyed) {
+                    if (!comp.IsAlive) {
                         sub.RemoveCallback();
                         return;
                     }
@@ -97,18 +69,56 @@ namespace Reactive {
                     callback(comp, val);
                 }
             }
+
+            /// <summary>
+            /// Binds a callback to some state capturing a unity object.
+            /// </summary>
+            /// <param name="comp">A component to capture.</param>
+            /// <param name="callback">A callback to bind.</param>
+            /// <param name="lazy">Whether the callback should be invoked immediately.</param>
+            public StateSubscription AddCallbackUnity<TComp>(TComp comp, Action<TComp, T> callback, bool lazy = false) where TComp : UnityEngine.Object {
+                return state.AddCallbackInternal(lazy, Wrapper, comp, callback);
+
+                static void Wrapper(ref RefStateSubscription sub, T val, object arg1, object arg2) {
+                    var comp = (TComp)arg1;
+                    var callback = (Action<TComp, T>)arg2;
+
+                    // Unsubscribe if component is not valid anymore
+                    if (!comp.IsAlive) {
+                        sub.RemoveCallback();
+                        return;
+                    }
+
+                    callback(comp, val);
+                }
+            }
+
+            private StateSubscription AddCallbackInternal(bool lazy, StateCallback<T> callback, object arg1, object arg2) {
+                var sub = state.AddCallback(callback, arg1, arg2);
+
+                if (!lazy) {
+                    var refHandle = new RefStateSubscription(true);
+                    callback(ref refHandle, state.Value, arg1, arg2);
+
+                    if (!refHandle.GetIsValid()) {
+                        sub.RemoveCallback();
+                    }
+                }
+
+                return sub;
+            }
         }
 
         // Note: methods use duplicated logic rather than wrapping
         // as each wrap costs a heap allocation
-        extension<T>(T comp) where T : IReactiveComponent {
+        extension<TComp>(TComp comp) where TComp : ILifetimeProvider {
             /// <summary>
             /// Binds a callback to some state.
             /// </summary>
             /// <param name="state">A state to bind to.</param>
             /// <param name="callback">A callback to bind.</param>
             /// <param name="lazy">Whether the callback should be invoked immediately.</param>
-            public T On<TValue>(IState<TValue> state, Action<T, TValue> callback, bool lazy = false) {
+            public TComp On<T>(IState<T> state, Action<TComp, T> callback, bool lazy = false) {
                 state.AddCallback(comp, callback, lazy);
                 return comp;
             }

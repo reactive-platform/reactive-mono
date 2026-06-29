@@ -14,15 +14,18 @@ public class MappedState<T, TNew> : StateBase<TNew>, IState<TNew>, IDisposable {
     /// </summary>
     public TNew Value {
         get {
-            _value ??= _predicate(_state.Value);
-            return _value;
+            if (!_hasValue) {
+                field = _predicate(_state.Value);
+            }
+
+            return field;
         }
     }
 
     private readonly IState<T> _state;
     private readonly Func<T, TNew> _predicate;
     private StateSubscription _subscription;
-    private TNew? _value;
+    private bool _hasValue;
 
     public MappedState(IState<T> state, Func<T, TNew> predicate) {
         _state = state;
@@ -32,8 +35,8 @@ public class MappedState<T, TNew> : StateBase<TNew>, IState<TNew>, IDisposable {
 
     private static void HandleValueChanged(ref RefStateSubscription _, T value, object arg1, object arg2) {
         var self = (MappedState<T, TNew>)arg1;
-        
-        self._value = default;
+
+        self._hasValue = false;
 
         if (self.HasCallbacks) {
             self.NotifyValueChanged(self.Value);
