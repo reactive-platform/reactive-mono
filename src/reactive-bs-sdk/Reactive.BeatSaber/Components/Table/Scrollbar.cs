@@ -24,12 +24,10 @@ namespace Reactive.BeatSaber.Components {
         public ScrollContext ScrollContext {
             get => _scrollContext!;
             set {
-                if (_scrollContext != null) {
-                    _scrollContext.ValueChangedEvent -= HandleContextUpdated;
-                }
+                _scrollContextSubscription?.RemoveCallback();
 
                 _scrollContext = value;
-                _scrollContext.ValueChangedEvent += HandleContextUpdated;
+                _scrollContextSubscription = _scrollContext.AddCallback(HandleContextUpdated);
 
                 HandleContextUpdated(value);
             }
@@ -60,6 +58,7 @@ namespace Reactive.BeatSaber.Components {
         private IMutableState<ScrollContext?> _scrollContextState = null!;
         private IMutableState<bool> _hideIfNothingToScroll;
         private ScrollContext? _scrollContext;
+        private StateSubscription? _scrollContextSubscription;
 
         #endregion
 

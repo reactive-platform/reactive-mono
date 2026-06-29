@@ -32,112 +32,84 @@ namespace Reactive {
 
         #endregion
 
-        #region Animate
+        #region On
 
         extension<T>(IState<T> state) {
             /// <summary>
-            /// Attaches a callback to the state.
+            /// Binds a callback to some state.
             /// </summary>
-            /// <param name="callback">A callback to attach.</param>
-            public IState<T> Attach(Action<T> callback) {
-                state.ValueChangedEvent += callback;
-                return state;
-            }
-            
-            /// <summary>
-            /// Detaches the specified callback.
-            /// </summary>
-            /// <param name="callback">A callback to detach.</param>
-            public IState<T> Detach(Action<T> callback) {
-                state.ValueChangedEvent -= callback;
-                return state;
-            }
-        }
+            /// <param name="callback">A callback to bind.</param>
+            /// <param name="lazy">Whether the callback should be invoked immediately.</param>
+            public StateSubscription AddCallback(Action<T> callback, bool lazy = false) {
+                var sub = state.AddCallback(Wrapper, callback, null!);
 
-        /// <summary>
-        /// Attaches a callback to a state that returns a float,
-        /// interpolating it using the provided curve.
-        /// </summary>
-        /// <param name="callback">A callback to attach.</param>
-        public static IState<float> AttachLerp(this IState<float> state, Action<float> callback, AnimationCurve curve) {
-            state.ValueChangedEvent += t => callback(curve.Evaluate(t));
-            return state;
+                if (!lazy) {
+                    var refHandle = new RefStateSubscription(true);
+                    Wrapper(ref refHandle, state.Value, callback, null!);
+
+                    if (!refHandle.GetIsValid()) {
+                        state.RemoveCallback(sub);
+                    }
+                }
+
+                return sub;
+
+                static void Wrapper(ref RefStateSubscription sub, T val, object arg1, object arg2) {
+                    ((Action<T>)arg1)(val);
+                }
+            }
+
+            /// <summary>
+            /// Binds a callback to some state capturing an IReactiveComponent.
+            /// </summary>
+            /// <param name="comp">A component to capture.</param>
+            /// <param name="callback">A callback to bind.</param>
+            /// <param name="lazy">Whether the callback should be invoked immediately.</param>
+            public StateSubscription AddCallback<TComp>(TComp comp, Action<TComp, T> callback, bool lazy = false) where TComp : IReactiveComponent {
+                var sub = state.AddCallback(Wrapper, comp, callback);
+
+                if (!lazy) {
+                    var refHandle = new RefStateSubscription(true);
+                    Wrapper(ref refHandle, state.Value, comp, callback);
+
+                    if (!refHandle.GetIsValid()) {
+                        state.RemoveCallback(sub);
+                    }
+                }
+
+                return sub;
+
+                static void Wrapper(ref RefStateSubscription sub, T val, object arg1, object arg2) {
+                    var comp = (TComp)arg1;
+                    var callback = (Action<TComp, T>)arg2;
+
+                    // Return if component is not valid yet
+                    if (!comp.IsInitialized) {
+                        return;
+                    }
+
+                    // Unsubscribe if component is not valid anymore
+                    if (comp.IsDestroyed) {
+                        sub.RemoveCallback();
+                        return;
+                    }
+
+                    callback(comp, val);
+                }
+            }
         }
 
         // Note: methods use duplicated logic rather than wrapping
         // as each wrap costs a heap allocation
         extension<T>(T comp) where T : IReactiveComponent {
             /// <summary>
-            /// This method uses expression parsing to generate callbacks in runtime.
-            /// Runtime generation is very expensive and is already replaced by
-            /// much faster and convenient property extensions, so this method is considered obsolete now.
-            /// </summary>
-            [Obsolete("Use bindings generator instead")]
-            public T Animate<TValue>(IState<TValue> value, Expression<Func<T, TValue>> expression, bool applyImmediately = false) {
-                var setter = expression.GeneratePropertySetter();
-
-                return On(comp, value, setter, applyImmediately);
-            }
-
-            /// <summary>
             /// Binds a callback to some state.
             /// </summary>
-            /// <param name="value">A state to bind to.</param>
-            /// <param name="onEffect">A callback to bind.</param>
-            /// <param name="applyImmediately">Whether the callback should be invoked immediately.</param>
-            public T On<TValue>(IState<TValue> value, Action<TValue> onEffect, bool applyImmediately = false) {
-                void Closure(TValue val) {
-                    // Return if component is not valid yet
-                    if (!comp.IsInitialized) {
-                        return;
-                    }
-
-                    // Unsubscribe if component is not valid anymore
-                    if (comp.IsDestroyed) {
-                        value.ValueChangedEvent -= Closure;
-                        return;
-                    }
-
-                    onEffect(val);
-                }
-
-                value.ValueChangedEvent += Closure;
-
-                if (applyImmediately) {
-                    Closure(value.Value);
-                }
-
-                return comp;
-            }
-
-            /// <summary>
-            /// Binds a callback to some state.
-            /// </summary>
-            /// <param name="value">A state to bind to.</param>
-            /// <param name="onEffect">A callback to bind.</param>
-            /// <param name="applyImmediately">Whether the callback should be invoked immediately.</param>
-            public T On<TValue>(IState<TValue> value, Action<T, TValue> onEffect, bool applyImmediately = false) {
-                void Closure(TValue val) {
-                    // Return if component is not valid yet
-                    if (!comp.IsInitialized) {
-                        return;
-                    }
-
-                    // Unsubscribe if component is not valid anymore
-                    if (comp.IsDestroyed) {
-                        value.ValueChangedEvent -= Closure;
-                        return;
-                    }
-
-                    onEffect(comp, val);
-                }
-
-                value.ValueChangedEvent += Closure;
-
-                if (applyImmediately) {
-                    Closure(value.Value);
-                }
-
+            /// <param name="state">A state to bind to.</param>
+            /// <param name="callback">A callback to bind.</param>
+            /// <param name="lazy">Whether the callback should be invoked immediately.</param>
+            public T On<TValue>(IState<TValue> state, Action<T, TValue> callback, bool lazy = false) {
+                state.AddCallback(comp, callback, lazy);
                 return comp;
             }
         }

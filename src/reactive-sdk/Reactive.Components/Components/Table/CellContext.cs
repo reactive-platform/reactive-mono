@@ -9,7 +9,7 @@ public enum CellUpdateType {
     Selection
 }
 
-public class CellContext<T> : IState<CellContext<T>> {
+public class CellContext<T> : StateBase<CellContext<T>>, IState<CellContext<T>> {
     public T Item => _item ?? throw new();
 
     public int Index { get; private set; }
@@ -59,15 +59,11 @@ public class CellContext<T> : IState<CellContext<T>> {
     #region State
 
     public CellContext<T> Value => this;
-
-    public event Action<CellContext<T>>? ValueChangedEvent;
-    public event Action? StateUpdatedEvent;
-
+    
     private void NotifyValueChanged(CellUpdateType type) {
         UpdateType = type;
 
-        ValueChangedEvent?.Invoke(this);
-        StateUpdatedEvent?.Invoke();
+        NotifyValueChanged(this);
 
         UpdateType = CellUpdateType.None;
     }

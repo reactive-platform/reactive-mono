@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using Reactive.Compiler;
 using Reactive.Components;
@@ -15,16 +14,13 @@ public partial class InputField : ReactiveComponent, IGraphic {
     #region Public API
 
     [RawState, Required]
-    [field: AllowNull]
     public InputFieldContext Context {
         get;
         set {
-            if (field != null) {
-                field.ValueChangedEvent -= HandleContextUpdated;
-            }
+            _contextSubscription?.RemoveCallback();
 
             field = value;
-            field.ValueChangedEvent += HandleContextUpdated;
+            _contextSubscription = field.AddCallback(HandleContextUpdated);
             
             HandleContextUpdated(field);
         }
@@ -34,6 +30,8 @@ public partial class InputField : ReactiveComponent, IGraphic {
         get => _placeholder.Value;
         set => _placeholder.Value = value;
     }
+
+    private StateSubscription? _contextSubscription;
 
     private void HandleContextUpdated(InputFieldContext context) {
         _focused.Value = context.Focused;

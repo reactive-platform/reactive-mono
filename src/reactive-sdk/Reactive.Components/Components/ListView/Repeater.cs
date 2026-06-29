@@ -194,7 +194,7 @@ namespace Reactive.Components {
 
                 if (i >= _cells.Count) {
                     context = new CellContext<TItem>();
-                    context.ValueChangedEvent += HandleCellContextUpdated;
+                    context.AddCallback(HandleCellContextUpdated);
 
                     context.Init(item, i, Items.Count);
 

@@ -19,7 +19,7 @@ public readonly ref struct StateBinder<T, TState> where TState : IState<T> {
             throw new InvalidOperationException("StateBinder wasn't initialized");
         }
 
-        _state.ValueChangedEvent += callback;
+        _state.AddCallback(callback);
 
         if (!_lazy) {
             callback(_state.Value);

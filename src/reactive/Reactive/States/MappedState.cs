@@ -8,30 +8,39 @@ namespace Reactive;
 /// an ability to map a state value.
 /// </summary>
 [PublicAPI]
-public class MappedState<T, TNew> : IState<TNew>, IDisposable {
+public class MappedState<T, TNew> : StateBase<TNew>, IState<TNew>, IDisposable {
     /// <summary>
     /// Represents a state value. Evaluated on each call.
     /// </summary>
-    public TNew Value => _predicate(_state.Value);
-    
-    public event Action<TNew>? ValueChangedEvent;
-    public event Action? StateUpdatedEvent;
+    public TNew Value {
+        get {
+            _value ??= _predicate(_state.Value);
+            return _value;
+        }
+    }
 
     private readonly IState<T> _state;
     private readonly Func<T, TNew> _predicate;
+    private StateSubscription _subscription;
+    private TNew? _value;
 
     public MappedState(IState<T> state, Func<T, TNew> predicate) {
         _state = state;
         _predicate = predicate;
-        state.ValueChangedEvent += HandleValueChanged;
+        _subscription = state.AddCallback(HandleValueChanged, this, null!);
     }
 
-    private void HandleValueChanged(T value) {
-        ValueChangedEvent?.Invoke(_predicate(value));
-        StateUpdatedEvent?.Invoke();
+    private static void HandleValueChanged(ref RefStateSubscription _, T value, object arg1, object arg2) {
+        var self = (MappedState<T, TNew>)arg1;
+        
+        self._value = default;
+
+        if (self.HasCallbacks) {
+            self.NotifyValueChanged(self.Value);
+        }
     }
 
     public void Dispose() {
-        _state.ValueChangedEvent -= HandleValueChanged;
+        _state.RemoveCallback(_subscription);
     }
 }

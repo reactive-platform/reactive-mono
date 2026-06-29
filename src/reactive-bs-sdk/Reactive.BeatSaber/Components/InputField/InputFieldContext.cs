@@ -1,15 +1,14 @@
-using System;
 using JetBrains.Annotations;
 
 namespace Reactive.BeatSaber.Components;
 
 [PublicAPI]
-public class InputFieldContext : IState<InputFieldContext> {
+public class InputFieldContext : StateBase<InputFieldContext>, IState<InputFieldContext> {
     public string? Text {
         get;
         set {
             field = value;
-            NotifyValueChanged();
+            NotifyValueChanged(this);
         }
     }
 
@@ -17,21 +16,9 @@ public class InputFieldContext : IState<InputFieldContext> {
         get;
         set {
             field = value;
-            NotifyValueChanged();
+            NotifyValueChanged(this);
         }
     }
 
-    #region State Impl
-
     InputFieldContext IState<InputFieldContext>.Value => this;
-    
-    public event Action<InputFieldContext>? ValueChangedEvent;
-    public event Action? StateUpdatedEvent;
-
-    private void NotifyValueChanged() {
-        ValueChangedEvent?.Invoke(this);
-        StateUpdatedEvent?.Invoke();
-    }
-
-    #endregion
 }

@@ -8,6 +8,9 @@ public class Sample : ReactiveComponent {
         var text = Remember("");
         var color = RememberAnimated(Color.blue, 200.ms);
 
+        text.AddCallback(Debug.Log);
+        color.AddCallback(static x => Debug.Log(x));
+
         return new Layout {
             FlexController = {
                 FlexDirection = FlexDirection.Column,
@@ -20,10 +23,6 @@ public class Sample : ReactiveComponent {
 
             Children = {
                 new Label {
-                    Do = x => x
-                        .On(text, Debug.Log)
-                        .On(color, x => Debug.Log(x)),
-
                     DoAll = [
                         x => Debug.Log(x),
                         x => Debug.Log(x),

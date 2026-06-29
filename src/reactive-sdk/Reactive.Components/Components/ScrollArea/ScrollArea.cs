@@ -19,7 +19,7 @@ namespace Reactive.Components.Basic {
         public ScrollContext ScrollContext {
             get => _scrollContext!;
             set {
-                _scrollContext?.ValueChangedEvent -= HandleContextUpdated;
+                _scrollContextSubscription?.RemoveCallback();
                 _scrollContext = value;
 
                 var didInitialUpdate = DoInitialUpdate();
@@ -27,7 +27,7 @@ namespace Reactive.Components.Basic {
                     RefreshMeasurements();
                 }
 
-                _scrollContext.ValueChangedEvent += HandleContextUpdated;
+                _scrollContextSubscription = _scrollContext.AddCallback(HandleContextUpdated);
                 HandleContextUpdated(_scrollContext);
             }
         }
@@ -60,6 +60,7 @@ namespace Reactive.Components.Basic {
         private IReactiveComponent? _scrollContent;
         private RectTransform? _contentTransform;
         private ScrollContext? _scrollContext;
+        private StateSubscription? _scrollContextSubscription;
         private bool _needsInitialUpdate = true;
 
         private bool DoInitialUpdate() {

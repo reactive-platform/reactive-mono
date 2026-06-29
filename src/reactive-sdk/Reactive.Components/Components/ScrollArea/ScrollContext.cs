@@ -19,7 +19,7 @@ public enum ScrollUpdateType {
 }
 
 [PublicAPI]
-public class ScrollContext : IState<ScrollContext> {
+public class ScrollContext : StateBase<ScrollContext>, IState<ScrollContext> {
     /// <summary>
     /// Determines the current scroll pos. Set by the user.
     /// </summary>
@@ -164,14 +164,10 @@ public class ScrollContext : IState<ScrollContext> {
 
     ScrollContext IState<ScrollContext>.Value => this;
 
-    public event Action<ScrollContext>? ValueChangedEvent;
-    public event Action? StateUpdatedEvent;
-
     private void NotifyValueChanged(ScrollUpdateType type) {
         UpdateType = type;
 
-        ValueChangedEvent?.Invoke(this);
-        StateUpdatedEvent?.Invoke();
+        NotifyValueChanged(this);
 
         UpdateType = ScrollUpdateType.None;
     }

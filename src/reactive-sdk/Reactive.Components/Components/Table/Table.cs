@@ -20,13 +20,11 @@ namespace Reactive.Components.Basic {
         public ScrollContext ScrollContext {
             get => _scrollContext!;
             set {
-                if (_scrollContext != null) {
-                    _scrollContext.ValueChangedEvent -= HandleScrollContextUpdated;
-                }
+                _scrollContextSubscription?.RemoveCallback();
 
                 _scrollArea.ScrollContext = value;
                 _scrollContext = value;
-                _scrollContext.ValueChangedEvent += HandleScrollContextUpdated;
+                _scrollContextSubscription = _scrollContext.AddCallback(HandleScrollContextUpdated);
 
                 DoInitialUpdate();
             }
@@ -122,6 +120,7 @@ namespace Reactive.Components.Basic {
         private Func<CellContext<TItem>, TCell>? _constructCell;
         private IReadOnlyList<TItem>? _items;
         private ScrollContext? _scrollContext;
+        private StateSubscription? _scrollContextSubscription;
         private bool _needsInitialUpdate = true;
 
         private void DoInitialUpdate() {
