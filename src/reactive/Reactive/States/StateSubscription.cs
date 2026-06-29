@@ -27,6 +27,8 @@ public readonly struct StateSubscription {
     }
 
     public void RemoveCallback() {
+        EnsureInitialized();
+        
         _state.RemoveCallback(this);
     }
 
