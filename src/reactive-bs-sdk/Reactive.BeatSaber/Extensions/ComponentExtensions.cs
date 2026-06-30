@@ -212,21 +212,6 @@ public static class ComponentExtensions {
 
     #endregion
 
-    #region Modal
-
-    public static void Present(this IModal comp, Transform child, bool animated = true) {
-        var screen = child.GetComponentInParent<ViewController>().transform;
-        ModalSystem.PresentModal(comp, screen, animated);
-    }
-
-    public static T WithModal<T>(this T holder, IModal modal, bool animated = true) where T : IComponentHolder<ButtonBase> {
-        var comp = holder.Component;
-        comp.OnClick += () => modal.Present(comp.ContentTransform, animated);
-        return holder;
-    }
-
-    #endregion
-
     /// <summary>
     /// Masks all children outside the rect bounds.
     /// </summary>
