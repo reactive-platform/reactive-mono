@@ -12,13 +12,21 @@ namespace Reactive;
 [PublicAPI]
 public class Composition : MonoBehaviour {
     private readonly List<IOverlay> _overlays = new();
+    private int _startingSiblingIndex;
 
     public void PushOverlay(IOverlay overlay) {
         var insertIndex = InsertOverlay(overlay);
         var trans = overlay.ContentTransform;
-        
+
         trans.SetParent(transform, false);
-        trans.SetSiblingIndex(insertIndex);
+
+        if (_overlays.Count == 1) {
+            trans.SetAsLastSibling();
+            _startingSiblingIndex = trans.GetSiblingIndex();
+        } else {
+            trans.SetSiblingIndex(_startingSiblingIndex + insertIndex);
+        }
+
         trans.gameObject.SetActive(true);
         
         overlay.OnPush();
@@ -28,26 +36,26 @@ public class Composition : MonoBehaviour {
         if (!_overlays.Remove(overlay)) {
             return;
         }
-        
+
         var trans = overlay.ContentTransform;
         var setBackTrans = overlay.SetBackParent;
-        
+
         trans.SetParent(setBackTrans, false);
-        trans.gameObject.SetActive(false); 
-        
+        trans.gameObject.SetActive(false);
+
         overlay.OnPop();
     }
 
     private int InsertOverlay(IOverlay overlay) {
         var zIndex = overlay.ZIndex;
-        
+
         for (var i = _overlays.Count - 1; i >= 0; i--) {
             if (zIndex >= _overlays[i].ZIndex) {
                 _overlays.Insert(i + 1, overlay);
                 return i;
             }
         }
-        
+
         _overlays.Insert(0, overlay);
         return 0;
     }
