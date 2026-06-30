@@ -1,9 +1,10 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Reactive.Components;
 using UnityEngine;
 
-namespace Reactive.Components.Basic;
+namespace Reactive.BeatSaber.Components;
 
 /// <summary>
 /// A wrapper overlay that carries a bounded content view.
@@ -22,7 +23,7 @@ public class Modal : ReactiveComponent, ILayoutDriver {
     /// <summary>
     /// A component that holds the actual content.
     /// </summary>
-    public Layout View => _wrapper;
+    public Layout View => _content;
 
     /// <summary>
     /// Defines placement params for <see cref="PlacementAnchor"/>.
@@ -39,86 +40,81 @@ public class Modal : ReactiveComponent, ILayoutDriver {
     /// </summary>
     public Action? OnClickOutside { get; set; }
 
-    /// <summary>
-    /// Pushes the modal to the stack using params from the object.
-    /// </summary>
-    public bool Push() {
-        if (!_overlay.Push()) {
-            return false;
-        }
-
-        if (PlacementAnchor != null) {
-            AlignModal(PlacementAnchor, PlacementData);
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Pushes the modal to the stack using custom params. This method doesn't change the actual data,
-    /// so further <see cref="Push"/> calls will still use values from the object.
-    /// </summary>
-    public bool PushExplicitly(RectTransform anchor, in PlacementData data) {
-        if (!_overlay.Push()) {
-            return false;
-        }
-
-        AlignModal(anchor, data);
-
-        return true;
-    }
-
-    /// <summary>
-    /// Pops the modal from the stack.
-    /// </summary>
-    public bool Pop() {
-        return _overlay.Pop();
-    }
-
-    private void AlignModal(RectTransform anchor, in PlacementData data) {
-        PlacementTool.Place(_wrapper.ContentTransform, anchor, data);
-    }
-
     #endregion
 
     #region Overlay API
 
     /// <inheritdoc cref="Overlay.ZIndex"/>
-    public int ZIndex { get; set; }
-
-    /// <inheritdoc cref="Overlay.IsPushed"/>
-    public bool IsPushed { get; private set; }
+    public int ZIndex {
+        get => _overlay.ZIndex;
+        set => _overlay.ZIndex = value;
+    }
 
     /// <inheritdoc cref="Overlay.OnPushed"/>
-    public Action? OnPushed { get; set; }
+    public Action? OnPushed {
+        get => _overlay.OnPushed;
+        set => _overlay.OnPushed = value;
+    }
 
     /// <inheritdoc cref="Overlay.OnPopped"/>
-    public Action? OnPopped { get; set; }
+    public Action? OnPopped {
+        get => _overlay.OnPopped;
+        set => _overlay.OnPopped = value;
+    }
+
+    /// <inheritdoc cref="Overlay.IsPushed"/>
+    public bool IsPushed {
+        get => _overlay.IsPushed;
+        set {
+            if (_overlay.IsPushed == value) {
+                return;
+            }
+
+            _overlay.IsPushed = value;
+
+            if (value && PlacementAnchor != null) {
+                PlacementTool.Place(_content.ContentTransform, PlacementAnchor, PlacementData);
+            }
+        }
+    }
 
     #endregion
 
     #region Impl
 
-    public ICollection<ILayoutItem> Children => _wrapper.Children;
+    public ICollection<ILayoutItem> Children => _content.Children;
 
     public ILayoutController? LayoutController {
-        get => _wrapper.LayoutController;
-        set => _wrapper.LayoutController = value;
+        get => _content.LayoutController;
+        set => _content.LayoutController = value;
     }
 
     private Overlay _overlay = null!;
-    private Layout _wrapper = null!;
+    private Layout _content = null!;
     private Image _blocker = null!;
 
     protected override GameObject Construct() {
         return new Overlay {
+            Enabled = false,
+
             Children = {
-                new Image()
+                new Image {
+                        Name = "Blocker",
+                        Sprite = ReactiveResources.TransparentPixel,
+                        RaycastTarget = true,
+                    }
                     .Bind(ref _blocker)
                     .WithRectExpand()
                     .WithPointerEvents(onDown: _ => OnClickOutside?.Invoke()),
 
-                new Layout().Bind(ref _wrapper)
+                new Layout {
+                    Name = "Content",
+
+                    FlexController = {
+                        ConstrainHorizontal = false,
+                        ConstrainVertical = false
+                    },
+                }.Bind(ref _content)
             }
         }.Bind(ref _overlay).Use();
     }

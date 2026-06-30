@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Configuration;
 using JetBrains.Annotations;
 using Reactive.Components;
 using UnityEngine;
@@ -8,11 +10,11 @@ namespace Reactive.Components;
 /// <summary>
 /// A component wrapper that displays over the whole reactive composition.
 /// Note that this component is bound to the composition once used, so in case you need to rebind it,
-/// you have to move pop it, move to another composition and call <see cref="Overlay.RefreshComposition"/>.
+/// you have to pop and push it again.
 /// For more info see <see cref="Composition"/>. 
 /// </summary>
 [PublicAPI]
-public class Overlay : ComponentLayout<Overlay>, IOverlay {
+public class Overlay : Layout, IOverlay {
     #region Public API
 
     /// <summary>
@@ -22,55 +24,39 @@ public class Overlay : ComponentLayout<Overlay>, IOverlay {
     public int ZIndex { get; set; }
 
     /// <summary>
-    /// Defines if the overlay is pushed or not.
-    /// </summary>
-    public bool IsPushed { get; private set; }
-    
-    /// <summary>
     /// Called when the overlay gets pushed to the composition.
     /// </summary>
     public Action? OnPushed { get; set; }
-    
+
     /// <summary>
     /// Called when the overlay gets popped from the composition.
     /// </summary>
     public Action? OnPopped { get; set; }
 
-    private Composition? _composition;
-
-    public bool Push() {
-        if (IsPushed) {
-            return false;
-        }
-
-        RefreshComposition();
-        _composition!.PushOverlay(this);
-
-        IsPushed = true;
-        return true;
-    }
-
-    public bool Pop() {
-        if (!IsPushed) {
-            return false;
-        }
-
-        _composition!.PopOverlay(this);
-        IsPushed = false;
-
-        return true;
-    }
-
     /// <summary>
-    /// Attempts to acquire a new composition instance.
+    /// Determines whether the overlay is pushed or not.
     /// </summary>
-    public void RefreshComposition() {
-        if (IsPushed) {
-            throw new InvalidOperationException("Cannot change composition when presented");
-        }
+    public bool IsPushed {
+        get;
+        set {
+            if (value == field) {
+                return;
+            }
 
-        _composition = Composition.GetComposition(Content);
+            if (value) {
+                _composition ??= Composition.GetComposition(Content);
+                _composition!.PushOverlay(this);
+                
+                ContentTransform.WithRectExpand();
+            } else {
+                _composition!.PopOverlay(this);
+            }
+
+            field = value;
+        }
     }
+
+    private Composition? _composition;
 
     #endregion
 
