@@ -143,6 +143,24 @@ namespace Reactive.BeatSaber {
             };
         }
 
+        public static class BsDropdown {
+            public static readonly ColorSet ItemBackgroundColors = new() {
+                HoveredColor = Color.white with { a = 0.2f },
+                ActiveColor = Color.white with { a = 0.5f },
+            };
+            
+            public static readonly ColorSet ItemContentColors = new() {
+                Color = Color.white with { a = 0.9f },
+                HoveredColor = Color.white,
+                ActiveColor = new(0f, 0.75f, 1f)
+            };
+            
+            public static readonly ColorSet ButtonBackgroundColors = new() {
+                Color = Color.black with { a = 0.5f },
+                HoveredColor = Color.white with { a = 0.3f },
+            };
+        }
+
         public static readonly Color PrimaryButtonColor = new(0, 0.5f, 1f);
 
         public static readonly Color TextColor = Color.white;

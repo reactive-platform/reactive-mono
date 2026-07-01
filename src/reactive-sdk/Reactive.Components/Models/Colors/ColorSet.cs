@@ -27,7 +27,7 @@ namespace Reactive.Components {
 
     [PublicAPI]
     public static class ColorSetExtensions {
-        public static IState<Color> MapColorSet(this IState<GraphicState> state, ColorSet set) {
+        public static MappedState<GraphicState, Color> MapColorSet(this IState<GraphicState> state, ColorSet set) {
             return state.Map(set.GetColor);
         }
     }
