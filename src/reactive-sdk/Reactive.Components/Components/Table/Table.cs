@@ -236,7 +236,7 @@ namespace Reactive.Components.Basic {
 
             var startIdx = Mathf.FloorToInt((scrollPos + 0.01f) / CellSize);
             var endIdx = Mathf.CeilToInt((scrollPos + ScrollContext.ViewSize - 0.01f) / CellSize);
-            var cellsCount = endIdx - startIdx;
+            var cellsCount = Mathf.Min(endIdx - startIdx, Items.Count);
 
             _scrollContent.sizeDelta = new(0f, Items.Count * CellSize);
             _cellStartPos = startIdx * CellSize;
