@@ -35,6 +35,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
             if (_initialized) {
                 SetKey(value, true);
             } else {
+                _key = value;
                 DoInitialUpdate();
             }
         }
@@ -110,7 +111,10 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
                 x.WithPointerEvents(
                     onEnter: _ => graphic.IsHovered = true,
                     onLeave: _ => graphic.IsHovered = false,
-                    onDown: _ => modalOpened.Value = true
+                    onDown: _ => {
+                        modalOpened.Value = true;
+                        GameResources.ButtonClickSignal.Raise();
+                    }
                 );
 
                 anchor.Value = x.ContentTransform;
@@ -158,25 +162,40 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
                     },
 
                     Children = {
-                        new Image()
-                            .AsBlurBackground()
-                            .WithRectExpand(),
-
-                        new Table<T, IReactiveComponent> {
+                        new Background {
                             FlexItem = {
-                                Size = new() { x = 36.pt, y = (7 * 5).pt },
-                                Margin = new() { top = 1.pt, bottom = 1.pt }
+                                Flex = 1
                             },
 
+                            FlexController = {
+                                Padding = new() { top = 1.pt, bottom = 1.pt }
+                            },
+
+                            Children = {
+                                new Table<T, IReactiveComponent> {
+                                    FlexItem = {
+                                        Size = new() { x = 36.pt, y = (7 * 5).pt },
+                                        Margin = new() { top = 1.pt, bottom = 1.pt }
+                                    },
+
+                                    ScrollContext = scrollContext,
+                                    Items = Array.Empty<T>(),
+
+                                    OnSelectedItemsChanged = x => {
+                                        if (x.Count > 0) {
+                                            SetKey(x.First(), false);
+                                        }
+                                    },
+
+                                    ConstructCell = CreateCell
+                                }.Bind(ref _table),
+                            }
+                        }.AsBlurBackground(),
+
+                        new Scrollbar {
                             ScrollContext = scrollContext,
-                            Items = Array.Empty<T>(),
-
-                            OnSelectedItemsChanged = x => {
-                                SetKey(x.First(), false);
-                            },
-
-                            ConstructCell = CreateCell
-                        }.Bind(ref _table)
+                            HideIfNothingToScroll = true
+                        }
                     }
                 }
             }
@@ -205,7 +224,10 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
             Do = x => x.WithPointerEvents(
                 onEnter: _ => graphic.IsHovered = true,
                 onLeave: _ => graphic.IsHovered = false,
-                onDown: _ => context.Selected = true
+                onDown: _ => {
+                    context.Selected = true;
+                    GameResources.ButtonClickSignal.Raise();
+                }
             ),
 
             Sprite = BeatSaberResources.Sprites.rectangle,
