@@ -143,7 +143,7 @@ namespace Reactive.Components.Basic {
             foreach (var pair in _cells) {
                 // We only care about visible cells
                 if (!pair.Cell.Enabled) {
-                    return;
+                    continue;
                 }
 
                 pair.Context.Selected = SelectedItems.Contains(pair.Context.Item);
@@ -310,16 +310,7 @@ namespace Reactive.Components.Basic {
 
         #region Callbacks
 
-        private bool _updatingCellContext;
-
         private void HandleCellContextUpdated(CellContext<TItem> context) {
-            if (_updatingCellContext) {
-                return;
-            }
-
-            // A guard to prevent this being called on each cell
-            _updatingCellContext = true;
-            
             if (context.UpdateType is not CellUpdateType.Selection) {
                 return;
             }
@@ -348,7 +339,6 @@ namespace Reactive.Components.Basic {
             }
 
             RefreshSelected();
-            _updatingCellContext = false;
         }
 
         private void HandleScrollContextUpdated(ScrollContext context) {
