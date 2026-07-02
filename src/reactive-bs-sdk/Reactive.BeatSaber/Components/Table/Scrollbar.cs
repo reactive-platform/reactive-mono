@@ -134,13 +134,14 @@ namespace Reactive.BeatSaber.Components {
                         Material = GameResources.UINoGlowMaterial,
                         PreserveAspect = true,
                         
+                        // Must be lazy because initially scroll context is null
                         sColor = RememberDerived(x => {
                             if (x.enabled.Value) {
                                 return Color.white.ColorWithAlpha(x.hovered ? 1f : 0.5f);
                             } else {
                                 return Color.black.ColorWithAlpha(0.5f);
                             }
-                        }, (hovered, enabled)),
+                        }, (hovered, enabled)).InLazy(),
                     }
                 }
             };
@@ -157,7 +158,7 @@ namespace Reactive.BeatSaber.Components {
                         _scrollContextState.Where(x => x!.UpdateType is ScrollFinished or Measurements),
                         _hideIfNothingToScroll
                     )
-                ),
+                ).InLazy(),
 
                 // This will be the default value for the Scrollbar
                 // as layout and component properties are shared
