@@ -217,6 +217,7 @@ namespace Reactive.Components.Basic {
             var context = new CellContext<TItem>();
             // Init before constructing
             context.Init(item, index, Items.Count);
+            context.ValueChangedEvent += HandleCellContextUpdated;
 
             var cell = ConstructCell(context);
             cell.Use(_scrollContent);
@@ -309,16 +310,45 @@ namespace Reactive.Components.Basic {
 
         #region Callbacks
 
-        private void HandleCellContextUpdated(CellContext<TItem> context) {
-            if (context.UpdateType is CellUpdateType.Selection) {
-                if (context.Selected) {
-                    _selectedItems.Add(context.Item);
-                } else {
-                    _selectedItems.Remove(context.Item);
-                }
+        private bool _updatingCellContext;
 
-                RefreshSelected();
+        private void HandleCellContextUpdated(CellContext<TItem> context) {
+            if (_updatingCellContext) {
+                return;
             }
+
+            // A guard to prevent this being called on each cell
+            _updatingCellContext = true;
+            
+            if (context.UpdateType is not CellUpdateType.Selection) {
+                return;
+            }
+
+            switch (SelectionMode) {
+                case SelectionMode.None:
+                    _selectedItems.Clear();
+                    break;
+
+                case SelectionMode.Single:
+                    if (context.Selected) {
+                        _selectedItems.Clear();
+                        _selectedItems.Add(context.Item);
+                    } else {
+                        _selectedItems.Remove(context.Item);
+                    }
+                    break;
+
+                case SelectionMode.Multiple:
+                    if (context.Selected) {
+                        _selectedItems.Add(context.Item);
+                    } else {
+                        _selectedItems.Remove(context.Item);
+                    }
+                    break;
+            }
+
+            RefreshSelected();
+            _updatingCellContext = false;
         }
 
         private void HandleScrollContextUpdated(ScrollContext context) {
