@@ -13,16 +13,22 @@ public readonly ref struct StateBinder<T, TState> where TState : IState<T> {
         _state = state;
         _lazy = lazy;
     }
-    
-    public void Attach(Action<T> callback) {
+
+    public void AddCallback<TComp>(TComp comp, Action<TComp, T> callback) where TComp : ILifetimeProvider {
+        EnsureInitialized();
+        
+        _state!.AddCallback(comp, callback, _lazy);
+    }
+
+    public void AddCallbackUnity<TComp>(TComp comp, Action<TComp, T> callback) where TComp : UnityEngine.Object {
+        EnsureInitialized();
+        
+        _state!.AddCallbackUnity(comp, callback, _lazy);
+    }
+
+    private void EnsureInitialized() {
         if (_state == null) {
             throw new InvalidOperationException("StateBinder wasn't initialized");
-        }
-
-        _state.ValueChangedEvent += callback;
-
-        if (!_lazy) {
-            callback(_state.Value);
         }
     }
 
@@ -37,7 +43,7 @@ public static class StateBinderExtensions {
         public StateBinder<T, IState<T>> In() {
             return new(binder, false);
         }
-        
+
         public StateBinder<T, IState<T>> InLazy() {
             return new(binder, true);
         }

@@ -221,6 +221,7 @@ namespace Reactive {
 
         public bool IsInitialized { get; private set; }
         public bool IsDestroyed { get; private set; }
+        bool ILifetimeProvider.IsAlive => !IsDestroyed;
 
         protected Canvas? Canvas {
             get {

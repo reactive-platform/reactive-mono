@@ -8,7 +8,7 @@ namespace Reactive;
 /// an ability to set a condition over state updates.
 /// </summary>
 [PublicAPI]
-public class BranchedState<T> : IState<T>, IDisposable {
+public class BranchedState<T> : StateBase<T>, IState<T>, IDisposable {
     /// <summary>
     /// Represents a state value. Keep in mind that it returns the last value
     /// that met branching conditions, so it's not guaranteed that the value is equal to the original one.
@@ -17,28 +17,28 @@ public class BranchedState<T> : IState<T>, IDisposable {
     /// </summary>
     public T Value { get; private set; }
 
-    public event Action<T>? ValueChangedEvent;
-    public event Action? StateUpdatedEvent;
-
     private readonly IState<T> _state;
     private readonly Func<T, bool> _predicate;
+    private readonly StateSubscription _subscription;
 
     public BranchedState(IState<T> state, Func<T, bool> predicate) {
         _state = state;
         _predicate = predicate;
-        
+
         Value = state.Value;
-        state.ValueChangedEvent += HandleValueChanged;
+        _subscription = state.AddCallback(HandleValueChanged, this, null!);
     }
 
-    private void HandleValueChanged(T value) {
-        if (_predicate(value)) {
-            Value = value;
-            ValueChangedEvent?.Invoke(value);
+    private static void HandleValueChanged(ref RefStateSubscription sub, T value, object arg1, object arg2) {
+        var self = (BranchedState<T>)arg1;
+
+        if (self._predicate(value)) {
+            self.Value = value;
+            self.NotifyValueChanged(value);
         }
     }
 
     public void Dispose() {
-        _state.ValueChangedEvent -= HandleValueChanged;
+        _state.RemoveCallback(_subscription);
     }
 }

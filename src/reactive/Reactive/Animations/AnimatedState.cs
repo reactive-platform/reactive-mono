@@ -8,7 +8,7 @@ namespace Reactive {
     /// </summary>
     /// <typeparam name="T">A type of the state.</typeparam>
     [PublicAPI]
-    public class AnimatedState<T> : IState<T>, IReactiveModule {
+    public class AnimatedState<T> : StateBase<T>, IState<T>, IReactiveModule {
         public AnimatedState(T initialValue, IValueInterpolator<T> valueInterpolator) {
             _startValue = initialValue;
             _targetValue = initialValue;
@@ -16,6 +16,7 @@ namespace Reactive {
             _set = true;
             _progress = 1f;
             _elapsedTime = 0f;
+            Value = _valueInterpolator.Lerp(_startValue, _targetValue, _progress);
         }
 
         public T TargetValue {
@@ -44,12 +45,13 @@ namespace Reactive {
             get => _progress;
             private set {
                 _progress = value;
-                ValueChangedEvent?.Invoke(Value);
-                StateUpdatedEvent?.Invoke();
+                Value = _valueInterpolator.Lerp(_startValue, _targetValue, _progress);
+                NotifyValueChanged(Value);
             }
         }
-        
-        public T Value => _valueInterpolator.Lerp(_startValue, _targetValue, _progress);
+
+        public T Value { get; private set; }
+
         public bool IsFinished => _set;
 
         public AnimationDuration Duration { get; set; }
@@ -57,9 +59,6 @@ namespace Reactive {
 
         public Action<T>? OnFinish { get; set; }
         public Action<T>? OnStart { get; set; }
-
-        public event Action<T>? ValueChangedEvent;
-        public event Action? StateUpdatedEvent;
 
         private readonly IValueInterpolator<T> _valueInterpolator;
         private T _targetValue;

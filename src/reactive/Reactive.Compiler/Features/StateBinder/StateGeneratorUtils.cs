@@ -31,6 +31,20 @@ internal static class StateGeneratorUtils {
             .Any(x => x.IsStateType());
     }
 
+    public static bool IsUnityObject(ITypeSymbol symbol) {
+        var current = symbol;
+        
+        while (current != null) {
+            if (current.ToDisplayString() == "UnityEngine.Object") {
+                return true;
+            }
+
+            current = current.BaseType;
+        }
+
+        return false;
+    }
+
     public static bool IsStateType(this ISymbol? symbol) {
         return symbol is ITypeSymbol type && (IsStateTypeSelf(type) || type.AllInterfaces.Any(IsStateTypeSelf));
     }
