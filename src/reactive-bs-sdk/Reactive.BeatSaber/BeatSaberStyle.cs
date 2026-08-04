@@ -161,6 +161,24 @@ namespace Reactive.BeatSaber {
             };
         }
 
+        public static class BsToggle {
+            public static readonly ColorSet BackgroundColors = new() {
+                Color = Color.black with { a = 0.5f },
+                ActiveColor = Color.black with { a = 0.5f },
+                HoveredColor = Color.white with { a = 0.3f },
+            };
+
+            public static readonly ColorSet KnobColors = new() {
+                Color = Color.black with { a = 0.5f },
+                ActiveColor = new(0f, 0.75f, 1f),
+            };
+
+            public static readonly ColorSet TextColors = new() {
+                Color = Color.white.ColorWithAlpha(0.2f),
+                ActiveColor = Color.white
+            };
+        }
+
         public static readonly Color PrimaryButtonColor = new(0, 0.5f, 1f);
 
         public static readonly Color TextColor = Color.white;
