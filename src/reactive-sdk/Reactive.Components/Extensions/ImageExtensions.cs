@@ -25,12 +25,6 @@ public static class ImageExtensions {
         if (ResolveModule(binder) is not { } loaderModule) {
             loaderModule = new(renderer);
             binder.BindModule(loaderModule);
-
-            comp.Component.WithListener(x => x.Sprite, (newSprite) => {
-                if (newSprite != loaderModule.LoadedImage?.Sprite) {
-                    loaderModule.StopLoading();
-                }
-            });
         }
 
         loaderModule.LoadRemote(url, onStart, onFinish);
@@ -50,6 +44,6 @@ public static class ImageExtensions {
     }
 
     private static ImageLoaderModule? ResolveModule(IReactiveModuleBinder binder) {
-        return binder.Modules.FirstOrDefault(x => x.GetType() == typeof(ImageLoaderModule)) as ImageLoaderModule;
+        return binder.Modules.OfType<ImageLoaderModule>().FirstOrDefault();
     }
 }

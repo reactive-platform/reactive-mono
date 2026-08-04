@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+// ReSharper disable ForCanBeConvertedToForeach
 namespace Reactive {
     public partial class ReactiveComponent {
         [RequireComponent(typeof(RectTransform))]
@@ -79,7 +80,9 @@ namespace Reactive {
 
             public void EndApply() {
                 _beingApplied = false;
-                _components.ForEach(static x => x.OnLayoutApply());
+                for (var i = 0; i < _components.Count; i++) {
+                    _components[i].OnLayoutApply();
+                }
             }
 
             #endregion
@@ -105,7 +108,9 @@ namespace Reactive {
                     LayoutDriver.RecalculateLayoutImmediate();
                 } else {
                     // If not, tell own components to start recalculation (if there is a Layout or a custom layout controller) 
-                    _components.ForEach(static x => x.OnRecalculateLayoutSelf());
+                    for (var i = 0; i < _components.Count; i++) {
+                        _components[i].OnRecalculateLayoutSelf();
+                    }
                 }
 
                 _beingRecalculated = false;
@@ -275,13 +280,23 @@ namespace Reactive {
             }
 
             private void Start() {
-                _components.ForEach(static x => x.OnStart());
+                for (var i = 0; i < _components.Count; i++) {
+                    _components[i].OnStart();
+                }
+                
                 IsStarted = true;
             }
 
             private void Update() {
-                _components.ForEach(static x => x.OnUpdate());
-                _modules?.ForEach(static x => x.OnUpdate());
+                for (var i = 0; i < _components.Count; i++) {
+                    _components[i].OnUpdate();
+                }
+
+                if (_modules != null) {
+                    foreach (var module in _modules) {
+                        module.OnUpdate();
+                    }
+                }
             }
 
             private void LateUpdate() {
@@ -290,11 +305,17 @@ namespace Reactive {
 
                     _recalculationScheduled = false;
                 }
-                _components.ForEach(static x => x.OnLateUpdate());
+
+                for (var i = 0; i < _components.Count; i++) {
+                    _components[i].OnLateUpdate();
+                }
             }
 
             private void OnDestroy() {
-                _components.ForEach(static x => x.DestroyInternal());
+                for (var i = 0; i < _components.Count; i++) {
+                    _components[i].OnDestroy();
+                }
+                
                 IsDestroyed = true;
             }
 
@@ -306,7 +327,9 @@ namespace Reactive {
                 StateUpdatedEvent?.Invoke(this);
                 ScheduleLayoutRecalculationAfterStateChange(true);
 
-                _components.ForEach(static x => x.OnEnable());
+                for (var i = 0; i < _components.Count; i++) {
+                    _components[i].OnEnable();
+                }
                 _wasActuallyDisabled = false;
             }
 
@@ -318,7 +341,9 @@ namespace Reactive {
                 StateUpdatedEvent?.Invoke(this);
                 ScheduleLayoutRecalculationAfterStateChange(false);
 
-                _components.ForEach(static x => x.OnDisable());
+                for (var i = 0; i < _components.Count; i++) {
+                    _components[i].OnDisable();
+                }
                 _wasActuallyDisabled = true;
             }
 
@@ -331,7 +356,10 @@ namespace Reactive {
                 if (!_beingApplied) {
                     _recalculationScheduled = true;
                 }
-                _components.ForEach(static x => x.OnRectDimensionsChanged());
+                
+                for (var i = 0; i < _components.Count; i++) {
+                    _components[i].OnRectDimensionsChanged();
+                }
             }
 
             #endregion

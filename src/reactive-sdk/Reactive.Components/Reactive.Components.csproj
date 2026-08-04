@@ -45,6 +45,12 @@
             <HintPath>$(UnityAssembliesDir)/UnityEngine.ImageConversionModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
+        <Reference Include="UnityEngine.UnityWebRequestTextureModule">
+            <HintPath>$(UnityAssembliesDir)/UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UnityWebRequestModule">
+            <HintPath>$(UnityAssembliesDir)/UnityEngine.UnityWebRequestModule.dll</HintPath>
+        </Reference>
         <ProjectReference Include="../../reactive/Reactive/Reactive.csproj" />
         <ProjectReference Include="..\..\reactive\Reactive.Compiler\Reactive.Compiler.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     </ItemGroup>
