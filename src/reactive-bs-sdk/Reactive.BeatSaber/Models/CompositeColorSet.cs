@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using Reactive.BeatSaber.Components;
 using Reactive.Components;
 using UnityEngine;
 
@@ -32,5 +33,16 @@ public readonly record struct CompositeColors(
 public static class ColorSetExtensions {
     public static IState<CompositeColors> MapColorSet(this IState<GraphicState> state, CompositeColorSet set) {
         return state.Map(set.GetColors);
+    }
+    
+    extension<T>(IComponentHolder<T> holder) where T : Image {
+        public CompositeColors Colors {
+            set {
+                var img = holder.Component;
+                img.Color = value.Color;
+                img.GradientColor0 = value.GradientColor0;
+                img.GradientColor1 = value.GradientColor1;
+            }
+        }
     }
 }

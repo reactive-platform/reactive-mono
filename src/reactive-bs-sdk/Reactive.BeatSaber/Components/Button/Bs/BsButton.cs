@@ -78,10 +78,8 @@ namespace Reactive.BeatSaber.Components {
                 FlexItem = {
                     Size = new() { y = 8.pt }
                 },
-
-                sColor = bgColor.Map(x => x.Color),
-                sGradientColor0 = bgColor.Map(x => x.GradientColor0),
-                sGradientColor1 = bgColor.Map(x => x.GradientColor1),
+                
+                sColors = bgColor.In(),
 
                 UseGradient = true,
                 Sprite = BeatSaberResources.Sprites.background,

@@ -73,9 +73,7 @@ public partial class KeyboardButton : ReactiveComponent, ILayoutDriver {
                 MinSize = new() { x = 7.pt }
             },
 
-            sColor = bgColor.Map(x => x.Color),
-            sGradientColor0 = bgColor.Map(x => x.GradientColor0),
-            sGradientColor1 = bgColor.Map(x => x.GradientColor1),
+            sColors = bgColor.In(),
 
             UseGradient = true,
             GradientDirection = ImageView.GradientDirection.Vertical,
