@@ -209,7 +209,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
 
         var item = context.Map(x => Items[x.Item]);
 
-        context.Attach(x => graphic.IsActive = x.Selected);
+        context.AddCallback(x => graphic.IsActive = x.Selected);
 
         return new Background {
             FlexController = {

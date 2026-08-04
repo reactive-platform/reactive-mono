@@ -216,7 +216,7 @@ namespace Reactive.Components.Basic {
             var context = new CellContext<TItem>();
             // Init before constructing
             context.Init(item, index, Items.Count);
-            context.ValueChangedEvent += HandleCellContextUpdated;
+            context.AddCallback(HandleCellContextUpdated);
 
             var cell = ConstructCell(context);
             cell.Use(_scrollContent);
