@@ -1,6 +1,5 @@
 using JetBrains.Annotations;
 using Reactive.Compiler;
-using Reactive.Components;
 using Reactive.Yoga;
 using UnityEngine;
 
@@ -9,64 +8,67 @@ namespace Reactive.BeatSaber.Components {
     /// A color picker component.
     /// </summary>
     [PublicAPI]
-    public class ColorPicker : ReactiveComponent, IComponentHolder<IModal> {
-        #region UI Props
+    public partial class ColorPicker : ReactiveComponent, ISkewedComponent {
+        #region Public API
 
-        public Color Color {
-            get => _color;
+        [RawState, Required]
+        public ColorPickerContext Context {
+            get;
             set {
-                _color = value;
-                _colorSampleImage.Color = value;
+                _contextSubscription?.RemoveCallback();
 
-                if (_modalOpened) {
-                    _circleModal.Modal.ColorCircle.SetColor(value, false);
-                }
+                field = value;
+                _contextSubscription = field.AddCallback(HandleContextUpdated);
 
-                NotifyPropertyChanged();
+                HandleContextUpdated(field);
             }
         }
 
-        public RelativePlacement CirclePlacement { get; set; } = RelativePlacement.Center;
+        public float Skew {
+            get => _skew.Value;
+            set => _skew.Value = value;
+        }
 
-        private Color _color;
-        private bool _modalOpened;
+        private StateSubscription? _contextSubscription;
+
+        private void HandleContextUpdated(ColorPickerContext context) {
+            var color = context.Focused ? context.Color : context.SelectedColor;
+
+            _sampleColor.Value = color with { a = 1f };
+        }
 
         #endregion
 
         #region Construct
 
-        IModal IComponentHolder<IModal>.Component => _circleModal;
-
-        private SharedModal<ColorCircleModal> _circleModal = null!;
-        private Image _colorSampleImage = null!;
+        private State<Color> _sampleColor = null!;
+        private State<float> _skew = null!;
 
         protected override GameObject Construct() {
-            // Color circle
-            new SharedModal<ColorCircleModal>()
-                .WithAnchor(
-                    this,
-                    Lazy(() => CirclePlacement, false),
-                    unbindOnceOpened: false
-                )
-                .WithJumpAnimation()
-                .WithOpenListener(HandleModalOpened)
-                .WithCloseListener(HandleModalClosed)
-                .Bind(ref _circleModal);
+            _sampleColor = Remember(Color.white);
+            _skew = Remember(0f);
 
             return new BsAeroButton {
                 FlexController = {
-                    AlignItems = Align.Stretch
+                    AlignItems = Align.Stretch,
+                    Padding = 0.pt
+                },
+
+                sSkew = _skew,
+
+                OnClick = () => {
+                    Context.Focused = true;
                 },
 
                 ConstructContent = (_, skew) => new Layout {
                     FlexController = {
                         JustifyContent = Justify.FlexStart,
-                        Padding = new() { left = 2.pt, top = 1.pt, right = 2.pt, bottom = 1.pt },
+                        Padding = new() { left = 2.pt, right = 2.pt },
                         Gap = 1.pt
                     },
 
                     FlexItem = {
-                        Flex = 1
+                        MinSize = new() { x = 9.pt }
                     },
 
                     Children = {
@@ -90,49 +92,16 @@ namespace Reactive.BeatSaber.Components {
                             },
 
                             Name = "Sample",
+
                             sSkew = skew.In(),
+                            sColor = _sampleColor,
 
                             Sprite = GameResources.CircleIcon,
                             PreserveAspect = true
-                        }.Bind(ref _colorSampleImage),
+                        },
                     }
                 }
-            }.Use();
-        }
-
-        #endregion
-
-        #region Callbacks
-
-        private void HandleModalOpened(IModal modal, bool finished) {
-            if (finished) {
-                return;
-            }
-
-            _modalOpened = true;
-            _circleModal.Modal.WithListener(
-                x => x.ColorCircle.SavedColor,
-                HandleColorChanged
-            );
-            Color = _color;
-        }
-
-        private void HandleModalClosed(IModal modal, bool finished) {
-            if (finished) {
-                return;
-            }
-
-            _modalOpened = false;
-            _circleModal.Modal.WithoutListener(
-                x => x.ColorCircle.SavedColor,
-                HandleColorChanged
-            );
-        }
-
-        private void HandleColorChanged(Color color) {
-            _colorSampleImage.Color = color;
-            _color = color;
-            NotifyPropertyChanged(nameof(Color));
+            }.AsFlexItem().Use();
         }
 
         #endregion
