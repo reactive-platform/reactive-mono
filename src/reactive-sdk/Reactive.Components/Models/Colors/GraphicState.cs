@@ -4,8 +4,8 @@ namespace Reactive.Components {
     [Flags]
     public enum GraphicState {
         None = 0,
-        NonInteractable = 1,
-        Hovered = 2,
-        Active = 4
+        Hovered = 1,
+        Active = 2,
+        NonInteractable = 4,
     }
 }

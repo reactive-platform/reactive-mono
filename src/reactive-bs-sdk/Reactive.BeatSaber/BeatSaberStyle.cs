@@ -136,7 +136,7 @@ namespace Reactive.BeatSaber {
                 Color = Color.white with { a = 0.25f },
                 HoveredColor = Color.white
             };
-            
+
             public static readonly ColorSet KeyContentColors = new() {
                 Color = Color.white with { a = 0.9f },
                 HoveredColor = Color.white
@@ -148,13 +148,13 @@ namespace Reactive.BeatSaber {
                 HoveredColor = Color.white with { a = 0.2f },
                 ActiveColor = Color.white with { a = 0.5f },
             };
-            
+
             public static readonly ColorSet ItemContentColors = new() {
                 Color = Color.white with { a = 0.9f },
                 HoveredColor = Color.white,
                 ActiveColor = new(0f, 0.75f, 1f)
             };
-            
+
             public static readonly ColorSet ButtonBackgroundColors = new() {
                 Color = Color.black with { a = 0.5f },
                 HoveredColor = Color.white with { a = 0.3f },
@@ -164,7 +164,6 @@ namespace Reactive.BeatSaber {
         public static class BsToggle {
             public static readonly ColorSet BackgroundColors = new() {
                 Color = Color.black with { a = 0.5f },
-                ActiveColor = Color.black with { a = 0.5f },
                 HoveredColor = Color.white with { a = 0.3f },
             };
 

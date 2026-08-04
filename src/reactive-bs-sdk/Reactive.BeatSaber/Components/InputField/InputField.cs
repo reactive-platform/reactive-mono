@@ -100,7 +100,7 @@ public partial class InputField : ReactiveComponent, IGraphic {
                     new Image {
                         Name = "Icon",
                         PreserveAspect = true,
-                        Color = BeatSaberStyle.BsInputField.ContentColors.HoveredColor,
+                        Color = BeatSaberStyle.BsInputField.ContentColors.HoveredColor.GetValueOrDefault(),
                         Sprite = GameResources.SearchIcon,
                     }.AsFlexItem(),
 

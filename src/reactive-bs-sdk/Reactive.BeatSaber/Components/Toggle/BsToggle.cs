@@ -49,19 +49,15 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
         _interactable = Remember(true);
         _toggled = Remember(false);
 
-        var hovered = Remember(false);
+        var graphic = Remember(GraphicState.None);
 
-        var bgColor = hovered.Map(x => x ?
-            BeatSaberStyle.BsToggle.BackgroundColors.HoveredColor :
-            BeatSaberStyle.BsToggle.BackgroundColors.Color
-        );
+        var bgColor = graphic.MapColorSet(BeatSaberStyle.BsToggle.BackgroundColors);
+        var knobColor = graphic.MapColorSet(BeatSaberStyle.BsToggle.KnobColors);
 
-        var knobColor = _toggled.Map(x => x ?
-            BeatSaberStyle.BsToggle.KnobColors.ActiveColor :
-            BeatSaberStyle.BsToggle.KnobColors.Color
-        );
-
-        _toggled.AddCallback(x => _progressValue.TargetValue = x ? 1 : 0);
+        _toggled.AddCallback(x => {
+            _progressValue.TargetValue = x ? 1 : 0;
+            graphic.IsActive = x;
+        });
 
         return new Background {
             FlexItem = {
@@ -76,8 +72,8 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
 
             Do = x => x.WithPointerEvents(
                 onDown: _ => Toggled = !Toggled,
-                onEnter: _ => hovered.Value = true,
-                onLeave: _ => hovered.Value = false
+                onEnter: _ => graphic.IsHovered = true,
+                onLeave: _ => graphic.IsHovered = false
             ),
 
             Children = {
@@ -93,7 +89,7 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
                             Text = "I",
                             Alignment = TextAlignmentOptions.Capline,
 
-                            sColor = _progressValue.Map(x => Color.Lerp(Color.clear, BeatSaberStyle.BsToggle.TextColors.ActiveColor, x))
+                            sColor = _progressValue.Map(x => Color.Lerp(Color.clear, BeatSaberStyle.BsToggle.TextColors.ActiveColor.GetValueOrDefault(), x))
                         },
 
                         new Label {
