@@ -5,7 +5,6 @@ using Reactive.Components;
 using Reactive.Yoga;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace Reactive.BeatSaber.Components;
 
@@ -46,8 +45,6 @@ public partial class InputField : ReactiveComponent, IGraphic {
     private State<string?> _text = null!;
     private State<string> _placeholder = null!;
 
-    private PointerEventsHandler _pointerEventsHandler = null!;
-
     protected override GameObject Construct() {
         _focused = Remember(false);
         _text = Remember<string?>(null);
@@ -68,12 +65,6 @@ public partial class InputField : ReactiveComponent, IGraphic {
             OnClick = () => {
                 _focused.Value = true;
                 Context.Focused = true;
-
-                var dummyData = new PointerEventData(EventSystem.current);
-
-                // Stealing input
-                _pointerEventsHandler.OnPointerExit(dummyData);
-                _pointerEventsHandler.enabled = false;
             },
 
             ConstructContent = (_, _) => new Layout {
@@ -162,7 +153,7 @@ public partial class InputField : ReactiveComponent, IGraphic {
                     )
                 }
             }
-        }.WithNativeComponent(out _pointerEventsHandler).Use();
+        }.Use();
     }
 
     private static IReactiveComponent CreateCloseButton(
