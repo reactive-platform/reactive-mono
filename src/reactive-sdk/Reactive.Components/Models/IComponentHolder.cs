@@ -8,6 +8,6 @@ namespace Reactive.Components;
 /// </summary>
 /// <typeparam name="T">An instance of another object.</typeparam>
 [PublicAPI]
-public interface IComponentHolder<out T> {
+public interface IComponentHolder<out T> : ILifetimeProvider {
     T Component { get; }
 }

@@ -49,7 +49,9 @@ internal class StateGenerator : IIncrementalGenerator {
                 var type = (INamedTypeSymbol?)typeGroup.Key;
                 if (type == null) return;
 
-                var ext = GenerateTypeExtension(type, typeGroup);
+                var genericsType = type.IsExtension ? (INamedTypeSymbol)type.ExtensionParameter!.Type : type;
+
+                var ext = GenerateTypeExtension(type, genericsType, typeGroup);
                 var identifier = type.GetTypeIdentifier();
 
                 var file = $"Reactive_{identifier}_StateExt.g.cs";
@@ -124,6 +126,7 @@ internal class StateGenerator : IIncrementalGenerator {
         }
 
         var statePropName = assignment.Left.ToString();
+        var position = assignment.Left.SpanStart;
 
         foreach (var pattern in patterns) {
             var rex = pattern.Replace("{}", "([A-Za-z0-9_]+)");
@@ -132,7 +135,15 @@ internal class StateGenerator : IIncrementalGenerator {
             }
 
             var matchedPropName = match.Groups[1].Value;
-            var symbol = containingType.GetMembersRecursive(matchedPropName).FirstOrDefault();
+
+            var symbols = semanticModel.LookupSymbols(
+                position,
+                containingType,
+                matchedPropName,
+                includeReducedExtensionMethods: true // CRUCIAL!! Captures extension properties
+            );
+
+            var symbol = symbols.FirstOrDefault();
 
             if (symbol is IPropertySymbol prop) {
                 // Raw states are excluded from the generation process
@@ -147,9 +158,42 @@ internal class StateGenerator : IIncrementalGenerator {
         return null;
     }
 
-    private static string GenerateTypeExtension(INamedTypeSymbol type, IEnumerable<IGrouping<ISymbol?, string>> propGroups) {
-        var inner = new StringBuilder();
+    private static string GenerateTypeExtension(INamedTypeSymbol containingType, INamedTypeSymbol type, IEnumerable<IGrouping<ISymbol?, string>> propGroups) {
+        var template =
+            """
+            {5}
 
+            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+            [System.CodeDom.Compiler.GeneratedCode("Reactive_StateGenerator", "1.0")]
+            internal static class Reactive_{0}_StateGenExt {{
+                extension{3}({1} obj) {4} {{
+                    {2}
+                }}
+            }}
+            """;
+
+        var typeIdentifier = type.GetTypeIdentifier();
+        var propertyBlocks = GenerateProps(type, propGroups);
+
+        var genericArguments = CompilerHelper.GenerateGenericsDecl(containingType, true);
+        var genericConstrainments = CompilerHelper.GenerateConstrainments(containingType);
+        var imports = CompilerHelper.GenerateImportOf(containingType);
+
+        template = string.Format(
+            template,
+            typeIdentifier,
+            type,
+            propertyBlocks,
+            genericArguments,
+            genericConstrainments,
+            imports
+        );
+
+        return template.Insert(0, "\t\t").Replace("\n", "\n\t\t");
+    }
+
+    private static string GenerateProps(INamedTypeSymbol type, IEnumerable<IGrouping<ISymbol?, string>> propGroups) {
+        var buffer = new StringBuilder();
         var binder = StateGeneratorUtils.IsUnityObject(type) ? "AddCallbackUnity" : "AddCallback";
 
         foreach (var nameGroup in propGroups) {
@@ -160,36 +204,11 @@ internal class StateGenerator : IIncrementalGenerator {
             foreach (var propName in nameGroup) {
                 var propExtension = GenerateProp(propType, propName, sourcePropName, binder);
 
-                inner.AppendLine(propExtension);
+                buffer.AppendLine(propExtension);
             }
         }
 
-        var outer =
-            """
-            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-            [System.CodeDom.Compiler.GeneratedCode("Reactive_StateGenerator", "1.0")]
-            internal static class Reactive_{0}_StateGenExt {{
-                extension{3}({1} obj) {4} {{
-            {2}
-                }}
-            }}
-            """;
-
-        var typeIdentifier = type.GetTypeIdentifier();
-
-        var genericArguments = CompilerHelper.GenerateGenericsDecl(type);
-        var genericConstrainments = CompilerHelper.GenerateConstrainments(type);
-
-        outer = string.Format(
-            outer,
-            typeIdentifier,
-            type,
-            inner.ToString().TrimEnd(),
-            genericArguments,
-            genericConstrainments
-        );
-
-        return outer.Insert(0, "\t\t").Replace("\n", "\n\t\t");
+        return buffer.ToString();
     }
 
     private static string GenerateProp(ITypeSymbol stateType, string propName, string sourcePropName, string binderMethodName) {

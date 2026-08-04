@@ -6,9 +6,24 @@ namespace Reactive.Compiler;
 internal static class CompilerHelper {
     public const string StateDependenciesAttrPath = "Reactive.Compiler.StateDependenciesAttribute";
 
-    public static string GenerateGenericsDecl(INamedTypeSymbol symbol) {
-        if (symbol.TypeParameters.Any()) {
-            return "<" + string.Join(", ", symbol.TypeParameters.Select(tp => tp.Name)) + ">";
+    public static string? GenerateImportOf(INamedTypeSymbol symbol) {
+        var ns = symbol.ContainingNamespace;
+
+        // Global namespace types do not need a using statement
+        if (ns == null || ns.IsGlobalNamespace) {
+            return null;
+        }
+
+        return $"using {ns.ToDisplayString()};";
+    }
+
+    public static string GenerateGenericsDecl(INamedTypeSymbol symbol, bool embrace) {
+        var defined = symbol.TypeParameters.Where(x => x.IsDefinition).ToArray();
+
+        if (defined.Length > 0) {
+            var joined = string.Join(", ", defined.Select(tp => tp.Name));
+
+            return embrace ? "<" + joined + ">" : joined;
         }
 
         return "";
