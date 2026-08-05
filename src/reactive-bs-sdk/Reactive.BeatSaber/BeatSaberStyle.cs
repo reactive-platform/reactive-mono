@@ -74,8 +74,8 @@ namespace Reactive.BeatSaber {
             }
         };
 
-        public static class BsPrimaryButton {
-            public static CompositeColorSet BackgroundColors = new() {
+        public static readonly BsPrimaryButtonColors BsPrimaryButtonColors = new() {
+            BackgroundColors = new() {
                 Colors = new() {
                     Color = Color.white,
                     HoveredColor = Color.white,
@@ -88,16 +88,18 @@ namespace Reactive.BeatSaber {
                     Color = new(0f, 0.5f, 1f, 0.5f),
                     HoveredColor = new(0f, 0.7f, 1f, 0.5f),
                 }
-            };
-
-            public static ColorSet ContentColors = new() {
+            },
+            ContentColors = new() {
                 Color = Color.white with { a = 0.75f },
                 HoveredColor = Color.white,
-            };
-
-            public static readonly Color BorderColor = new(0f, 0.75f, 1f, 0.7f);
-            public static readonly Color OutlineColor = new(0f, 0.75f, 1f, 0.3f);
-        }
+            },
+            BorderColors = new() {
+                Color = new(0f, 0.75f, 1f, 0.7f)
+            },
+            OutlineColors = new() {
+                Color = new(0f, 0.75f, 1f, 0.3f)
+            }
+        };
 
         public static class BsAeroButton {
             public static readonly CompositeColorSet BackgroundColors = new() {

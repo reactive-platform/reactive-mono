@@ -95,13 +95,13 @@ public class BsPrimaryTextButton : ReactiveComponent, ISkewedComponent, IInterac
 
     protected override GameObject Construct() {
         return new BsPrimaryButton {
-            ConstructContent = (graphic, skew) => new Label {
+            ConstructContent = (color, skew) => new Label {
                 Do = x => x
                     .AsFlexItem()
                     .Bind(ref _label),
                 
                 sFontStyle = skew.Map(x => FontStyle | (x > 0 ? FontStyles.Italic : FontStyles.Normal)),
-                sColor = graphic.MapColorSet(BeatSaberStyle.BsPrimaryButton.ContentColors).In()
+                sColor = color.In()
             }
         }.Bind(ref _button).Use();
     }
