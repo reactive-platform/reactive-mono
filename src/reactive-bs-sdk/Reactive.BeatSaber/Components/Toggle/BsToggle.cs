@@ -7,26 +7,37 @@ using UnityEngine;
 
 namespace Reactive.BeatSaber.Components;
 
+public record struct BsToggleColors(
+    ColorSet BackgroundColors,
+    ColorSet KnobColors,
+    ColorSet TextColors
+);
+
 [PublicAPI]
 public class BsToggle : ReactiveComponent, IInteractableComponent {
     #region Props
 
     public bool Toggled {
-        get => _toggled.Value;
+        get => _graphic.IsActive;
         set {
-            if (value == _toggled.Value) {
+            if (value == _graphic.IsActive) {
                 return;
             }
 
-            _toggled.Value = value;
+            _graphic.IsActive = value;
             OnToggleStateChanged?.Invoke(value);
         }
     }
 
     public bool Interactable {
-        get => _interactable.Value;
-        set => _interactable.Value = value;
+        get => _graphic.IsInteractable;
+        set => _graphic.IsInteractable = value;
     }
+
+    public BsToggleColors Colors {
+        get => _colors.Value;
+        set => _colors.Value = value;
+    } 
 
     public Action<bool>? OnToggleStateChanged { get; set; }
 
@@ -40,23 +51,20 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
     private float _horizontalStretchAmount = 0.8f;
     private float _verticalStretchAmount = 0.8f;
 
-    private AnimatedState<float> _progressValue = null!;
-    private State<bool> _interactable = null!;
-    private State<bool> _toggled = null!;
+    private AnimatedState<float> _progress = null!;
+    private State<GraphicState> _graphic = null!;
+    private State<BsToggleColors> _colors = null!;
 
     protected override GameObject Construct() {
-        _progressValue = RememberAnimated(0f, 10.fact);
-        _interactable = Remember(true);
-        _toggled = Remember(false);
+        _progress = RememberAnimated(0f, 10.fact);
+        _graphic = Remember(GraphicState.None);
+        _colors = Remember(BeatSaberStyle.BsToggleColors);
 
-        var graphic = Remember(GraphicState.None);
+        var bgColor = RememberDerived(x => _colors.Value.BackgroundColors.GetColor(x._graphic), (_graphic, _colors));
+        var knobColor = RememberDerived(x => _colors.Value.KnobColors.GetColor(x._graphic), (_graphic, _colors));
 
-        var bgColor = graphic.MapColorSet(BeatSaberStyle.BsToggle.BackgroundColors);
-        var knobColor = graphic.MapColorSet(BeatSaberStyle.BsToggle.KnobColors);
-
-        _toggled.AddCallback(x => {
-            _progressValue.TargetValue = x ? 1 : 0;
-            graphic.IsActive = x;
+        _graphic.AddCallback(x => {
+            _progress.TargetValue = x.IsActive ? 1 : 0;
         });
 
         return new Background {
@@ -72,8 +80,8 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
 
             Do = x => x.WithPointerEvents(
                 onDown: _ => Toggled = !Toggled,
-                onEnter: _ => graphic.IsHovered = true,
-                onLeave: _ => graphic.IsHovered = false
+                onEnter: _ => _graphic.IsHovered = true,
+                onLeave: _ => _graphic.IsHovered = false
             ),
 
             Children = {
@@ -89,7 +97,10 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
                             Text = "I",
                             Alignment = TextAlignmentOptions.Capline,
 
-                            sColor = _progressValue.Map(x => Color.Lerp(Color.clear, BeatSaberStyle.BsToggle.TextColors.ActiveColor.GetValueOrDefault(), x))
+                            sColor = RememberDerived(
+                                x => Color.Lerp(Color.clear, x._colors.Value.TextColors.GetColor(_graphic), x._progress),
+                                (_graphic, _colors, _progress)
+                            )
                         },
 
                         new Label {
@@ -101,7 +112,10 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
                             Text = "O",
                             Alignment = TextAlignmentOptions.Capline,
 
-                            sColor = _progressValue.Map(x => Color.Lerp(Color.clear, BeatSaberStyle.BsToggle.TextColors.Color, 1 - x))
+                            sColor = RememberDerived(
+                                x => Color.Lerp(Color.clear, x._colors.Value.TextColors.GetColor(_graphic), 1 - x._progress),
+                                (_graphic, _colors, _progress)
+                            )
                         }
                     }
                 }.WithRectExpand(),
@@ -112,10 +126,10 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
                         // Knob
                         new Image {
                             ContentTransform = {
-                                sanchorMin = _progressValue.Map(x => new Vector2(x, 0)),
-                                sanchorMax = _progressValue.Map(x => new Vector2(x, 1f)),
+                                sanchorMin = _progress.Map(x => new Vector2(x, 0)),
+                                sanchorMax = _progress.Map(x => new Vector2(x, 1f)),
 
-                                ssizeDelta = _progressValue.Map(t => {
+                                ssizeDelta = _progress.Map(t => {
                                     var factor = 1f - Mathf.Abs(t - 0.5f) * 2f;
 
                                     var x = _knobWidth * (1f + _horizontalStretchAmount * factor);
