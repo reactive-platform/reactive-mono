@@ -1,3 +1,4 @@
+using System;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -30,13 +31,13 @@ namespace Reactive.Components {
             }
             init {
                 switch ((byte)state) {
-                    case 1: HoveredColor = value; break;
-                    case 2: ActiveColor = value; break;
-                    case 3: HoveredActiveColor = value; break;
-                    case 4: NotInteractableColor = value; break;
-                    case 5: NotInteractableHoveredColor = value; break;
-                    case 6: NotInteractableActiveColor = value; break;
-                    case 7: NotInteractableHoveredActiveColor = value; break;
+                    case 1:  HoveredColor = value; break;
+                    case 2:  ActiveColor = value; break;
+                    case 3:  HoveredActiveColor = value; break;
+                    case 4:  NotInteractableColor = value; break;
+                    case 5:  NotInteractableHoveredColor = value; break;
+                    case 6:  NotInteractableActiveColor = value; break;
+                    case 7:  NotInteractableHoveredActiveColor = value; break;
                     default: Color = value ?? Color; break;
                 }
             }
@@ -109,8 +110,17 @@ namespace Reactive.Components {
 
     [PublicAPI]
     public static class ColorSetExtensions {
-        public static MappedState<GraphicState, Color> MapColorSet(this IState<GraphicState> state, ColorSet set) {
-            return state.Map(set.GetColor);
+        extension(IState<GraphicState> state) {
+            public MappedState<GraphicState, Color> MapColorSet(ColorSet set) {
+                return state.Map(set.GetColor);
+            }
+
+            public IState<Color> MapColorSet<T>(IState<T> style, Func<T, ColorSet> predicate) {
+                return StateUtils.RememberDerived(
+                    x => predicate(x.style.Value).GetColor(x.state.Value),
+                    (state, style)
+                );
+            }
         }
     }
 }

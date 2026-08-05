@@ -1,3 +1,4 @@
+using System;
 using JetBrains.Annotations;
 using Reactive.BeatSaber.Components;
 using Reactive.Components;
@@ -31,10 +32,16 @@ public readonly record struct CompositeColors(
 
 [PublicAPI]
 public static class ColorSetExtensions {
-    public static IState<CompositeColors> MapColorSet(this IState<GraphicState> state, CompositeColorSet set) {
-        return state.Map(set.GetColors);
+    extension(IState<GraphicState> state) {
+        public MappedState<GraphicState, CompositeColors> MapColorSet(CompositeColorSet set) {
+            return state.Map(set.GetColors);
+        }
+
+        public IState<CompositeColors> MapColorSet<T>(IState<T> style, Func<T, CompositeColorSet> predicate) {
+            return StateUtils.RememberDerived(x => predicate(x.style.Value).GetColors(x.state.Value), (state, style));
+        }
     }
-    
+
     extension<T>(IComponentHolder<T> holder) where T : Image {
         public CompositeColors Colors {
             set {
