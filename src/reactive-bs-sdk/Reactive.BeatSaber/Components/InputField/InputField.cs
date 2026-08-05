@@ -125,7 +125,7 @@ public partial class InputField : ReactiveComponent, IGraphic {
                                     Margin = new() { left = 0.5f.pt }
                                 },
 
-                                Color = BeatSaberStyle.BsAeroButton.ContentColors.Color,
+                                Color = BeatSaberStyle.BsAeroButtonColors.ContentColors.Color,
                                 Alignment = TextAlignmentOptions.CaplineLeft,
                                 FontStyle = FontStyles.Italic,
 
