@@ -79,9 +79,9 @@ public class BsImageButton : ReactiveComponent, ISkewedComponent, IInteractableC
 
     protected override GameObject Construct() {
         return new BsButton {
-            ConstructContent = (graphic, skew) => new Image {
+            ConstructContent = (color, skew) => new Image {
                     sSkew = skew.In(),
-                    sColor = graphic.MapColorSet(BeatSaberStyle.BsButton.ContentColors).In(),
+                    sColor = color.In(),
                     PreserveAspect = true
                 }
                 .AsFlexItem()

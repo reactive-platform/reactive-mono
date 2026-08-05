@@ -51,8 +51,8 @@ namespace Reactive.BeatSaber {
             ActiveColor = Color.white with { a = 0.1f }
         };
 
-        public static class BsButton {
-            public static CompositeColorSet BackgroundColors = new() {
+        public static readonly BsButtonColors BsButtonColors = new() {
+            BackgroundColors = new() {
                 Colors = new() {
                     Color = Color.black with { a = 0.5f },
                     ActiveColor = Color.white with { a = 0.5f },
@@ -64,13 +64,15 @@ namespace Reactive.BeatSaber {
                     Color = Color.white,
                     HoveredColor = Color.white with { a = 0.5f },
                 }
-            };
-
-            public static ColorSet ContentColors = new() {
+            },
+            ContentColors = new() {
                 Color = Color.white with { a = 0.75f },
                 HoveredColor = Color.white,
-            };
-        }
+            },
+            UnderlineColors = new() {
+                Color = Color.white with { a = 0.5f }
+            }
+        };
 
         public static class BsPrimaryButton {
             public static CompositeColorSet BackgroundColors = new() {
@@ -167,18 +169,18 @@ namespace Reactive.BeatSaber {
                 Color = Color.black with { a = 0.5f },
                 HoveredColor = Color.white with { a = 0.3f },
             },
-            
+
             KnobColors = new() {
                 Color = Color.black with { a = 0.5f },
                 ActiveColor = new(0f, 0.75f, 1f),
             },
-            
+
             TextColors = new() {
                 Color = Color.white.ColorWithAlpha(0.2f),
                 ActiveColor = Color.white
             }
         };
-        
+
         public static readonly Color PrimaryButtonColor = new(0, 0.5f, 1f);
 
         public static readonly Color TextColor = Color.white;
