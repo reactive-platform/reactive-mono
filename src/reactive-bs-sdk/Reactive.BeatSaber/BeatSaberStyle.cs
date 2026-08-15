@@ -17,26 +17,6 @@ namespace Reactive.BeatSaber {
             NotInteractableColor = Color.black.ColorWithAlpha(0.2f)
         };
 
-        public static SimpleColorSet ControlColorSet => new() {
-            HoveredColor = Color.white.ColorWithAlpha(0.2f),
-            Color = Color.black.ColorWithAlpha(0.5f),
-            NotInteractableColor = Color.black.ColorWithAlpha(0.25f)
-        };
-
-        public static SimpleColorSet ControlButtonColorSet => new() {
-            ActiveColor = new(0f, 0.75f, 1f, 1f),
-            HoveredColor = Color.white.ColorWithAlpha(0.2f),
-            Color = Color.black.ColorWithAlpha(0.5f),
-            NotInteractableColor = Color.black.ColorWithAlpha(0.35f)
-        };
-
-        public static SimpleColorSet TextColorSet => new() {
-            ActiveColor = new(0f, 0.75f, 1f, 1f),
-            NotInteractableColor = Color.white.ColorWithAlpha(0.2f),
-            HoveredColor = Color.white * 0.9f,
-            Color = Color.white
-        };
-
         public static ColorSet CellTextColors = new() {
             Color = Color.white with { a = 0.75f },
             NotInteractableColor = Color.white with { a = 0.35f },
@@ -119,6 +99,50 @@ namespace Reactive.BeatSaber {
             }
         };
 
+        public static readonly BsSliderColors BsSliderColors = new() {
+            BackgroundColors = new() {
+                Color = Color.black.ColorWithAlpha(0.5f),
+                HoveredColor = Color.magenta.ColorWithAlpha(0.5f),
+                NotInteractableColor = Color.black.ColorWithAlpha(0.2f)
+            },
+            LeftButtonColors = new() {
+                Colors = new() {
+                    Color = Color.black.ColorWithAlpha(0.5f),
+                    HoveredColor = Color.white.ColorWithAlpha(0.2f),
+                    NotInteractableColor = Color.black.ColorWithAlpha(0.2f),
+                },
+                GradientColors0 = new() {
+                    Color = Color.white,
+                    HoveredColor = Color.white
+                },
+                GradientColors1 = new() {
+                    Color = Color.white,
+                    HoveredColor = Color.white.ColorWithAlpha(0.5f)
+                }
+            },
+            RightButtonColors = new() {
+                Colors = new() {
+                    Color = Color.black.ColorWithAlpha(0.5f),
+                    HoveredColor = Color.white.ColorWithAlpha(0.2f),
+                    NotInteractableColor = Color.black.ColorWithAlpha(0.2f),
+                },
+                GradientColors0 = new() {
+                    Color = Color.white,
+                    HoveredColor = Color.white.ColorWithAlpha(0.5f)
+                },
+                GradientColors1 = new() {
+                    Color = Color.white,
+                    HoveredColor = Color.white
+                }
+            },
+            HandleColors = new() {
+                Color = Color.white.ColorWithAlpha(0.75f),
+            },
+            TextColors = new() {
+                Color = Color.white
+            }
+        };
+
         public static class BsInputField {
             public static readonly ColorSet PlaceholderColors = new() {
                 Color = Color.white with { a = 0.25f },
@@ -182,11 +206,7 @@ namespace Reactive.BeatSaber {
             }
         };
 
-        public static readonly Color PrimaryButtonColor = new(0, 0.5f, 1f);
-
         public static readonly Color TextColor = Color.white;
-        public static readonly Color SelectedTextColor = new(0f, 0.75f, 1f, 1f);
-        public static readonly Color InactiveTextColor = Color.white.ColorWithAlpha(0.2f);
         public static readonly Color SecondaryTextColor = Color.white * 0.9f;
     }
 }
