@@ -33,7 +33,8 @@ public static class ComponentExtensions {
         Action<PointerEventsHandler>? onDrag = null,
         Action<PointerEventsHandler>? onDragBegin = null,
         Action<PointerEventsHandler>? onDragEnd = null,
-        Action<PointerEventsHandler>? onScroll = null
+        Action<PointerEventsHandler>? onScroll = null,
+        Action<PointerEventsHandler>? onUpdate = null
     ) where T : IReactiveComponent, IGraphic {
         var pointerHandler = graphic.Content.GetOrAddComponent<PointerEventsHandler>();
 
@@ -60,6 +61,9 @@ public static class ComponentExtensions {
         }
         if (onScroll != null) {
             pointerHandler.PointerScrollEvent += (x, _) => onScroll.Invoke(x);
+        }
+        if (onUpdate != null) {
+            pointerHandler.PointerUpdatedEvent += (x, _) => onUpdate.Invoke(x);
         }
 
         return graphic;
