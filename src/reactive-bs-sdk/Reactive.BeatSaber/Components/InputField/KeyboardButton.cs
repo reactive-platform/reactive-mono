@@ -9,9 +9,15 @@ using UnityEngine;
 
 namespace Reactive.BeatSaber.Components;
 
+public record struct BsKeyboardButtonColors(
+    CompositeColorSet BackgroundColors,
+    ColorSet BorderColors,
+    ColorSet ContentColors
+);
+
 [PublicAPI]
 public partial class KeyboardButton : ReactiveComponent, ILayoutDriver {
-    public delegate ILayoutItem ConstructContentDelegate(IState<GraphicState> graphic, IState<float> skew);
+    public delegate ILayoutItem ConstructContentDelegate(IState<Color> color, IState<float> skew);
 
     #region Public API
 
@@ -25,10 +31,15 @@ public partial class KeyboardButton : ReactiveComponent, ILayoutDriver {
         set => _graphicState.IsInteractable = value;
     }
 
+    public BsKeyboardButtonColors Colors {
+        get => _colors.Value;
+        set => _colors.Value = value;
+    }
+
     [Required]
     public ConstructContentDelegate ConstructContent {
         init {
-            var layoutItem = value(_graphicState, _skew);
+            var layoutItem = value(_contentColor, _skew);
             _driver.Children.Add(layoutItem);
         }
     }
@@ -52,15 +63,19 @@ public partial class KeyboardButton : ReactiveComponent, ILayoutDriver {
 
     private State<float> _skew = null!;
     private State<GraphicState> _graphicState = null!;
+    private State<BsKeyboardButtonColors> _colors = null!;
+    private IState<Color> _contentColor = null!;
 
     private ILayoutDriver _driver = null!;
 
     protected override GameObject Construct() {
         _skew = Remember(0f);
         _graphicState = Remember(GraphicState.None);
-
-        var bgColor = _graphicState.MapColorSet(BeatSaberStyle.BsKeyboard.KeyBackgroundColors);
-        var borderColor = _graphicState.MapColorSet(BeatSaberStyle.BsKeyboard.KeyBorderColors);
+        _colors = Remember(BeatSaberStyle.BsKeyboardColors.KeyColors);
+        
+        var bgColor = _graphicState.MapColorSet(_colors, x => x.BackgroundColors);
+        var borderColor = _graphicState.MapColorSet(_colors, x => x.BorderColors);
+        _contentColor = _graphicState.MapColorSet(_colors, x => x.ContentColors);
         
         return new Background {
             FlexController = {

@@ -8,6 +8,10 @@ using UnityEngine;
 
 namespace Reactive.BeatSaber.Components;
 
+public record struct BsKeyboardColors(
+    BsKeyboardButtonColors KeyColors
+);
+
 [PublicAPI]
 public class Keyboard : ReactiveComponent {
     #region Public API
@@ -18,6 +22,11 @@ public class Keyboard : ReactiveComponent {
             _text.Value = value;
             OnTextChanged?.Invoke(value);
         }
+    }
+
+    public BsKeyboardColors Colors {
+        get => _colors.Value;
+        set => _colors.Value = value;
     }
 
     public Action<string?>? OnTextChanged { get; set; }
@@ -34,9 +43,13 @@ public class Keyboard : ReactiveComponent {
     ];
 
     private State<string?> _text = null!;
+    private State<BsKeyboardColors> _colors = null!;
 
     protected override GameObject Construct() {
         _text = Remember<string?>(null);
+        _colors = Remember(BeatSaberStyle.BsKeyboardColors);
+
+        var keyColors = _colors.Map(x => x.KeyColors);
         var uppercase = Remember(false);
 
         var onClick = (char x) => {
@@ -52,8 +65,8 @@ public class Keyboard : ReactiveComponent {
             },
 
             Children = {
-                CreateRow(_alphabetRows[0], onClick, uppercase),
-                CreateRow(_alphabetRows[1], onClick, uppercase),
+                CreateRow(_alphabetRows[0], onClick, uppercase, keyColors),
+                CreateRow(_alphabetRows[1], onClick, uppercase, keyColors),
 
                 new Layout {
                     FlexController = {
@@ -76,8 +89,10 @@ public class Keyboard : ReactiveComponent {
                             OnClick = () => {
                                 uppercase.Value = !uppercase.Value;
                             },
+                            
+                            sColors = keyColors,
 
-                            ConstructContent = (state, _) => new Image {
+                            ConstructContent = (color, _) => new Image {
                                 FlexItem = {
                                     AspectRatio = 1
                                 },
@@ -85,11 +100,11 @@ public class Keyboard : ReactiveComponent {
                                 Skew = BeatSaberStyle.Skew,
 
                                 sSprite = uppercase.Map(x => x ? GameResources.ArrowUpIcon : GameResources.ArrowOutlineIcon),
-                                sColor = state.MapColorSet(BeatSaberStyle.BsKeyboard.KeyContentColors).In(),
+                                sColor = color.In(),
                             }
                         },
 
-                        CreateRow(_alphabetRows[2], onClick, uppercase),
+                        CreateRow(_alphabetRows[2], onClick, uppercase, keyColors),
 
                         new KeyboardButton {
                             Name = "Backspace",
@@ -105,13 +120,15 @@ public class Keyboard : ReactiveComponent {
 
                                 Text = Text.Length == 1 ? null : Text[..^1];
                             },
-
-                            ConstructContent = (state, _) => new Label {
+                            
+                            sColors = keyColors,
+                            
+                            ConstructContent = (color, _) => new Label {
                                 Text = "DEL",
                                 Alignment = TextAlignmentOptions.Capline,
                                 FontStyle = FontStyles.Italic,
 
-                                sColor = state.MapColorSet(BeatSaberStyle.BsKeyboard.KeyContentColors).In(),
+                                sColor = color.In(),
                             }.AsFlexItem()
                         }
                     }
@@ -132,12 +149,12 @@ public class Keyboard : ReactiveComponent {
                                 Text += " ";
                             },
 
-                            ConstructContent = (state, _) => new Label {
+                            ConstructContent = (color, _) => new Label {
                                 Text = "SPACE",
                                 Alignment = TextAlignmentOptions.Capline,
                                 FontStyle = FontStyles.Italic,
 
-                                sColor = state.MapColorSet(BeatSaberStyle.BsKeyboard.KeyContentColors).In(),
+                                sColor = color.In(),
                             }.AsFlexItem()
                         },
 
@@ -155,7 +172,7 @@ public class Keyboard : ReactiveComponent {
                                 Alignment = TextAlignmentOptions.Capline,
                                 FontStyle = FontStyles.Italic,
 
-                                sColor = state.MapColorSet(BeatSaberStyle.BsKeyboard.KeyContentColors).In(),
+                                sColor = state.In(),
                             }.AsFlexItem()
                         }
                     }
@@ -165,7 +182,7 @@ public class Keyboard : ReactiveComponent {
     }
 
     [StateGen]
-    private static IReactiveComponent CreateRow(char[] row, Action<char> onClick, IState<bool> uppercase) {
+    private static IReactiveComponent CreateRow(char[] row, Action<char> onClick, IState<bool> uppercase, IState<BsKeyboardButtonColors> colors) {
         return new Repeater<char, KeyboardButton> {
             FlexController = {
                 FlexDirection = FlexDirection.Row,
@@ -181,7 +198,9 @@ public class Keyboard : ReactiveComponent {
                     onClick.Invoke(c);
                 },
 
-                ConstructContent = (state, _) => new Label {
+                sColors = colors.In(),
+                
+                ConstructContent = (color, _) => new Label {
                     Alignment = TextAlignmentOptions.Capline,
                     FontStyle = FontStyles.Italic,
 
@@ -193,7 +212,7 @@ public class Keyboard : ReactiveComponent {
                         (uppercase, ctx)
                     ),
 
-                    sColor = state.MapColorSet(BeatSaberStyle.BsKeyboard.KeyContentColors).In(),
+                    sColor = color.In(),
                 }
             }
         }.AsFlexItem();

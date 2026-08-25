@@ -155,24 +155,24 @@ namespace Reactive.BeatSaber {
             }
         };
 
-        public static class BsKeyboard {
-            public static readonly CompositeColorSet KeyBackgroundColors = new() {
-                Colors = ColorSet.White,
-                GradientColors1 = new() {
-                    HoveredColor = new(0f, 0.75f, 1f)
+        public static readonly BsKeyboardColors BsKeyboardColors = new() {
+            KeyColors = new() {
+                BackgroundColors = new() {
+                    Colors = ColorSet.White,
+                    GradientColors1 = new() {
+                        HoveredColor = new(0f, 0.75f, 1f)
+                    }
+                },
+                BorderColors = new() {
+                    Color = Color.white with { a = 0.25f },
+                    HoveredColor = Color.white
+                },
+                ContentColors = new() {
+                    Color = Color.white with { a = 0.9f },
+                    HoveredColor = Color.white
                 }
-            };
-
-            public static readonly ColorSet KeyBorderColors = new() {
-                Color = Color.white with { a = 0.25f },
-                HoveredColor = Color.white
-            };
-
-            public static readonly ColorSet KeyContentColors = new() {
-                Color = Color.white with { a = 0.9f },
-                HoveredColor = Color.white
-            };
-        }
+            }
+        };
 
         public static class BsDropdown {
             public static readonly ColorSet ItemBackgroundColors = new() {
