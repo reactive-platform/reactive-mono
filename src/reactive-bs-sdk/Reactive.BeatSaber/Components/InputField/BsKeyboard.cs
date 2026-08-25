@@ -13,7 +13,7 @@ public record struct BsKeyboardColors(
 );
 
 [PublicAPI]
-public class Keyboard : ReactiveComponent {
+public class BsKeyboard : ReactiveComponent {
     #region Public API
 
     public string? Text {
@@ -74,7 +74,7 @@ public class Keyboard : ReactiveComponent {
                     },
 
                     Children = {
-                        new KeyboardButton {
+                        new BsKeyboardButton {
                             Name = "Shift",
 
                             FlexItem = {
@@ -106,7 +106,7 @@ public class Keyboard : ReactiveComponent {
 
                         CreateRow(_alphabetRows[2], onClick, uppercase, keyColors),
 
-                        new KeyboardButton {
+                        new BsKeyboardButton {
                             Name = "Backspace",
 
                             FlexItem = {
@@ -140,7 +140,7 @@ public class Keyboard : ReactiveComponent {
                     },
 
                     Children = {
-                        new KeyboardButton {
+                        new BsKeyboardButton {
                             FlexItem = {
                                 Size = new() { x = 40.pt, y = 7.pt }
                             },
@@ -158,7 +158,7 @@ public class Keyboard : ReactiveComponent {
                             }.AsFlexItem()
                         },
 
-                        new KeyboardButton {
+                        new BsKeyboardButton {
                             FlexItem = {
                                 Size = new() { x = 12.pt, y = 7.pt }
                             },
@@ -183,7 +183,7 @@ public class Keyboard : ReactiveComponent {
 
     [StateGen]
     private static IReactiveComponent CreateRow(char[] row, Action<char> onClick, IState<bool> uppercase, IState<BsKeyboardButtonColors> colors) {
-        return new Repeater<char, KeyboardButton> {
+        return new Repeater<char, BsKeyboardButton> {
             FlexController = {
                 FlexDirection = FlexDirection.Row,
                 JustifyContent = Justify.Center,
@@ -192,7 +192,7 @@ public class Keyboard : ReactiveComponent {
 
             Items = row,
 
-            ConstructCell = ctx => new KeyboardButton {
+            ConstructCell = ctx => new BsKeyboardButton {
                 OnClick = () => {
                     var c = uppercase.Value ? char.ToUpper(ctx.Item) : ctx.Item;
                     onClick.Invoke(c);

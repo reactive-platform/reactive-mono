@@ -16,7 +16,7 @@ public record struct BsKeyboardButtonColors(
 );
 
 [PublicAPI]
-public partial class KeyboardButton : ReactiveComponent, ILayoutDriver {
+public partial class BsKeyboardButton : ReactiveComponent, ILayoutDriver {
     public delegate ILayoutItem ConstructContentDelegate(IState<Color> color, IState<float> skew);
 
     #region Public API
