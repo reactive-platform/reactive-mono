@@ -143,14 +143,17 @@ namespace Reactive.BeatSaber {
             }
         };
 
-        public static class BsInputField {
-            public static readonly ColorSet PlaceholderColors = new() {
+        public static readonly BsInputFieldColors BsInputFieldColors = new() {
+            ContentColors = ColorSet.White,
+            IconColors = ColorSet.White,
+            PlaceholderColors = new() {
                 Color = Color.white with { a = 0.25f },
-                HoveredColor = Color.white with { a = 0.25f }
-            };
-
-            public static readonly ColorSet ContentColors = ColorSet.White;
-        }
+                HoveredColor = Color.white with { a = 0.8f }
+            },
+            UnderlineColors = new() {
+                Color = Color.white with { a = 0.25f }
+            }
+        };
 
         public static class BsKeyboard {
             public static readonly CompositeColorSet KeyBackgroundColors = new() {

@@ -8,8 +8,15 @@ using UnityEngine;
 
 namespace Reactive.BeatSaber.Components;
 
+public record struct BsInputFieldColors(
+    ColorSet ContentColors,
+    ColorSet PlaceholderColors,
+    ColorSet IconColors,
+    ColorSet UnderlineColors
+);
+
 [PublicAPI]
-public partial class InputField : ReactiveComponent, IGraphic {
+public partial class InputField : ReactiveComponent, IGraphic, IInteractableComponent {
     #region Public API
 
     [RawState, Required]
@@ -30,11 +37,22 @@ public partial class InputField : ReactiveComponent, IGraphic {
         set => _placeholder.Value = value;
     }
 
+    public bool Interactable {
+        get => _graphicState.IsInteractable;
+        set => _graphicState.IsInteractable = value;
+    }
+
+    public BsInputFieldColors Colors {
+        get => _colors.Value;
+        set => _colors.Value = value;
+    }
+
     private StateSubscription? _contextSubscription;
 
     private void HandleContextUpdated(InputFieldContext context) {
         _focused.Value = context.Focused;
         _text.Value = context.Text;
+        _graphicState.IsActive = context.Focused;
     }
 
     #endregion
@@ -44,16 +62,23 @@ public partial class InputField : ReactiveComponent, IGraphic {
     private State<bool> _focused = null!;
     private State<string?> _text = null!;
     private State<string> _placeholder = null!;
+    private State<GraphicState> _graphicState = null!;
+    private State<BsInputFieldColors> _colors = null!;
 
     protected override GameObject Construct() {
         _focused = Remember(false);
         _text = Remember<string?>(null);
         _placeholder = Remember("Search");
+        _graphicState = Remember(GraphicState.None);
+        _colors = Remember(BeatSaberStyle.BsInputFieldColors);
 
         var closeButtonEnabled = RememberDerived(
-            x => !x._focused.Value && _text.Value != null,
+            x => !x._focused.Value && x._text.Value != null,
             (_focused, _text)
         );
+        
+        var contentColor = _graphicState.MapColorSet(_colors, x => x.ContentColors);
+        var placeholderColor = _graphicState.MapColorSet(_colors, x => x.PlaceholderColors);
 
         return new BsAeroButton {
             FlexController = {
@@ -66,6 +91,11 @@ public partial class InputField : ReactiveComponent, IGraphic {
                 _focused.Value = true;
                 Context.Focused = true;
             },
+            
+            Do = x => x.WithPointerEvents(
+                onEnter: _ => _graphicState.IsHovered = true,
+                onLeave: _ => _graphicState.IsHovered = false
+            ),
 
             ConstructContent = (_, _) => new Layout {
                 Name = "Content",
@@ -91,16 +121,16 @@ public partial class InputField : ReactiveComponent, IGraphic {
                         },
 
                         sEnabled = _focused,
+                        sColor = _graphicState.MapColorSet(_colors, x => x.UnderlineColors).In(),
 
                         Sprite = BeatSaberResources.Sprites.backgroundUnderline,
-                        Color = BeatSaberStyle.BsInputField.PlaceholderColors.Color,
                         PixelsPerUnit = 12f
                     },
 
                     new Image {
                         Name = "Icon",
                         PreserveAspect = true,
-                        Color = BeatSaberStyle.BsInputField.ContentColors.HoveredColor.GetValueOrDefault(),
+                        sColor = _graphicState.MapColorSet(_colors, x => x.IconColors).In(),
                         Sprite = GameResources.SearchIcon,
                     }.AsFlexItem(),
 
@@ -125,7 +155,6 @@ public partial class InputField : ReactiveComponent, IGraphic {
                                     Margin = new() { left = 0.5f.pt }
                                 },
 
-                                Color = BeatSaberStyle.BsAeroButtonColors.ContentColors.Color,
                                 Alignment = TextAlignmentOptions.CaplineLeft,
                                 FontStyle = FontStyles.Italic,
 
@@ -133,12 +162,10 @@ public partial class InputField : ReactiveComponent, IGraphic {
                                     x => x._text.Value ?? x._placeholder.Value,
                                     (_text, _placeholder)
                                 ),
-
-                                // When there's text, placeholder becomes a solid label, so the color set changes
-                                sColor = _text.Map(
-                                    x => x == null ?
-                                        BeatSaberStyle.BsInputField.PlaceholderColors.Color :
-                                        BeatSaberStyle.BsInputField.ContentColors.Color
+                                
+                                sColor = RememberDerived(
+                                    x => x._text.Value == null ? x.placeholderColor.Value : x.contentColor.Value,
+                                    (_text, placeholderColor, contentColor)
                                 ),
                             }
                         }
