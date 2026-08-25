@@ -16,11 +16,11 @@ public record struct BsInputFieldColors(
 );
 
 [PublicAPI]
-public partial class InputField : ReactiveComponent, IGraphic, IInteractableComponent {
+public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableComponent {
     #region Public API
 
     [RawState, Required]
-    public InputFieldContext Context {
+    public BsInputFieldContext Context {
         get;
         set {
             _contextSubscription?.RemoveCallback();
@@ -49,7 +49,7 @@ public partial class InputField : ReactiveComponent, IGraphic, IInteractableComp
 
     private StateSubscription? _contextSubscription;
 
-    private void HandleContextUpdated(InputFieldContext context) {
+    private void HandleContextUpdated(BsInputFieldContext context) {
         _focused.Value = context.Focused;
         _text.Value = context.Text;
         _graphicState.IsActive = context.Focused;

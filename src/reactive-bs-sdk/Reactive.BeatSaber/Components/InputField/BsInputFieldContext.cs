@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 namespace Reactive.BeatSaber.Components;
 
 [PublicAPI]
-public class InputFieldContext : StateBase<InputFieldContext>, IState<InputFieldContext> {
+public class BsInputFieldContext : StateBase<BsInputFieldContext>, IState<BsInputFieldContext> {
     public string? Text {
         get;
         set {
@@ -20,5 +20,5 @@ public class InputFieldContext : StateBase<InputFieldContext>, IState<InputField
         }
     }
 
-    InputFieldContext IState<InputFieldContext>.Value => this;
+    BsInputFieldContext IState<BsInputFieldContext>.Value => this;
 }
