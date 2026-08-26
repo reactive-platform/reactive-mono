@@ -173,8 +173,10 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
                     Do = x => x.WithPointerEvents(
                         onEnter: _ => hovered.Value = true,
                         onLeave: _ => hovered.Value = false,
-                        onDown: _ => ctx.Selected = true
-                    ),
+                        onDown: _ => {
+                            ctx.Selected = true;
+                            GameResources.ButtonClickSignal.Raise();
+                        }),
 
                     Children = {
                         new Label {

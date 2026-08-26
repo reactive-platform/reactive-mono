@@ -231,6 +231,7 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent, IIn
                 onDown: _ => {
                     if (interactable.Value) {
                         callback();
+                        GameResources.ButtonClickSignal.Raise();
                     }
                 }
             ),
