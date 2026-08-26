@@ -13,8 +13,16 @@ namespace Reactive.BeatSaber.Components;
 
 public record struct BsListControlItem<T>(T Key, string? Text, Sprite? Icon);
 
+public record struct BsListControlColors(
+    ColorSet ContentColors,
+    CompositeColorSet LeftButtonColors,
+    ColorSet LeftButtonArrowColors,
+    CompositeColorSet RightButtonColors,
+    ColorSet RightButtonArrowColors
+);
+
 [PublicAPI]
-public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent {
+public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent, IInteractableComponent {
     #region Public API
 
     [Required]
@@ -25,7 +33,7 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent {
 
             if (_initialized) {
                 var index = FindKey(Key);
-                
+
                 if (index != -1 && index != _selectedIdx.Value) {
                     SetKey(index);
                 } else if (_items.Count > 0) {
@@ -56,8 +64,13 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent {
     }
 
     public bool Interactable {
-        get => _interactable.Value;
-        set => _interactable.Value = value;
+        get => _graphic.IsInteractable;
+        set => _graphic.IsInteractable = value;
+    }
+
+    public BsListControlColors Colors {
+        get => _colors.Value;
+        set => _colors.Value = value;
     }
 
     public Action<T>? OnKeyChanged { get; set; }
@@ -111,23 +124,26 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent {
 
     private State<float> _skew = null!;
     private State<int> _selectedIdx = null!;
-    private State<bool> _interactable = null!;
+    private State<GraphicState> _graphic = null!;
+    private State<BsListControlColors> _colors = null!;
 
     protected override GameObject Construct() {
         _skew = Remember(BeatSaberStyle.Skew);
         _selectedIdx = Remember(0);
-        _interactable = Remember(true);
+        _graphic = Remember(GraphicState.None);
+        _colors = Remember(BeatSaberStyle.BsListControlColors);
 
         var selected = _selectedIdx.Map(x => _items?[x]);
+        var contentColor = _graphic.MapColorSet(_colors, x => x.ContentColors);
 
         var nextAvailable = RememberDerived(
-            x => x._interactable && x._selectedIdx < _items?.Count - 1,
-            (_selectedIdx, _interactable)
+            x => x._graphic.IsInteractable && x._selectedIdx < _items?.Count - 1,
+            (_selectedIdx, _graphic)
         );
 
         var prevAvailable = RememberDerived(
-            x => x._interactable && x._selectedIdx > 0 && _items?.Count > 1,
-            (_selectedIdx, _interactable)
+            x => x._graphic.IsInteractable && x._selectedIdx > 0 && _items?.Count > 1,
+            (_selectedIdx, _graphic)
         );
 
         return new Layout {
@@ -145,7 +161,8 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent {
                     sFontStyle = _skew.Map(x => x > 0 ? FontStyles.Italic : FontStyles.Normal),
 
                     sText = selected.Map(x => x?.Text).Where(x => x != null),
-                    sEnabled = selected.Map(x => x?.Text != null)
+                    sEnabled = selected.Map(x => x?.Text != null),
+                    sColor = contentColor.In()
                 }.AsFlexItem(),
 
                 new BsImage {
@@ -158,26 +175,27 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent {
                     sSkew = _skew,
 
                     sSprite = selected.Map(x => x?.Icon).Where(x => x != null),
-                    sEnabled = selected.Map(x => x?.Icon != null)
+                    sEnabled = selected.Map(x => x?.Icon != null),
+                    sColor = contentColor.In()
                 },
 
-                CreateButton(true, () => SetKey(_selectedIdx.Value - 1), prevAvailable, _skew),
-                CreateButton(false, () => SetKey(_selectedIdx.Value + 1), nextAvailable, _skew)
+                CreateButton(true, () => SetKey(_selectedIdx.Value - 1), prevAvailable, _skew, _colors),
+                CreateButton(false, () => SetKey(_selectedIdx.Value + 1), nextAvailable, _skew, _colors)
             }
         }.Use();
     }
 
     [StateGen]
-    private static IReactiveComponent CreateButton(bool left, Action callback, IState<bool> interactable, IState<float> skew) {
-        var hovered = Remember(false);
+    private static IReactiveComponent CreateButton(
+        bool left,
+        Action callback,
+        IState<bool> interactable,
+        IState<float> skew,
+        IState<BsListControlColors> colors
+    ) {
+        var graphic = Remember(GraphicState.None);
 
-        var highlighted = RememberDerived(
-            x => x.hovered.Value && x.interactable.Value,
-            (hovered, interactable)
-        );
-
-        var color0 = highlighted.Map(x => Color.white with { a = x ? 0.2f : 1f });
-        var color1 = highlighted.Map(x => x ? Color.black with { a = 0.5f } : Color.white);
+        interactable.AddCallback(x => graphic.IsInteractable = x);
 
         return new Background {
             FlexController = {
@@ -193,10 +211,10 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent {
                 PositionType = PositionType.Absolute
             },
 
-            sColor = highlighted.Map(x => x ? Color.white : Color.black with { a = 0.5f }),
-
-            sGradientColor0 = left ? color0 : color1,
-            sGradientColor1 = left ? color1 : color0,
+            sColors = graphic.MapColorSet(colors, left ?
+                x => x.LeftButtonColors :
+                x => x.RightButtonColors
+            ).In(),
 
             UseGradient = true,
             GradientDirection = ImageView.GradientDirection.Horizontal,
@@ -204,12 +222,12 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent {
             Sprite = left ? BeatSaberResources.Sprites.backgroundLeft : BeatSaberResources.Sprites.backgroundRight,
             Material = GameResources.UINoGlowMaterial,
             PixelsPerUnit = 12f,
-            
+
             sSkew = skew.In(),
 
             Do = x => x.WithPointerEvents(
-                onEnter: _ => hovered.Value = true,
-                onLeave: _ => hovered.Value = false,
+                onEnter: _ => graphic.IsHovered = true,
+                onLeave: _ => graphic.IsHovered = false,
                 onDown: _ => {
                     if (interactable.Value) {
                         callback();
@@ -226,10 +244,10 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent {
                     Sprite = GameResources.ArrowIcon,
                     PreserveAspect = true,
 
-                    sColor = interactable.Map(x => x ?
-                        Color.white with { a = 0.8f } :
-                        Color.white with { a = 0.25f } * 0.9f
-                    ),
+                    sColor = graphic.MapColorSet(colors, left ?
+                        x => x.LeftButtonArrowColors :
+                        x => x.RightButtonArrowColors
+                    ).In(),
 
                     ContentTransform = {
                         localEulerAngles = new(0f, 0f, left ? 270f : 90f)

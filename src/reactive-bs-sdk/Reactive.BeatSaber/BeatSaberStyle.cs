@@ -206,6 +206,48 @@ namespace Reactive.BeatSaber {
             }
         };
 
+        public static readonly BsListControlColors BsListControlColors = new() {
+            ContentColors = new() {
+                Color = Color.white
+            },
+            LeftButtonColors = new() {
+                Colors = new() {
+                    Color = Color.black with { a = 0.5f },
+                    HoveredColor = Color.white
+                },
+                GradientColors0 = new() {
+                    Color = Color.white with { a = 1f },
+                    HoveredColor = Color.white with { a = 0.2f },
+                },
+                GradientColors1 = new() {
+                    Color = Color.white,
+                    HoveredColor = Color.black with { a = 0.5f }
+                }
+            },
+            RightButtonColors = new() {
+                Colors = new() {
+                    Color = Color.black with { a = 0.5f },
+                    HoveredColor = Color.white
+                },
+                GradientColors1 = new() {
+                    Color = Color.white with { a = 1f },
+                    HoveredColor = Color.white with { a = 0.2f },
+                },
+                GradientColors0 = new() {
+                    Color = Color.white,
+                    HoveredColor = Color.black with { a = 0.5f }
+                }
+            },
+            LeftButtonArrowColors = new() {
+                Color = Color.white with { a = 0.8f },
+                NotInteractableColor = Color.white with { a = 0.25f } * 0.9f
+            },
+            RightButtonArrowColors = new() {
+                Color = Color.white with { a = 0.8f },
+                NotInteractableColor = Color.white with { a = 0.25f } * 0.9f
+            }
+        };
+
         public static readonly Color TextColor = Color.white;
         public static readonly Color SecondaryTextColor = Color.white * 0.9f;
     }
