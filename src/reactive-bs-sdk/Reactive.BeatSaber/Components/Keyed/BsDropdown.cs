@@ -13,6 +13,12 @@ namespace Reactive.BeatSaber.Components;
 
 public record struct BsDropdownItem(string? Text, Sprite? Icon);
 
+public record struct BsDropdownColors(
+    ColorSet ButtonBackgroundColors,
+    ColorSet ItemContentColors,
+    ColorSet ItemBackgroundColors
+);
+
 [PublicAPI]
 public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
     #region Public API
@@ -46,6 +52,11 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
         set => _skew.Value = value;
     }
 
+    public BsDropdownColors Colors {
+        get => _colors.Value;
+        set => _colors.Value = value;
+    }
+
     public Action<T>? OnKeyChanged { get; set; }
 
     private bool _initialized;
@@ -77,14 +88,19 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
     private Table<T, IReactiveComponent> _table = null!;
     private State<float> _skew = null!;
     private State<T?> _keyState = null!;
+    private State<BsDropdownColors> _colors = null!;
 
     protected override GameObject Construct() {
         _keyState = Remember<T?>(default);
         _skew = Remember(BeatSaberStyle.Skew);
+        _colors = Remember(BeatSaberStyle.BsDropdownColors);
 
         var modalOpened = Remember(false);
         var graphic = Remember(GraphicState.None);
         var anchor = Remember<RectTransform?>(null);
+
+        var contentColor = graphic.MapColorSet(_colors, x => x.ItemContentColors);
+        var bgColor = graphic.MapColorSet(_colors, x => x.ButtonBackgroundColors);
 
         var item = _keyState.Map(x => x != null ? _items?[x] : null);
         var scrollContext = new ScrollContext();
@@ -105,7 +121,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
             PixelsPerUnit = 12f,
 
             sSkew = _skew,
-            sColor = graphic.MapColorSet(BeatSaberStyle.BsDropdown.ButtonBackgroundColors),
+            sColor = bgColor.In(),
 
             Do = x => {
                 x.WithPointerEvents(
@@ -127,7 +143,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
 
                     sEnabled = item.Map(x => x?.Text != null),
                     sText = item.Map(x => x?.Text),
-                    sColor = graphic.MapColorSet(BeatSaberStyle.BsDropdown.ItemContentColors),
+                    sColor = contentColor.In(),
                 }.AsFlexItem(),
 
                 new Image {
@@ -140,7 +156,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
 
                     sEnabled = item.Map(x => x?.Icon != null),
                     sSprite = item.Map(x => x?.Icon),
-                    sColor = graphic.MapColorSet(BeatSaberStyle.BsDropdown.ItemContentColors)
+                    sColor = contentColor.In()
                 },
 
                 new Modal {
@@ -187,7 +203,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
                                         }
                                     },
 
-                                    ConstructCell = CreateCell
+                                    ConstructCell = ctx => CreateCell(ctx, _colors)
                                 }.Bind(ref _table),
                             }
                         }.AsBlurBackground(),
@@ -203,11 +219,12 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
     }
 
     [StateGen]
-    private IReactiveComponent CreateCell(CellContext<T> context) {
+    private IReactiveComponent CreateCell(CellContext<T> context, IState<BsDropdownColors> colors) {
         var graphic = Remember(GraphicState.None);
-        var fgColor = graphic.MapColorSet(BeatSaberStyle.BsDropdown.ItemContentColors);
-
         var item = context.Map(x => Items[x.Item]);
+
+        var fgColor = graphic.MapColorSet(colors, x => x.ItemContentColors);
+        var bgColor = graphic.MapColorSet(colors, x => x.ItemBackgroundColors);
 
         context.AddCallback(x => graphic.IsActive = x.Selected);
 
@@ -231,9 +248,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
             ),
 
             Sprite = BeatSaberResources.Sprites.rectangle,
-            sColor = graphic
-                .Map(x => x.Set(GraphicState.Active, false))
-                .MapColorSet(BeatSaberStyle.BsDropdown.ItemBackgroundColors),
+            sColor = bgColor.In(),
 
             Children = {
                 new Label {
@@ -241,7 +256,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
 
                     sEnabled = item.Map(x => x.Text != null),
                     sText = item.Map(x => x.Text),
-                    sColor = fgColor
+                    sColor = fgColor.In()
                 }.AsFlexItem(),
 
                 new Image {
@@ -254,7 +269,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
 
                     sEnabled = item.Map(x => x.Icon != null),
                     sSprite = item.Map(x => x.Icon),
-                    sColor = fgColor
+                    sColor = fgColor.In()
                 },
             }
         };
