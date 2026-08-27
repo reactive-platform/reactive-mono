@@ -14,8 +14,13 @@ namespace Reactive.BeatSaber.Components;
 
 public record struct BsSegmentedControlItem(string? Text, Sprite? Icon);
 
+public record struct BsSegmentedControlColors(
+    ColorSet CellBackgroundColors,
+    ColorSet CellContentColors
+);
+
 [PublicAPI]
-public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent, ILayoutDriver {
+public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent, IInteractableComponent, ILayoutDriver {
     #region Layout Driver
 
     public ICollection<ILayoutItem> Children { get; } = Array.Empty<ILayoutItem>();
@@ -57,6 +62,16 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
         set => _skew.Value = value;
     }
 
+    public bool Interactable {
+        get => _interactable.Value;
+        set => _interactable.Value = value;
+    }
+
+    public BsSegmentedControlColors Colors {
+        get => _colors.Value;
+        set => _colors.Value = value;
+    }
+
     public Action<T>? OnKeyChanged { get; set; }
 
     private bool _initialized;
@@ -86,9 +101,13 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
 
     private Repeater<T, Background> _repeater = null!;
     private State<float> _skew = null!;
+    private State<bool> _interactable = null!;
+    private State<BsSegmentedControlColors> _colors = null!;
 
     protected override GameObject Construct() {
         _skew = Remember(BeatSaberStyle.Skew);
+        _interactable = Remember(true);
+        _colors = Remember(BeatSaberStyle.BsSegmentedControlColors);
 
         return new Repeater<T, Background> {
             FlexController = {
@@ -109,29 +128,13 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
 
             ConstructCell = ctx => {
                 var item = ctx.Map(x => _items?[x.Item]);
-                var hovered = Remember(false);
+                var graphic = Remember(GraphicState.None);
 
-                var bgColor = RememberDerived(
-                    x => {
-                        var state = GraphicState.None
-                            .AddIf(GraphicState.Hovered, x.hovered)
-                            .AddIf(GraphicState.Active, x.ctx.Selected);
+                ctx.AddCallback(x => graphic.IsActive = x.Selected);
+                _interactable.AddCallback(x => graphic.IsInteractable = x);
 
-                        return BeatSaberStyle.CellColors.GetColor(state);
-                    },
-                    (ctx, hovered)
-                );
-
-                var fgColor = RememberDerived(
-                    x => {
-                        var state = GraphicState.None
-                            .AddIf(GraphicState.Hovered, x.hovered)
-                            .AddIf(GraphicState.Active, x.ctx.Selected);
-
-                        return BeatSaberStyle.CellTextColors.GetColor(state);
-                    },
-                    (ctx, hovered)
-                );
+                var bgColor = graphic.MapColorSet(_colors, x => x.CellBackgroundColors);
+                var fgColor = graphic.MapColorSet(_colors, x => x.CellContentColors);
 
                 return new Background {
                     FlexController = {
@@ -145,7 +148,7 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
                         Flex = 1f
                     },
 
-                    sColor = bgColor,
+                    sColor = bgColor.In(),
                     sSkew = _skew,
 
                     PixelsPerUnit = 10f,
@@ -171,11 +174,13 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
                     }),
 
                     Do = x => x.WithPointerEvents(
-                        onEnter: _ => hovered.Value = true,
-                        onLeave: _ => hovered.Value = false,
+                        onEnter: _ => graphic.IsHovered = true,
+                        onLeave: _ => graphic.IsHovered = false,
                         onDown: _ => {
-                            ctx.Selected = true;
-                            GameResources.ButtonClickSignal.Raise();
+                            if (_interactable.Value) {
+                                ctx.Selected = true;
+                                GameResources.ButtonClickSignal.Raise();
+                            }
                         }),
 
                     Children = {
@@ -183,7 +188,7 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
                             Alignment = TextAlignmentOptions.Capline,
                             sFontStyle = _skew.Map(x => x > 0 ? FontStyles.Italic : FontStyles.Normal),
 
-                            sColor = fgColor,
+                            sColor = fgColor.In(),
 
                             sText = item.Map(x => x?.Text).Where(x => x != null),
                             sEnabled = item.Map(x => x?.Text != null)
@@ -196,7 +201,7 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
                             },
 
                             PreserveAspect = true,
-                            sColor = fgColor,
+                            sColor = fgColor.In(),
                             sSkew = _skew,
 
                             sSprite = item.Map(x => x?.Icon).Where(x => x != null),

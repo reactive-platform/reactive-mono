@@ -11,26 +11,6 @@ namespace Reactive.BeatSaber {
     public static class BeatSaberStyle {
         public static readonly float Skew = 0.18f;
 
-        public static SimpleColorSet InputColorSet => new() {
-            HoveredColor = Color.magenta.ColorWithAlpha(0.5f),
-            Color = Color.black.ColorWithAlpha(0.5f),
-            NotInteractableColor = Color.black.ColorWithAlpha(0.2f)
-        };
-
-        public static ColorSet CellTextColors = new() {
-            Color = Color.white with { a = 0.75f },
-            NotInteractableColor = Color.white with { a = 0.35f },
-            HoveredColor = Color.white,
-            ActiveColor = new(0f, 0.75f, 1f, 1f),
-        };
-
-        public static ColorSet CellColors = new() {
-            Color = Color.black with { a = 0.5f },
-            NotInteractableColor = Color.black with { a = 0.25f },
-            HoveredColor = Color.white with { a = 0.2f },
-            ActiveColor = Color.white with { a = 0.1f }
-        };
-
         public static readonly BsButtonColors BsButtonColors = new() {
             BackgroundColors = new() {
                 Colors = new() {
@@ -174,7 +154,7 @@ namespace Reactive.BeatSaber {
             }
         };
 
-        public static BsDropdownColors BsDropdownColors = new() {
+        public static readonly BsDropdownColors BsDropdownColors = new() {
             ItemBackgroundColors = new() {
                 HoveredColor = Color.white with { a = 0.2f },
             },
@@ -245,6 +225,21 @@ namespace Reactive.BeatSaber {
             RightButtonArrowColors = new() {
                 Color = Color.white with { a = 0.8f },
                 NotInteractableColor = Color.white with { a = 0.25f } * 0.9f
+            }
+        };
+
+        public static readonly BsSegmentedControlColors BsSegmentedControlColors = new() {
+            CellContentColors = new() {
+                Color = Color.white with { a = 0.75f },
+                NotInteractableColor = Color.white with { a = 0.35f },
+                HoveredColor = Color.white,
+                ActiveColor = new(0f, 0.75f, 1f, 1f),
+            },
+            CellBackgroundColors = new() {
+                Color = Color.black with { a = 0.5f },
+                NotInteractableColor = Color.black with { a = 0.25f },
+                HoveredColor = Color.white with { a = 0.2f },
+                ActiveColor = Color.white with { a = 0.1f }
             }
         };
 
