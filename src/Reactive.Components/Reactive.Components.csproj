@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net48</TargetFramework>
-        <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
+        <AppOutputBase>$(MSBuildProjectDirectory)/</AppOutputBase>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <AssemblyName>Reactive.Components</AssemblyName>
@@ -52,7 +52,7 @@
             <HintPath>$(UnityAssembliesDir)/UnityEngine.UnityWebRequestModule.dll</HintPath>
         </Reference>
         <ProjectReference Include="../Reactive/Reactive.csproj" />
-        <ProjectReference Include="..\Reactive.Compiler\Reactive.Compiler.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
+        <ProjectReference Include="../Reactive.Compiler/Reactive.Compiler.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     </ItemGroup>
 
     <ItemGroup>

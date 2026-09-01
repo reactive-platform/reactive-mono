@@ -40,7 +40,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Reactive.Compiler.Models\Reactive.Compiler.Models.csproj" />
+        <ProjectReference Include="../Reactive.Compiler.Models/Reactive.Compiler.Models.csproj" />
     </ItemGroup>
 
     <ItemGroup>

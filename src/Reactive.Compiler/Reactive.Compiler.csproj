@@ -36,8 +36,8 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         
-        <Compile Include="..\Reactive.Compiler.Models\**\*.cs"
-                 Exclude="..\Reactive.Compiler.Models\obj\**;..\Reactive.Compiler.Models\bin\**;..\Reactive.Compiler.Models\Properties\AssemblyInfo.cs;..\Reactive.Compiler.Models\AssemblyInfo.cs"
+        <Compile Include="../Reactive.Compiler.Models/**/*.cs"
+                 Exclude="../Reactive.Compiler.Models/obj/**;../Reactive.Compiler.Models/bin/**;../Reactive.Compiler.Models/Properties/AssemblyInfo.cs;../Reactive.Compiler.Models/AssemblyInfo.cs"
                  LinkBase="Models"
                  Visible="false" />
     </ItemGroup>
