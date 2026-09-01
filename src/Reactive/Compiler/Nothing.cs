@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 
 namespace Reactive.Compiler;
@@ -7,4 +8,5 @@ namespace Reactive.Compiler;
 /// dummy overloads from their parameterless analogs.
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
+[EditorBrowsable(EditorBrowsableState.Never)]
 public struct Nothing;
