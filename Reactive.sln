@@ -3,17 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36705.20
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.BeatSaber", "src\reactive-bs-sdk\Reactive.BeatSaber\Reactive.BeatSaber.csproj", "{32F2B8F2-BE8B-47C0-8A37-145069871FFD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.BeatSaber", "src\Reactive.BeatSaber\Reactive.BeatSaber.csproj", "{32F2B8F2-BE8B-47C0-8A37-145069871FFD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Components", "src\reactive-sdk\Reactive.Components\Reactive.Components.csproj", "{126A49C7-6954-498B-8AA4-C09126373844}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Components", "src\Reactive.Components\Reactive.Components.csproj", "{126A49C7-6954-498B-8AA4-C09126373844}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive", "src\reactive\Reactive\Reactive.csproj", "{953C4414-CD02-4B26-B52A-6633219E302F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive", "src\Reactive\Reactive.csproj", "{953C4414-CD02-4B26-B52A-6633219E302F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Compiler", "src\reactive\Reactive.Compiler\Reactive.Compiler.csproj", "{A254E26A-8BB9-4BCF-961A-4ED807F01DCB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Compiler", "src\Reactive.Compiler\Reactive.Compiler.csproj", "{A254E26A-8BB9-4BCF-961A-4ED807F01DCB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Compiler.Sample", "src\reactive\Reactive.Compiler.Sample\Reactive.Compiler.Sample.csproj", "{59A10833-B28C-4E3A-8CFA-BEA343CC9FA8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Compiler.Sample", "src\Reactive.Compiler.Sample\Reactive.Compiler.Sample.csproj", "{59A10833-B28C-4E3A-8CFA-BEA343CC9FA8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Compiler.Models", "src\reactive\Reactive.Compiler.Models\Reactive.Compiler.Models.csproj", "{70F822D2-42EE-4CF9-BDCD-8BB001E3A123}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reactive.Compiler.Models", "src\Reactive.Compiler.Models\Reactive.Compiler.Models.csproj", "{70F822D2-42EE-4CF9-BDCD-8BB001E3A123}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
