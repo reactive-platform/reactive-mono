@@ -15,7 +15,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.text;
         set {
             _text.text = value;
-            NotifyPropertyChanged();
+            
         }
     }
 
@@ -23,7 +23,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.richText;
         set {
             _text.richText = value;
-            NotifyPropertyChanged();
+            
         }
     }
 
@@ -31,7 +31,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.fontSize;
         set {
             _text.fontSize = value;
-            NotifyPropertyChanged();
+            
         }
     }
 
@@ -39,7 +39,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.fontSizeMin;
         set {
             _text.fontSizeMin = value;
-            NotifyPropertyChanged();
+            
         }
     }
 
@@ -47,7 +47,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.fontSizeMax;
         set {
             _text.fontSizeMax = value;
-            NotifyPropertyChanged();
+            
         }
     }
 
@@ -55,7 +55,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.enableAutoSizing;
         set {
             _text.enableAutoSizing = value;
-            NotifyPropertyChanged();
+            
         }
     }
 
@@ -63,7 +63,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.fontStyle;
         set {
             _text.fontStyle = value;
-            NotifyPropertyChanged();
+            
         }
     }
 
@@ -71,7 +71,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.font;
         set {
             _text.font = value;
-            NotifyPropertyChanged();
+            
         }
     }
 
@@ -79,7 +79,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.material;
         set {
             _text.material = value;
-            NotifyPropertyChanged();
+            
         }
     }
 
@@ -87,7 +87,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.enableWordWrapping;
         set {
             _text.enableWordWrapping = value;
-            NotifyPropertyChanged();
+            
         }
     }
 
@@ -95,7 +95,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.overflowMode;
         set {
             _text.overflowMode = value;
-            NotifyPropertyChanged();
+            
         }
     }
 
@@ -103,7 +103,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.alignment;
         set {
             _text.alignment = value;
-            NotifyPropertyChanged();
+            
         }
     }
 
@@ -111,7 +111,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.color;
         set {
             _text.color = value;
-            NotifyPropertyChanged();
+            
         }
     }
 
@@ -119,7 +119,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         get => _text.raycastTarget;
         set {
             _text.raycastTarget = value;
-            NotifyPropertyChanged();
+            
         }
     }
 

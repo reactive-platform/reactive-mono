@@ -11,90 +11,57 @@ namespace Reactive.BeatSaber.Components;
 public class Image : ReactiveComponent, IComponentHolder<Image>, ISkewedComponent, IGraphic, ILeafLayoutItem, ISpriteRenderer {
     public Sprite? Sprite {
         get => _image.sprite;
-        set {
-            _image.sprite = value;
-            NotifyPropertyChanged();
-        }
+        set => _image.sprite = value;
     }
 
     public Color Color {
         get => _image.color;
-        set {
-            _image.color = value;
-            NotifyPropertyChanged();
-        }
+        set => _image.color = value;
     }
 
     public Color GradientColor0 {
         get => _image.color0;
-        set {
-            _image.color0 = value;
-            NotifyPropertyChanged();
-        }
+        set => _image.color0 = value;
     }
 
     public Color GradientColor1 {
         get => _image.color1;
-        set {
-            _image.color1 = value;
-            NotifyPropertyChanged();
-        }
+        set => _image.color1 = value;
     }
 
     public bool UseGradient {
         get => _image.gradient;
-        set {
-            _image.gradient = value;
-            NotifyPropertyChanged();
-        }
+        set => _image.gradient = value;
     }
 
     public ImageView.GradientDirection GradientDirection {
         get => _image.GradientDirection;
-        set {
-            _image.GradientDirection = value;
-            NotifyPropertyChanged();
-        }
+        set => _image.GradientDirection = value;
     }
 
     public Material? Material {
         get => _image.material;
-        set {
-            _image.material = value;
-            NotifyPropertyChanged();
-        }
+        set => _image.material = value;
     }
 
     public bool PreserveAspect {
         get => _image.preserveAspect;
-        set {
-            _image.preserveAspect = value;
-            NotifyPropertyChanged();
-        }
+        set => _image.preserveAspect = value;
     }
 
     public UnityEngine.UI.Image.Type ImageType {
         get => _image.type;
-        set {
-            _image.type = value;
-            NotifyPropertyChanged();
-        }
+        set => _image.type = value;
     }
 
     public UnityEngine.UI.Image.FillMethod FillMethod {
         get => _image.fillMethod;
-        set {
-            _image.fillMethod = value;
-            NotifyPropertyChanged();
-        }
+        set => _image.fillMethod = value;
     }
 
     public float FillAmount {
         get => _image.fillAmount;
-        set {
-            _image.fillAmount = value;
-            NotifyPropertyChanged();
-        }
+        set => _image.fillAmount = value;
     }
 
     public float PixelsPerUnit {
@@ -102,7 +69,6 @@ public class Image : ReactiveComponent, IComponentHolder<Image>, ISkewedComponen
         set {
             ImageType = UnityEngine.UI.Image.Type.Sliced;
             _image.pixelsPerUnitMultiplier = value;
-            NotifyPropertyChanged();
         }
     }
 
@@ -123,7 +89,7 @@ public class Image : ReactiveComponent, IComponentHolder<Image>, ISkewedComponen
     protected override void Construct(RectTransform rect) {
         _image = rect.gameObject.AddComponent<FixedImageView>();
         _image.RegisterDirtyLayoutCallback(RequestLeafRecalculation);
-        
+
         Material = GameResources.UINoGlowMaterial;
     }
 
@@ -137,7 +103,7 @@ public class Image : ReactiveComponent, IComponentHolder<Image>, ISkewedComponen
 
         return LayoutTool.MeasureNode(size, width, widthMode, height, heightMode);
     }
-    
+
     private void RequestLeafRecalculation() {
         LeafLayoutUpdatedEvent?.Invoke(this);
     }

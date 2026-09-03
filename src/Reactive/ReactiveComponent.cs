@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace Reactive {
     [PublicAPI]
-    public partial class ReactiveComponent : IReactiveComponent, IObservableHost, IReactiveModuleBinder {
+    public partial class ReactiveComponent : IReactiveComponent {
         #region Factory
 
         [UsedImplicitly]
@@ -262,7 +262,6 @@ namespace Reactive {
                 throw new InvalidOperationException();
             }
 
-            _observableHost = new(this);
             OnInstantiate();
 
             _content = Construct();

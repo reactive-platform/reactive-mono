@@ -22,7 +22,6 @@ namespace Reactive.BeatSaber.Components {
                 _color = value;
 
                 OnColorUpdated?.Invoke(value);
-                NotifyPropertyChanged();
             }
         }
 
@@ -35,7 +34,6 @@ namespace Reactive.BeatSaber.Components {
                 _savedColor = value;
 
                 OnColorSaved?.Invoke(value);
-                NotifyPropertyChanged();
             }
         }
 

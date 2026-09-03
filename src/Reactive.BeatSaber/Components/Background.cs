@@ -83,11 +83,4 @@ public class Background : ComponentLayout<Image>, IGraphic, ISkewedComponent, IS
     }
 
     #endregion
-
-    public Image WrappedImage => Component;
-
-    protected override void OnInitialize() {
-        RoutePropertyChanged(WrappedImage, null);
-        base.OnInitialize();
-    }
 }

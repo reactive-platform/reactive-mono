@@ -18,7 +18,7 @@ public static class ImageExtensions {
         string url,
         Action? onStart = null,
         Action<bool>? onFinish = null
-    ) where T : ReactiveComponent, ISpriteRenderer, IReactiveModuleBinder, IObservableHost {
+    ) where T : ReactiveComponent, ISpriteRenderer, IReactiveModuleBinder {
         var binder = (comp.Component as IReactiveModuleBinder);
         var renderer = (comp.Component as ISpriteRenderer);
 
