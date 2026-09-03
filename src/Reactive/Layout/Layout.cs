@@ -12,12 +12,15 @@ namespace Reactive {
 
         public ILayoutController? LayoutController {
             get {
-                ComponentDefaults.LayoutController.AssignOptional(ref _layoutController);
+                if (!_layoutController.HasValue && ComponentDefaults.LayoutController.TryCreate(out var controller)) {
+                    LayoutController = controller;
+                }
+
                 return _layoutController.Value;
             }
             set {
                 var oldController = _layoutController.Value;
-                
+
                 if (oldController != null) {
                     oldController.RemoveAllChildren();
                     oldController.LayoutControllerUpdatedEvent -= ScheduleLayoutRecalculation;
@@ -67,7 +70,7 @@ namespace Reactive {
             } else {
                 constraints = new Vector2(float.NaN, float.NaN);
             }
-            
+
             layoutController.Recalculate(this, constraints);
             layoutController.ApplyChildren();
 

@@ -10,10 +10,10 @@ namespace Reactive;
 [PublicAPI]
 public static class ComponentDefaults {
     public static readonly ContextProp<ILayoutModifier> LayoutModifier = new() {
-        Factory = () => new YogaModifier()
+        Factory = null
     };
 
     public static readonly ContextProp<ILayoutController> LayoutController = new() {
-        Factory = () => new YogaLayoutController()
+        Factory = null
     };
 }

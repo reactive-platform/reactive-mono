@@ -21,10 +21,14 @@ namespace Reactive {
                     _layoutDriver?.Children.Add(this);
                 }
             }
-            
+
             public ILayoutModifier? LayoutModifier {
                 get {
-                    ComponentDefaults.LayoutModifier.AssignOptional(ref _modifier);
+                    if (!_modifier.HasValue && ComponentDefaults.LayoutModifier.TryCreate(out var modifier)) {
+                        // Not the best solution but since _modifier is reassigned before calling modifier event it doesn't cause recursion cycles
+                        LayoutModifier = modifier;
+                    }
+
                     return _modifier.Value;
                 }
                 set {
@@ -108,17 +112,20 @@ namespace Reactive {
 
                 _beingRecalculated = true;
 
-                if (LayoutModifier != null && LayoutDriver?.LayoutController != null) {
-                    // If a layout driver is presented, start recalculation from this point
-                    LayoutDriver.RecalculateLayoutImmediate();
-                } else {
-                    // If not, tell own components to start recalculation (if there is a Layout or a custom layout controller) 
-                    for (var i = 0; i < _components.Count; i++) {
-                        _components[i].OnRecalculateLayoutSelf();
+                try {
+                    if (LayoutModifier != null && LayoutDriver?.LayoutController != null) {
+                        // If a layout driver is presented, start recalculation from this point
+                        LayoutDriver.RecalculateLayoutImmediate();
+                    } else {
+                        // If not, tell own components to start recalculation (if there is a Layout or a custom layout controller) 
+                        for (var i = 0; i < _components.Count; i++) {
+                            _components[i].OnRecalculateLayoutSelf();
+                        }
                     }
                 }
-
-                _beingRecalculated = false;
+                finally {
+                    _beingRecalculated = false;
+                }
             }
 
             private void ScheduleLayoutRecalculationAfterStateChange(bool newState) {
@@ -254,9 +261,9 @@ namespace Reactive {
                 // Normally the main component is a component that was created the last
                 var comp = _definedExposeComponent ?? _components.LastOrDefault();
 
-                if (comp != null && comp != _lastExposedComponent) {
+                if (comp != null && comp != _lastExposedComponent && _modifier.Value != null) {
                     _lastExposedComponent = comp;
-                    _modifier.Value?.ExposeLayoutItem(comp);
+                    _modifier.Value.ExposeLayoutItem(comp);
                 }
             }
 
@@ -288,7 +295,7 @@ namespace Reactive {
                 for (var i = 0; i < _components.Count; i++) {
                     _components[i].OnStart();
                 }
-                
+
                 IsStarted = true;
             }
 
@@ -320,7 +327,7 @@ namespace Reactive {
                 for (var i = 0; i < _components.Count; i++) {
                     _components[i].OnDestroy();
                 }
-                
+
                 IsDestroyed = true;
             }
 
@@ -361,7 +368,7 @@ namespace Reactive {
                 if (!_beingApplied) {
                     _recalculationScheduled = true;
                 }
-                
+
                 for (var i = 0; i < _components.Count; i++) {
                     _components[i].OnRectDimensionsChanged();
                 }
