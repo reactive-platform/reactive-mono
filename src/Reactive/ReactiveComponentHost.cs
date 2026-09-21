@@ -65,6 +65,7 @@ namespace Reactive {
 
             public event Action<ILayoutItem>? ModifierUpdatedEvent;
             public event Action<ILayoutItem>? StateUpdatedEvent;
+            public event Action<ILayoutItem>? LayoutUpdatedEvent;
 
             private ILayoutDriver? _layoutDriver;
             private Optional<ILayoutModifier?> _modifier;
@@ -124,6 +125,7 @@ namespace Reactive {
                     }
                 }
                 finally {
+                    LayoutUpdatedEvent?.Invoke(this);
                     _beingRecalculated = false;
                 }
             }

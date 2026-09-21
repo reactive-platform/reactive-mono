@@ -104,6 +104,11 @@ namespace Reactive {
             remove => Host.StateUpdatedEvent -= value;
         }
 
+        public event Action<ILayoutItem>? LayoutUpdatedEvent {
+            add => Host.LayoutUpdatedEvent += value;
+            remove => Host.LayoutUpdatedEvent -= value;
+        }
+
         public int GetLayoutItemHashCode() {
             return Host.GetLayoutItemHashCode();
         }
