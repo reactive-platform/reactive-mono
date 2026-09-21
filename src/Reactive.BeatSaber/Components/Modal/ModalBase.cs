@@ -55,10 +55,6 @@ public abstract class ModalBase : ReactiveComponent {
             }
 
             _overlay.IsPushed = value;
-
-            if (value && PlacementAnchor != null) {
-                PlacementTool.Place(_content.ContentTransform, PlacementAnchor, PlacementData);
-            }
         }
     }
 
@@ -84,12 +80,22 @@ public abstract class ModalBase : ReactiveComponent {
                     .WithRectExpand()
                     .WithPointerEvents(onDown: _ => OnClickOutside?.Invoke()),
 
-                ConstructContent().Bind(ref _content)
+                ConstructContent()
+                    .With(x => x.LayoutUpdatedEvent += HandleLayoutUpdated)
+                    .Bind(ref _content)
             }
         }.Bind(ref _overlay).Use();
     }
 
     protected abstract IReactiveComponent ConstructContent();
+
+    private void HandleLayoutUpdated(ILayoutItem item) {
+        if (!IsPushed || PlacementAnchor == null) {
+            return;
+        }
+
+        PlacementTool.Place(_content.ContentTransform, PlacementAnchor, PlacementData);
+    }
 
     #endregion
 }
