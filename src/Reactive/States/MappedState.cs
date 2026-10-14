@@ -10,12 +10,13 @@ namespace Reactive;
 [PublicAPI]
 public class MappedState<T, TNew> : StateBase<TNew>, IState<TNew>, IDisposable {
     /// <summary>
-    /// Represents a state value. Evaluated on each call.
+    /// Represents a state value. Evaluated when read after the original state changed.
     /// </summary>
     public TNew Value {
         get {
             if (!_hasValue) {
                 field = _predicate(_state.Value);
+                _hasValue = true;
             }
 
             return field;
@@ -30,17 +31,16 @@ public class MappedState<T, TNew> : StateBase<TNew>, IState<TNew>, IDisposable {
     public MappedState(IState<T> state, Func<T, TNew> predicate) {
         _state = state;
         _predicate = predicate;
-        _subscription = state.AddCallback(HandleValueChanged, this, null!);
+        _subscription = state is IInvalidationSource source ?
+            source.AddInvalidationCallback(HandleValueChanged, this, null!) :
+            state.AddCallback(HandleValueChanged, this, null!);
     }
 
-    private static void HandleValueChanged(ref RefStateSubscription _, T value, object arg1, object arg2) {
+    private static void HandleValueChanged(ref RefStateSubscription _, object arg1, object arg2) {
         var self = (MappedState<T, TNew>)arg1;
 
         self._hasValue = false;
-
-        if (self.HasCallbacks) {
-            self.NotifyValueChanged(self.Value);
-        }
+        self.NotifyValueInvalidated();
     }
 
     public void Dispose() {

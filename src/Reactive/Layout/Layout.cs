@@ -48,15 +48,13 @@ namespace Reactive {
         private Optional<ILayoutController?> _layoutController;
         private bool _beingRecalculated;
 
-        // Guard for requests from other components
-        private float _lastRecalculationTime;
+        // Guard for requests from other components: calculated in this layout run, it's up to date with them
+        private int _lastRecalculationRun;
 
         private void RecalculateLayoutInternal() {
             var layoutController = LayoutController;
-            var time = Time.time;
-            // Used to prevent multiple recalculations
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            if (_lastRecalculationTime == time) {
+            var run = ReactiveFrame.Layout.CurrentRun;
+            if (run != 0 && _lastRecalculationRun == run) {
                 return;
             }
 
@@ -74,7 +72,7 @@ namespace Reactive {
             layoutController.Recalculate(this, constraints);
             layoutController.ApplyChildren();
 
-            _lastRecalculationTime = Time.time;
+            _lastRecalculationRun = run;
         }
 
         public void RecalculateLayoutImmediate() {

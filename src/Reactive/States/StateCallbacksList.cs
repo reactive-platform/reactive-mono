@@ -3,8 +3,9 @@ using System;
 namespace Reactive;
 
 internal readonly struct StateCallbackEntry<T> {
-    public StateCallbackEntry(StateCallback callback, object arg1, object arg2) {
+    public StateCallbackEntry(StateCallback callback, object arg1, object arg2, bool invalidation) {
         Callback = callback;
+        Invalidation = invalidation;
         _arg1 = arg1;
         _arg2 = arg2;
         _typed = false;
@@ -12,12 +13,14 @@ internal readonly struct StateCallbackEntry<T> {
 
     public StateCallbackEntry(StateCallback<T> callback, object arg1, object arg2) {
         Callback = callback;
+        Invalidation = false;
         _arg1 = arg1;
         _arg2 = arg2;
         _typed = true;
     }
 
     public readonly object Callback;
+    public readonly bool Invalidation;
 
     private readonly bool _typed;
     private readonly object _arg1;
@@ -34,50 +37,93 @@ internal readonly struct StateCallbackEntry<T> {
 
 /// <summary>
 /// Such types are usually classes, but as it's meant to be used in
-/// every state, making it a class would be a performance bottleneck 
+/// every state, making it a class would be a performance bottleneck
 /// as each state would require an additional allocation. You should never clone this struct.
 /// </summary>
 public struct StateCallbacksList<T> {
     private StateCallbackEntry<T>?[]? _array;
     private int _lastAvailableSlot;
+    private int _count;
+    private int _invalidationCount;
     private readonly IState _state;
 
-    public bool HasCallbacks => _array?.Length > 0;
+    /// <summary>
+    /// Whether there are callbacks that take the value (invalidation callbacks don't).
+    /// </summary>
+    public bool HasCallbacks => _count > _invalidationCount;
 
     public StateCallbacksList(IState state) {
         _state = state;
     }
 
+    /// <summary>
+    /// Invokes the callbacks that take the value.
+    /// </summary>
     public void Invoke(T value) {
+        if (!HasCallbacks) {
+            return;
+        }
+
         for (var i = 0; i < _array?.Length; i++) {
-            if (_array[i] == null) {
+            if (_array[i] is not { Invalidation: false } entry) {
                 continue;
             }
 
             var sub = new RefStateSubscription(true);
 
-            _array[i]?.Invoke(ref sub, value);
+            entry.Invoke(ref sub, value);
 
             if (!sub.GetIsValid()) {
-                _array[i] = null;
+                Free(i);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Invokes the invalidation callbacks.
+    /// </summary>
+    public void InvokeInvalidation() {
+        if (_invalidationCount == 0) {
+            return;
+        }
+
+        for (var i = 0; i < _array?.Length; i++) {
+            if (_array[i] is not { Invalidation: true } entry) {
+                continue;
+            }
+
+            var sub = new RefStateSubscription(true);
+
+            entry.Invoke(ref sub, default!);
+
+            if (!sub.GetIsValid()) {
+                Free(i);
             }
         }
     }
 
     public StateSubscription Add(StateCallback callback, object arg1, object arg2) {
-        var slot = GetSlot();
-
-        _array![slot] = new(callback, arg1, arg2);
-        _lastAvailableSlot = slot + 1;
-
-        return new(slot, callback, _state);
+        return Add(new(callback, arg1, arg2, false), callback);
     }
 
     public StateSubscription Add(StateCallback<T> callback, object arg1, object arg2) {
+        return Add(new(callback, arg1, arg2), callback);
+    }
+
+    /// <summary>
+    /// Adds a callback invoked at once when the state changes, without a value.
+    /// </summary>
+    public StateSubscription AddInvalidation(StateCallback callback, object arg1, object arg2) {
+        _invalidationCount++;
+        return Add(new(callback, arg1, arg2, true), callback);
+    }
+
+    private StateSubscription Add(StateCallbackEntry<T> entry, object callback) {
         var slot = GetSlot();
 
-        _array![slot] = new(callback, arg1, arg2);
+        _array![slot] = entry;
         _lastAvailableSlot = slot + 1;
+        _count++;
 
         return new(slot, callback, _state);
     }
@@ -99,14 +145,23 @@ public struct StateCallbacksList<T> {
             return false;
         }
 
+        Free(i);
+
+        return true;
+    }
+
+    private void Free(int i) {
+        if (_array![i]!.Value.Invalidation) {
+            _invalidationCount--;
+        }
+
         _array[i] = null;
+        _count--;
         // When inserting new callbacks we use forward lookups,
         // so we store the first unoccupied entry
         if (i < _lastAvailableSlot) {
             _lastAvailableSlot = i;
         }
-
-        return true;
     }
 
     private int GetSlot() {

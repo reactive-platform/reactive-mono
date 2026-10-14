@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Reactive {
     public partial class ReactiveComponent {
         [RequireComponent(typeof(RectTransform))]
-        private class ReactiveHost : MonoBehaviour, ILayoutItem, IReactiveModuleBinder {
+        private class ReactiveHost : MonoBehaviour, ILayoutItem, IReactiveModuleBinder, ILayoutScheduled {
             #region LayoutItem
 
             public ILayoutDriver? LayoutDriver {
@@ -100,10 +100,33 @@ namespace Reactive {
             #region Layout
 
             private bool _recalculationScheduled;
+            private bool _layoutQueued;
             private bool _beingRecalculated;
 
             public void ScheduleLayoutRecalculation() {
                 _recalculationScheduled = true;
+                QueueLayout();
+            }
+
+            private void QueueLayout() {
+                if (_layoutQueued) {
+                    return;
+                }
+
+                _layoutQueued = true;
+                ReactiveFrame.Layout.Schedule(this);
+            }
+
+            void ILayoutScheduled.RunScheduledLayout() {
+                _layoutQueued = false;
+
+                // An inactive host keeps its request until it's enabled again
+                if (!_recalculationScheduled || IsDestroyed || !isActiveAndEnabled) {
+                    return;
+                }
+
+                RecalculateLayoutImmediate();
+                _recalculationScheduled = false;
             }
 
             public void RecalculateLayoutImmediate() {
@@ -134,7 +157,7 @@ namespace Reactive {
                 if (newState) {
                     ScheduleLayoutRecalculation();
                 } else if (LayoutDriver != null) {
-                    // The current object is disabled and LateUpdate won't be called, so we try to 
+                    // The current object is disabled and won't be recalculated, so we try to 
                     // move the recalculation responsibility to the driver if possible. 
                     // If this object doesn't have a driver, recalculation is omitted as it will
                     // happen anyway when the object will get enabled back.
@@ -314,12 +337,6 @@ namespace Reactive {
             }
 
             private void LateUpdate() {
-                if (_recalculationScheduled) {
-                    RecalculateLayoutImmediate();
-
-                    _recalculationScheduled = false;
-                }
-
                 for (var i = 0; i < _components.Count; i++) {
                     _components[i].OnLateUpdate();
                 }
@@ -334,6 +351,10 @@ namespace Reactive {
             }
 
             private void OnEnable() {
+                if (_recalculationScheduled) {
+                    QueueLayout();
+                }
+
                 if (!_wasActuallyDisabled) {
                     return;
                 }
@@ -366,9 +387,9 @@ namespace Reactive {
                 // we'll see that it goes to the root driver and starts recalculation from there.
                 // it means that layout controller will be able to modify rect properties
                 // which is not allowed to be performed on the OnRectTransformDimensionsChange stack.
-                // that's why we schedule recalculation to the end of this frame
+                // that's why we schedule recalculation to the frame's layout layer
                 if (!_beingApplied) {
-                    _recalculationScheduled = true;
+                    ScheduleLayoutRecalculation();
                 }
 
                 for (var i = 0; i < _components.Count; i++) {

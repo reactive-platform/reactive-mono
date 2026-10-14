@@ -139,6 +139,7 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
 
     protected override void OnInitialize() {
         _slidingAreaTransform.gameObject.AddComponent<RectDimensionsListener>().Slider = this;
+        _valueText.AddCallback(this, static (x, _) => x.PlaceText(), lazy: true);
     }
 
     #endregion
@@ -158,6 +159,7 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
     private State<float> _maxValue = null!;
     private State<float> _minValue = null!;
     private State<bool> _buttonsEnabled = null!;
+    private IState<string> _valueText = null!;
 
     protected override GameObject Construct() {
         _colors = Remember(BeatSaberStyle.BsSliderColors);
@@ -167,6 +169,17 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
         _minValue = Remember(0f);
         _maxValue = Remember(0f);
         _buttonsEnabled = Remember(true);
+
+        _valueText = RememberDerived(
+            x => {
+                if (x._valueFormatter.Value is { } formatter) {
+                    return formatter(_value);
+                }
+
+                return _value.Value.ToString(CultureInfo.CurrentCulture);
+            },
+            (_value, _valueFormatter)
+        );
 
         return new Layout {
             FlexItem = {
@@ -257,16 +270,7 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
 
                                     sColor = _graphicState.MapColorSet(_colors, static x => x.TextColors).In(),
 
-                                    sText = RememberDerived(
-                                        x => {
-                                            if (x._valueFormatter.Value is { } formatter) {
-                                                return formatter(_value);
-                                            }
-
-                                            return _value.Value.ToString(CultureInfo.CurrentCulture);
-                                        },
-                                        (_value, _valueFormatter)
-                                    )
+                                    sText = _valueText.In()
                                 }.Bind(ref _textTransform).Bind(ref _text),
 
                                 // Handle
