@@ -31,16 +31,14 @@ public class MappedState<T, TNew> : StateBase<TNew>, IState<TNew>, IDisposable {
     public MappedState(IState<T> state, Func<T, TNew> predicate) {
         _state = state;
         _predicate = predicate;
-        _subscription = state is IInvalidationSource source ?
-            source.AddInvalidationCallback(HandleValueChanged, this, null!) :
-            state.AddCallback(HandleValueChanged, this, null!);
+        _subscription = state.AddInvalidationCallback(HandleValueChanged, this, null!);
     }
 
     private static void HandleValueChanged(ref RefStateSubscription _, object arg1, object arg2) {
         var self = (MappedState<T, TNew>)arg1;
 
         self._hasValue = false;
-        self.NotifyValueInvalidated();
+        self.NotifyValueChanged();
     }
 
     public void Dispose() {

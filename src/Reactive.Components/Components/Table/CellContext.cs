@@ -63,7 +63,8 @@ public class CellContext<T> : StateBase<CellContext<T>>, IState<CellContext<T>> 
     private void NotifyValueChanged(CellUpdateType type) {
         UpdateType = type;
 
-        NotifyValueChangedImmediately(this);
+        NotifyValueChanged();
+        Flush();
 
         UpdateType = CellUpdateType.None;
     }

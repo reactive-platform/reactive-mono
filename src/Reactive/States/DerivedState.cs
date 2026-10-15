@@ -39,9 +39,7 @@ public class DerivedState<T, TDeps> : StateBase<T>, IState<T>, IDisposable where
         for (var i = 0; i < dependencies.Length; i++) {
             // Non-state objects are simply ignored
             if (dependencies[i] is IState state) {
-                _subscriptions[_occupiedSubsLen] = state is IInvalidationSource source ?
-                    source.AddInvalidationCallback(HandleStateUpdated, this, null!) :
-                    state.AddCallback(HandleStateUpdated, this, null!);
+                _subscriptions[_occupiedSubsLen] = state.AddInvalidationCallback(HandleStateUpdated, this, null!);
                 _occupiedSubsLen++;
             } else {
                 Debug.LogWarning("You've passed a dependency which is not a state, consider removing it and passing directly");
@@ -53,7 +51,7 @@ public class DerivedState<T, TDeps> : StateBase<T>, IState<T>, IDisposable where
         var self = (DerivedState<T, TDeps>)arg1;
 
         self._hasValue = false;
-        self.NotifyValueInvalidated();
+        self.NotifyValueChanged();
     }
 
     public void Dispose() {

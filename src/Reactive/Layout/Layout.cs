@@ -53,7 +53,7 @@ namespace Reactive {
 
         private void RecalculateLayoutInternal() {
             var layoutController = LayoutController;
-            var run = ReactiveFrame.Layout.CurrentRun;
+            var run = ReactiveScheduler.Layout.CurrentRun;
             if (run != 0 && _lastRecalculationRun == run) {
                 return;
             }

@@ -9,11 +9,10 @@ namespace Reactive;
 /// </summary>
 /// <typeparam name="T">A type of the state.</typeparam>
 [PublicAPI]
-public abstract class StateBase<T> : IState, IInvalidationSource, IScheduledState {
+public abstract class StateBase<T> : IState {
     private StateCallbacksList<T> _list;
-    private T _pendingValue = default!;
-    private bool _hasPendingValue;
-    private bool _scheduled;
+
+    public bool IsDirty { get; private set; }
 
     // Helps to avoid evaluating Value when there's nothing to invoke
     protected bool HasCallbacks => _list.HasCallbacks;
@@ -23,88 +22,31 @@ public abstract class StateBase<T> : IState, IInvalidationSource, IScheduledStat
     }
 
     /// <summary>
-    /// Notifies that the state has a new value. States derived from it learn at once,
-    /// callbacks get the latest value when <see cref="StateScheduler"/> flushes.
+    /// Notifies that the state has a new value. States derived from it are invalidated at once,
+    /// callbacks get the value when the state is flushed.
     /// </summary>
-    protected void NotifyValueChanged(T value) {
-        StateScheduler.BeginNotification();
+    protected void NotifyValueChanged() {
         _list.InvokeInvalidation();
 
-        if (_list.HasCallbacks) {
-            _pendingValue = value;
-            _hasPendingValue = true;
-            Schedule();
+        if (_list.HasCallbacks && !IsDirty) {
+            IsDirty = true;
+            ReactiveScheduler.State.Schedule(this);
         }
-
-        StateScheduler.EndNotification();
     }
 
     /// <summary>
-    /// Like <see cref="NotifyValueChanged"/>, but callbacks run before it returns, as for an event. For states whose
-    /// notification carries something that's gone afterwards (ScrollContext's UpdateType). States derived from it
-    /// still run their callbacks at the next flush.
+    /// Runs the callbacks with the state's value if the state is dirty. The state must implement <see cref="IState{T}"/>.
     /// </summary>
-    protected void NotifyValueChangedImmediately(T value) {
-        StateScheduler.BeginNotification();
-        _list.InvokeInvalidation();
-        // A pending delivery would only repeat this one
-        Cancel();
-        _list.Invoke(value);
-        StateScheduler.EndNotification();
-    }
+    public void Flush() {
+        if (!IsDirty) {
+            return;
+        }
 
-    /// <summary>
-    /// Notifies that the state's value has to be evaluated again, for states that evaluate it when read
-    /// (the state must implement <see cref="IState{T}"/>). Callbacks read it when <see cref="StateScheduler"/>
-    /// flushes, so it's evaluated once however many times it was invalidated.
-    /// </summary>
-    protected void NotifyValueInvalidated() {
-        StateScheduler.BeginNotification();
-        _list.InvokeInvalidation();
+        IsDirty = false;
 
         if (_list.HasCallbacks) {
-            _pendingValue = default!;
-            _hasPendingValue = false;
-            Schedule();
+            _list.Invoke(((IState<T>)this).Value);
         }
-
-        StateScheduler.EndNotification();
-    }
-
-    private void Schedule() {
-        if (_scheduled) {
-            return;
-        }
-
-        _scheduled = true;
-        StateScheduler.Schedule(this);
-    }
-
-    void IScheduledState.Deliver() {
-        // Delivered immediately since it was scheduled
-        if (!_scheduled) {
-            return;
-        }
-
-        var value = _pendingValue;
-        var hasValue = _hasPendingValue;
-
-        Cancel();
-
-        if (!_list.HasCallbacks) {
-            return;
-        }
-
-        _list.Invoke(hasValue ? value : ((IState<T>)this).Value);
-    }
-
-    void IScheduledState.Cancel() => Cancel();
-
-    private void Cancel() {
-        _scheduled = false;
-        _hasPendingValue = false;
-        // Don't keep the value alive until the next change
-        _pendingValue = default!;
     }
 
     public StateSubscription AddCallback(StateCallback<T> callback, object arg1, object arg2) {
@@ -115,18 +57,11 @@ public abstract class StateBase<T> : IState, IInvalidationSource, IScheduledStat
         return _list.Add(callback, arg1, arg2);
     }
 
-    StateSubscription IInvalidationSource.AddInvalidationCallback(StateCallback callback, object arg1, object arg2) {
+    public StateSubscription AddInvalidationCallback(StateCallback callback, object arg1, object arg2) {
         return _list.AddInvalidation(callback, arg1, arg2);
     }
 
     public bool RemoveCallback(in StateSubscription sub) {
         return _list.Remove(sub);
     }
-}
-
-/// <summary>
-/// A state that can tell its dependents about a change without evaluating its value.
-/// </summary>
-internal interface IInvalidationSource {
-    StateSubscription AddInvalidationCallback(StateCallback callback, object arg1, object arg2);
 }

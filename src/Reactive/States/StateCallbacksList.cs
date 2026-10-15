@@ -37,7 +37,7 @@ internal readonly struct StateCallbackEntry<T> {
 
 /// <summary>
 /// Such types are usually classes, but as it's meant to be used in
-/// every state, making it a class would be a performance bottleneck
+/// every state, making it a class would be a performance bottleneck 
 /// as each state would require an additional allocation. You should never clone this struct.
 /// </summary>
 public struct StateCallbacksList<T> {
@@ -56,45 +56,27 @@ public struct StateCallbacksList<T> {
         _state = state;
     }
 
-    /// <summary>
-    /// Invokes the callbacks that take the value.
-    /// </summary>
     public void Invoke(T value) {
-        if (!HasCallbacks) {
-            return;
+        if (HasCallbacks) {
+            Invoke(value, false);
         }
+    }
 
+    public void InvokeInvalidation() {
+        if (_invalidationCount > 0) {
+            Invoke(default!, true);
+        }
+    }
+
+    private void Invoke(T value, bool invalidation) {
         for (var i = 0; i < _array?.Length; i++) {
-            if (_array[i] is not { Invalidation: false } entry) {
+            if (_array[i] is not { } entry || entry.Invalidation != invalidation) {
                 continue;
             }
 
             var sub = new RefStateSubscription(true);
 
             entry.Invoke(ref sub, value);
-
-            if (!sub.GetIsValid()) {
-                Free(i);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Invokes the invalidation callbacks.
-    /// </summary>
-    public void InvokeInvalidation() {
-        if (_invalidationCount == 0) {
-            return;
-        }
-
-        for (var i = 0; i < _array?.Length; i++) {
-            if (_array[i] is not { Invalidation: true } entry) {
-                continue;
-            }
-
-            var sub = new RefStateSubscription(true);
-
-            entry.Invoke(ref sub, default!);
 
             if (!sub.GetIsValid()) {
                 Free(i);

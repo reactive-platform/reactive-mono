@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Reactive {
     public partial class ReactiveComponent {
         [RequireComponent(typeof(RectTransform))]
-        private class ReactiveHost : MonoBehaviour, ILayoutItem, IReactiveModuleBinder, ILayoutScheduled {
+        private class ReactiveHost : MonoBehaviour, ILayoutItem, IReactiveModuleBinder {
             #region LayoutItem
 
             public ILayoutDriver? LayoutDriver {
@@ -100,33 +100,15 @@ namespace Reactive {
             #region Layout
 
             private bool _recalculationScheduled;
-            private bool _layoutQueued;
             private bool _beingRecalculated;
 
             public void ScheduleLayoutRecalculation() {
+                if (_recalculationScheduled) {
+                    return;
+                }
+
                 _recalculationScheduled = true;
-                QueueLayout();
-            }
-
-            private void QueueLayout() {
-                if (_layoutQueued) {
-                    return;
-                }
-
-                _layoutQueued = true;
-                ReactiveFrame.Layout.Schedule(this);
-            }
-
-            void ILayoutScheduled.RunScheduledLayout() {
-                _layoutQueued = false;
-
-                // An inactive host keeps its request until it's enabled again
-                if (!_recalculationScheduled || IsDestroyed || !isActiveAndEnabled) {
-                    return;
-                }
-
-                RecalculateLayoutImmediate();
-                _recalculationScheduled = false;
+                ReactiveScheduler.Layout.Schedule(this);
             }
 
             public void RecalculateLayoutImmediate() {
@@ -150,6 +132,7 @@ namespace Reactive {
                 finally {
                     LayoutUpdatedEvent?.Invoke(this);
                     _beingRecalculated = false;
+                    _recalculationScheduled = false;
                 }
             }
 
@@ -352,7 +335,7 @@ namespace Reactive {
 
             private void OnEnable() {
                 if (_recalculationScheduled) {
-                    QueueLayout();
+                    ReactiveScheduler.Layout.Schedule(this);
                 }
 
                 if (!_wasActuallyDisabled) {

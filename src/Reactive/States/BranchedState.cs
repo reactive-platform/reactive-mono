@@ -34,7 +34,7 @@ public class BranchedState<T> : StateBase<T>, IState<T>, IDisposable {
 
         if (self._predicate(value)) {
             self.Value = value;
-            self.NotifyValueChanged(value);
+            self.NotifyValueChanged();
         }
     }
 

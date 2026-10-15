@@ -16,7 +16,7 @@ namespace Reactive {
                 }
                 
                 _value = value;
-                NotifyValueChanged(value);
+                NotifyValueChanged();
             }
         }
         

@@ -9,7 +9,7 @@ public class ColorPickerContext : StateBase<ColorPickerContext>, IState<ColorPic
         get;
         set {
             field = value;
-            NotifyValueChanged(this);
+            NotifyValueChanged();
         }
     }
 
@@ -17,7 +17,7 @@ public class ColorPickerContext : StateBase<ColorPickerContext>, IState<ColorPic
         get;
         set {
             field = value;
-            NotifyValueChanged(this);
+            NotifyValueChanged();
         }
     }
     
@@ -25,7 +25,7 @@ public class ColorPickerContext : StateBase<ColorPickerContext>, IState<ColorPic
         get;
         set {
             field = value;
-            NotifyValueChanged(this);
+            NotifyValueChanged();
         }
     }
     
