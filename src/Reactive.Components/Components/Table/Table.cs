@@ -310,7 +310,7 @@ namespace Reactive.Components.Basic {
         #region Callbacks
 
         private void HandleCellContextUpdated(CellContext<TItem> context) {
-            if (context.UpdateType is not CellUpdateType.Selection) {
+            if (!context.UpdateType.IsSelection) {
                 return;
             }
 
@@ -341,7 +341,7 @@ namespace Reactive.Components.Basic {
         }
 
         private void HandleScrollContextUpdated(ScrollContext context) {
-            if (context.UpdateType is ScrollUpdateType.Scroll or ScrollUpdateType.Measurements) {
+            if (context.UpdateType.IsScroll || context.UpdateType.IsMeasurements) {
                 RefreshCellsIfNeeded();
             }
         }

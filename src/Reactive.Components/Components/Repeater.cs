@@ -145,7 +145,7 @@ namespace Reactive.Components {
         }
 
         private void HandleCellContextUpdated(CellContext<TItem> context) {
-            if (context.UpdateType is not CellUpdateType.Selection || _blockContextUpdates) {
+            if (!context.UpdateType.IsSelection || _blockContextUpdates) {
                 return;
             }
 

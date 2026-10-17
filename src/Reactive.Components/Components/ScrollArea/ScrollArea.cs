@@ -253,7 +253,7 @@ namespace Reactive.Components.Basic {
         }
 
         private void HandleContextUpdated(ScrollContext context) {
-            if (context.UpdateType is ScrollUpdateType.Intent) {
+            if (context.UpdateType.IsIntent) {
                 SetDestinationPos(context.ScrollPos, context.Immediately);
             }
         }

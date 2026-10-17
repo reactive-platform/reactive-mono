@@ -4,18 +4,29 @@ using UnityEngine;
 
 namespace Reactive.Components;
 
+[Flags]
 public enum ScrollUpdateType {
-    None,
+    None = 0,
     /// User intent to scroll (e.g. ScrollPos, ScrollItem).
-    Intent,
+    Intent = 1 << 0,
     /// Controller measurements (e.g. ContentSize, ViewSize).
-    Measurements,
+    Measurements = 1 << 1,
     /// Controller scroll (ActualScrollPos).
-    Scroll,
+    Scroll = 1 << 2,
     /// <summary>
     /// Controller scroll has just finished.
     /// </summary>
-    ScrollFinished
+    ScrollFinished = 1 << 3
+}
+
+[PublicAPI]
+public static class ScrollUpdateExtensions {
+    extension(ScrollUpdateType type) {
+        public bool IsIntent => (type & ScrollUpdateType.Intent) != 0;
+        public bool IsMeasurements => (type & ScrollUpdateType.Measurements) != 0;
+        public bool IsScroll => (type & ScrollUpdateType.Scroll) != 0;
+        public bool IsScrollFinished => (type & ScrollUpdateType.ScrollFinished) != 0;
+    }
 }
 
 [PublicAPI]
@@ -51,9 +62,11 @@ public class ScrollContext : StateBase<ScrollContext>, IState<ScrollContext> {
     public float ViewSize { get; private set; }
 
     /// <summary>
-    /// Determines a kind of the last update. Returns None if called outside the ValueChanged cycle.
+    /// Kinds of updates delivered with the last flush, combined as flags. Kept until the next flush.
     /// </summary>
     public ScrollUpdateType UpdateType { get; private set; }
+
+    private ScrollUpdateType _pendingUpdateType;
 
     /// <summary>
     /// Helper to get or set scroll position in a 0..1 range.
@@ -165,12 +178,13 @@ public class ScrollContext : StateBase<ScrollContext>, IState<ScrollContext> {
     ScrollContext IState<ScrollContext>.Value => this;
 
     private void NotifyValueChanged(ScrollUpdateType type) {
-        UpdateType = type;
-
+        _pendingUpdateType |= type;
         NotifyValueInvalidated();
-        Flush();
+    }
 
-        UpdateType = ScrollUpdateType.None;
+    protected override void OnFlush() {
+        UpdateType = _pendingUpdateType;
+        _pendingUpdateType = ScrollUpdateType.None;
     }
 
     public override bool Equals(object? obj) {

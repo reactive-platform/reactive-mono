@@ -43,11 +43,18 @@ public abstract class StateBase<T> : IState {
         }
 
         IsDirty = false;
+        OnFlush();
 
         if (_list.HasCallbacks) {
             _list.Invoke(((IState<T>)this).Value);
         }
     }
+
+    /// <summary>
+    /// Called when the state is flushed, right before the callbacks are invoked.
+    /// Changes made from the callbacks are delivered with the next flush.
+    /// </summary>
+    protected virtual void OnFlush() { }
 
     public StateSubscription AddCallback(StateCallback<T> callback, object arg1, object arg2) {
         return _list.Add(callback, arg1, arg2);

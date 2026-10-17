@@ -1,12 +1,22 @@
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace Reactive.Components;
 
+[Flags]
 public enum CellUpdateType {
-    None,
-    Item,
-    Selection
+    None = 0,
+    Item = 1 << 0,
+    Selection = 1 << 1
+}
+
+[PublicAPI]
+public static class CellUpdateExtensions {
+    extension(CellUpdateType type) {
+        public bool IsItem => (type & CellUpdateType.Item) != 0;
+        public bool IsSelection => (type & CellUpdateType.Selection) != 0;
+    }
 }
 
 public class CellContext<T> : StateBase<CellContext<T>>, IState<CellContext<T>> {
@@ -27,8 +37,12 @@ public class CellContext<T> : StateBase<CellContext<T>>, IState<CellContext<T>> 
         }
     }
 
+    /// <summary>
+    /// Kinds of updates delivered with the last flush, combined as flags. Kept until the next flush.
+    /// </summary>
     public CellUpdateType UpdateType { get; private set; }
 
+    private CellUpdateType _pendingUpdateType;
     private T? _item;
 
     // TODO: hide from the user
@@ -61,12 +75,13 @@ public class CellContext<T> : StateBase<CellContext<T>>, IState<CellContext<T>> 
     public CellContext<T> Value => this;
     
     private void NotifyValueChanged(CellUpdateType type) {
-        UpdateType = type;
-
+        _pendingUpdateType |= type;
         NotifyValueInvalidated();
-        Flush();
+    }
 
-        UpdateType = CellUpdateType.None;
+    protected override void OnFlush() {
+        UpdateType = _pendingUpdateType;
+        _pendingUpdateType = CellUpdateType.None;
     }
 
     #endregion
