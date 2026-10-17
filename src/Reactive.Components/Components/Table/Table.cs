@@ -66,7 +66,9 @@ namespace Reactive.Components.Basic {
                         throw new InvalidOperationException("Cannot set a selected cells list with len > 1 when SelectionMode is Single");
                 }
 
+                _selectedItems.Clear();
                 _selectedItems.AddRange(value);
+
                 RefreshSelected();
             }
         }
@@ -266,6 +268,8 @@ namespace Reactive.Components.Basic {
                     }
                 }
 
+                // Cells can be spawned or reused after the selection was set, so applying it here too
+                pair.Context.Selected = _selectedItems.Contains(item);
                 PlaceCell(pair.Cell.ContentTransform, i);
             }
 
@@ -314,30 +318,42 @@ namespace Reactive.Components.Basic {
                 return;
             }
 
+            // Selection synced by the table itself is delivered here too, so we skip it when nothing changed
+            bool changed;
+
             switch (SelectionMode) {
                 case SelectionMode.None:
                     _selectedItems.Clear();
+                    changed = true;
                     break;
 
                 case SelectionMode.Single:
                     if (context.Selected) {
-                        _selectedItems.Clear();
-                        _selectedItems.Add(context.Item);
+                        changed = _selectedItems.Count != 1 || !_selectedItems.Contains(context.Item);
+
+                        if (changed) {
+                            _selectedItems.Clear();
+                            _selectedItems.Add(context.Item);
+                        }
                     } else {
-                        _selectedItems.Remove(context.Item);
+                        changed = _selectedItems.Remove(context.Item);
                     }
                     break;
 
                 case SelectionMode.Multiple:
-                    if (context.Selected) {
-                        _selectedItems.Add(context.Item);
-                    } else {
+                    changed = context.Selected ?
+                        _selectedItems.Add(context.Item) :
                         _selectedItems.Remove(context.Item);
-                    }
+                    break;
+
+                default:
+                    changed = false;
                     break;
             }
 
-            RefreshSelected();
+            if (changed) {
+                RefreshSelected();
+            }
         }
 
         private void HandleScrollContextUpdated(ScrollContext context) {
