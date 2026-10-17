@@ -66,6 +66,7 @@ namespace Reactive.BeatSaber {
                 Colors = new() {
                     Color = Color.black with { a = 0.5f },
                     HoveredColor = new(0.99f, 0.15f, 0.88f),
+                    NotInteractableColor = Color.black with { a = 0.25f }
                 },
                 GradientColors0 = ColorSet.White,
                 GradientColors1 = new() {
@@ -76,6 +77,7 @@ namespace Reactive.BeatSaber {
             ContentColors = new() {
                 Color = Color.white with { a = 0.75f },
                 HoveredColor = Color.white,
+                NotInteractableColor = Color.white with { a = 0.35f }
             }
         };
 
@@ -134,11 +136,18 @@ namespace Reactive.BeatSaber {
         };
 
         public static readonly BsInputFieldColors BsInputFieldColors = new() {
-            ContentColors = ColorSet.White,
-            IconColors = ColorSet.White,
+            ContentColors = new() {
+                Color = Color.white,
+                NotInteractableColor = Color.white with { a = 0.35f }
+            },
+            IconColors = new() {
+                Color = Color.white,
+                NotInteractableColor = Color.white with { a = 0.35f }
+            },
             PlaceholderColors = new() {
                 Color = Color.white with { a = 0.25f },
-                HoveredColor = Color.white with { a = 0.8f }
+                HoveredColor = Color.white with { a = 0.8f },
+                NotInteractableColor = Color.white with { a = 0.15f }
             },
             UnderlineColors = new() {
                 Color = Color.white with { a = 0.25f }

@@ -39,7 +39,10 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
 
     public bool Interactable {
         get => _graphicState.IsInteractable;
-        set => _graphicState.IsInteractable = value;
+        set {
+            _graphicState.IsInteractable = value;
+            _button.Interactable = value;
+        }
     }
 
     public BsInputFieldColors Colors {
@@ -64,6 +67,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
     private State<string> _placeholder = null!;
     private State<GraphicState> _graphicState = null!;
     private State<BsInputFieldColors> _colors = null!;
+    private BsAeroButton _button = null!;
 
     protected override GameObject Construct() {
         _focused = Remember(false);
@@ -73,8 +77,8 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
         _colors = Remember(BeatSaberStyle.BsInputFieldColors);
 
         var closeButtonEnabled = RememberDerived(
-            x => !x._focused.Value && x._text.Value != null,
-            (_focused, _text)
+            x => x._graphicState.Value.IsInteractable && !x._focused.Value && x._text.Value != null,
+            (_focused, _text, _graphicState)
         );
         
         var contentColor = _graphicState.MapColorSet(_colors, x => x.ContentColors);
@@ -180,7 +184,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
                     )
                 }
             }
-        }.Use();
+        }.Bind(ref _button).Use();
     }
 
     private static IReactiveComponent CreateCloseButton(
