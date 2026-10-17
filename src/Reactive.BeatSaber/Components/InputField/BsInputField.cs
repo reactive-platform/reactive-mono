@@ -68,6 +68,8 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
     private State<GraphicState> _graphicState = null!;
     private State<BsInputFieldColors> _colors = null!;
     private BsAeroButton _button = null!;
+    private Label _label = null!;
+    private Image _caret = null!;
 
     protected override GameObject Construct() {
         _focused = Remember(false);
@@ -84,7 +86,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
         var contentColor = _graphicState.MapColorSet(_colors, x => x.ContentColors);
         var placeholderColor = _graphicState.MapColorSet(_colors, x => x.PlaceholderColors);
 
-        return new BsAeroButton {
+        var go = new BsAeroButton {
             FlexController = {
                 Padding = 0.pt
             },
@@ -171,7 +173,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
                                     x => x._text.Value == null ? x.placeholderColor.Value : x.contentColor.Value,
                                     (_text, placeholderColor, contentColor)
                                 ),
-                            }
+                            }.Bind(ref _label)
                         }
                     }.AsRectMask(),
 
@@ -185,6 +187,25 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
                 }
             }
         }.Bind(ref _button).Use();
+
+        // Attached to the label directly, as it's a layout leaf and won't move the caret
+        new Image {
+            Name = "Caret",
+
+            ContentTransform = {
+                anchorMin = new(0f, 0.1f),
+                anchorMax = new(0f, 0.9f),
+                pivot = new(0f, 0.5f),
+                sizeDelta = new(1f, 0f)
+            },
+
+            Enabled = false,
+            Sprite = GameResources.CaretIcon,
+            PreserveAspect = true,
+            sColor = contentColor.In()
+        }.Bind(ref _caret).Use(_label.ContentTransform);
+
+        return go;
     }
 
     private static IReactiveComponent CreateCloseButton(
@@ -239,6 +260,56 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
                 onClick();
             }
         );
+    }
+
+    #endregion
+
+    #region Caret
+
+    private const float CaretBlinkInterval = 0.5f;
+
+    private string? _caretText;
+    private float _caretBlinkStartTime;
+    private bool _wasFocused;
+
+    protected override void OnUpdate() {
+        var focused = _focused.Value;
+
+        if (focused != _wasFocused) {
+            _wasFocused = focused;
+            _caretText = null;
+        }
+
+        if (!focused) {
+            if (_caret.Enabled) {
+                _caret.Enabled = false;
+            }
+
+            return;
+        }
+
+        // The label shows the placeholder when there's no text, so the caret stays at the start then
+        var text = _text.Value == null ? string.Empty : _label.Text;
+        if (text != _caretText) {
+            _caretText = text;
+            _caretBlinkStartTime = Time.unscaledTime;
+
+            PlaceCaret(text);
+        }
+
+        var visible = (Time.unscaledTime - _caretBlinkStartTime) % (CaretBlinkInterval * 2f) < CaretBlinkInterval;
+        _caret.Enabled = visible;
+    }
+
+    private void PlaceCaret(string text) {
+        var width = 0f;
+
+        if (text.Length > 0) {
+            var measured = _label.Measure(float.MaxValue, MeasureMode.AtMost, float.MaxValue, MeasureMode.AtMost);
+            width = Mathf.Min(measured.x, _label.ContentTransform.rect.width);
+        }
+
+        _caret.ContentTransform.anchoredPosition = new(width, 0f);
     }
 
     #endregion
