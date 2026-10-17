@@ -31,12 +31,10 @@ namespace Reactive.Components {
 
                 if (field != null) {
                     _layout.Children.Add(field);
-                    
-                    if (_keyEverSet && Key == null) {
-                        _selectedView = field;
-                        _selectedView.Enabled = true;
-                    }
+                    field.Enabled = false;
                 }
+
+                RefreshSelectedView();
             }
         }
 
@@ -57,12 +55,6 @@ namespace Reactive.Components {
                         _layout.Children.Remove(comp);
                         comp.Enabled = false;
                     }
-
-                    // If a view was selected but isn't presented in the new collection, we fall back to the DummyView
-                    if (_keyEverSet && (Key == null || !value.ContainsKey(Key))) {
-                        _selectedView = DummyView;
-                        _selectedView?.Enabled = true;
-                    }
                 }
 
                 _views = value;
@@ -71,6 +63,10 @@ namespace Reactive.Components {
                     _layout.Children.Add(comp);
                     comp.Enabled = false;
                 }
+
+                // Re-selects the view for the current key or falls back to the DummyView if the key is missing
+                _selectedView = null;
+                RefreshSelectedView();
             }
         }
 
@@ -81,20 +77,14 @@ namespace Reactive.Components {
         public TKey? Key {
             get;
             set {
-                field = value;
-                _keyEverSet = true;
-
-                _selectedView?.Enabled = false;
-
-                if (value == null) {
-                    _selectedView = DummyView;
-                } else if (_views?.TryGetValue(value, out var view) ?? false) {
-                    _selectedView = view;
-                } else if (_views != null) {
+                if (value != null && _views != null && !_views.ContainsKey(value)) {
                     throw new KeyNotFoundException();
                 }
 
-                _selectedView?.Enabled = true;
+                field = value;
+                _keyEverSet = true;
+
+                RefreshSelectedView();
 
                 OnKeyChanged?.Invoke(value);
             }
@@ -107,6 +97,23 @@ namespace Reactive.Components {
         private bool _keyEverSet;
         
         private Layout _layout = null!;
+
+        private void RefreshSelectedView() {
+            if (!_keyEverSet) {
+                return;
+            }
+
+            if (Key == null || _views == null || !_views.TryGetValue(Key, out var view)) {
+                view = DummyView;
+            }
+
+            if (_selectedView != view) {
+                _selectedView?.Enabled = false;
+            }
+
+            _selectedView = view;
+            _selectedView?.Enabled = true;
+        }
 
         protected override GameObject Construct() {
             return new Layout().Bind(ref _layout).Use();
