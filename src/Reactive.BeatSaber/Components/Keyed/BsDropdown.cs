@@ -21,7 +21,7 @@ public record struct BsDropdownColors(
 );
 
 [PublicAPI]
-public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
+public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInteractableComponent {
     #region Public API
 
     [Required]
@@ -51,6 +51,11 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
     public float Skew {
         get => _skew.Value;
         set => _skew.Value = value;
+    }
+
+    public bool Interactable {
+        get => _graphic.IsInteractable;
+        set => _graphic.IsInteractable = value;
     }
 
     public BsDropdownColors Colors {
@@ -91,6 +96,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
     private State<T?> _keyState = null!;
     private State<BsDropdownColors> _colors = null!;
     private State<bool> _modalOpened = null!;
+    private State<GraphicState> _graphic = null!;
 
     protected override GameObject Construct() {
         _keyState = Remember<T?>(default);
@@ -98,11 +104,11 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
         _colors = Remember(BeatSaberStyle.BsDropdownColors);
 
         _modalOpened = Remember(false);
-        var graphic = Remember(GraphicState.None);
+        _graphic = Remember(GraphicState.None);
         var anchor = Remember<RectTransform?>(null);
 
-        var contentColor = graphic.MapColorSet(_colors, x => x.ItemContentColors);
-        var bgColor = graphic.MapColorSet(_colors, x => x.ButtonBackgroundColors);
+        var contentColor = _graphic.MapColorSet(_colors, x => x.ItemContentColors);
+        var bgColor = _graphic.MapColorSet(_colors, x => x.ButtonBackgroundColors);
 
         var item = _keyState.Map(x => x != null ? _items?[x] : null);
         var scrollContext = new ScrollContext();
@@ -127,9 +133,13 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
 
             Do = x => {
                 x.WithPointerEvents(
-                    onEnter: _ => graphic.IsHovered = true,
-                    onLeave: _ => graphic.IsHovered = false,
+                    onEnter: _ => _graphic.IsHovered = true,
+                    onLeave: _ => _graphic.IsHovered = false,
                     onDown: _ => {
+                        if (!_graphic.IsInteractable) {
+                            return;
+                        }
+
                         _modalOpened.Value = true;
                         GameResources.ButtonClickSignal.Raise();
                     }
@@ -172,7 +182,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
 
                     Sprite = GameResources.ArrowIcon,
                     PreserveAspect = true,
-                    sColor = graphic.MapColorSet(_colors, x => x.ArrowColors).In()
+                    sColor = _graphic.MapColorSet(_colors, x => x.ArrowColors).In()
                 },
 
                 new Modal {

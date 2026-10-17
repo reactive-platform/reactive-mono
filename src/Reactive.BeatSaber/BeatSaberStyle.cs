@@ -161,11 +161,13 @@ namespace Reactive.BeatSaber {
             ItemContentColors = new() {
                 Color = Color.white with { a = 0.9f },
                 HoveredColor = Color.white,
-                ActiveColor = new(0f, 0.75f, 1f)
+                ActiveColor = new(0f, 0.75f, 1f),
+                NotInteractableColor = Color.white with { a = 0.35f }
             },
             ButtonBackgroundColors = new() {
                 Color = Color.black with { a = 0.5f },
                 HoveredColor = Color.white with { a = 0.3f },
+                NotInteractableColor = Color.black with { a = 0.25f }
             },
             ArrowColors = new() {
                 Color = Color.white with { a = 0.8f },
