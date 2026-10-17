@@ -89,13 +89,14 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
     private State<float> _skew = null!;
     private State<T?> _keyState = null!;
     private State<BsDropdownColors> _colors = null!;
+    private State<bool> _modalOpened = null!;
 
     protected override GameObject Construct() {
         _keyState = Remember<T?>(default);
         _skew = Remember(BeatSaberStyle.Skew);
         _colors = Remember(BeatSaberStyle.BsDropdownColors);
 
-        var modalOpened = Remember(false);
+        _modalOpened = Remember(false);
         var graphic = Remember(GraphicState.None);
         var anchor = Remember<RectTransform?>(null);
 
@@ -128,7 +129,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
                     onEnter: _ => graphic.IsHovered = true,
                     onLeave: _ => graphic.IsHovered = false,
                     onDown: _ => {
-                        modalOpened.Value = true;
+                        _modalOpened.Value = true;
                         GameResources.ButtonClickSignal.Raise();
                     }
                 );
@@ -160,11 +161,11 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
                 },
 
                 new Modal {
-                    sIsPushed = modalOpened,
+                    sIsPushed = _modalOpened,
                     sPlacementAnchor = anchor,
 
                     OnClickOutside = () => {
-                        modalOpened.Value = false;
+                        _modalOpened.Value = false;
                     },
 
                     PlacementData = new() {
@@ -242,8 +243,9 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
                 onEnter: _ => graphic.IsHovered = true,
                 onLeave: _ => graphic.IsHovered = false,
                 onDown: _ => {
-                    context.Selected = true;
                     GameResources.ButtonClickSignal.Raise();
+                    context.Selected = true;
+                    _modalOpened.Value = false;
                 }
             ),
 
