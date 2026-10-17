@@ -30,12 +30,14 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent, IIn
         get => _items!;
         set {
             _items = value;
+            _itemsState.Value = value;
 
             if (_initialized) {
                 var index = FindKey(Key);
 
-                if (index != -1 && index != _selectedIdx.Value) {
-                    SetKey(index);
+                if (index != -1) {
+                    // The key is still there, only its position might have changed
+                    _selectedIdx.Value = index;
                 } else if (_items.Count > 0) {
                     SetKey(0);
                 }
@@ -124,26 +126,32 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent, IIn
 
     private State<float> _skew = null!;
     private State<int> _selectedIdx = null!;
+    private State<IReadOnlyList<BsListControlItem<T>>?> _itemsState = null!;
     private State<GraphicState> _graphic = null!;
     private State<BsListControlColors> _colors = null!;
 
     protected override GameObject Construct() {
         _skew = Remember(BeatSaberStyle.Skew);
         _selectedIdx = Remember(0);
+        _itemsState = Remember<IReadOnlyList<BsListControlItem<T>>?>(null);
         _graphic = Remember(GraphicState.None);
         _colors = Remember(BeatSaberStyle.BsListControlColors);
 
-        var selected = _selectedIdx.Map(x => _items?[x]);
+        // Items are a dependency too, otherwise selecting the same index after the items are set won't update the view
+        var selected = RememberDerived(
+            x => x._itemsState.Value is { } items && x._selectedIdx.Value < items.Count ? items[x._selectedIdx.Value] : (BsListControlItem<T>?)null,
+            (_selectedIdx, _itemsState)
+        );
         var contentColor = _graphic.MapColorSet(_colors, x => x.ContentColors);
 
         var nextAvailable = RememberDerived(
-            x => x._graphic.IsInteractable && x._selectedIdx < _items?.Count - 1,
-            (_selectedIdx, _graphic)
+            x => x._graphic.IsInteractable && x._selectedIdx < x._itemsState.Value?.Count - 1,
+            (_selectedIdx, _graphic, _itemsState)
         );
 
         var prevAvailable = RememberDerived(
-            x => x._graphic.IsInteractable && x._selectedIdx > 0 && _items?.Count > 1,
-            (_selectedIdx, _graphic)
+            x => x._graphic.IsInteractable && x._selectedIdx > 0 && x._itemsState.Value?.Count > 1,
+            (_selectedIdx, _graphic, _itemsState)
         );
 
         return new Layout {
