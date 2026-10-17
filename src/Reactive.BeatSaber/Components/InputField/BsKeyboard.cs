@@ -178,7 +178,7 @@ public class BsKeyboard : ReactiveComponent {
                     }
                 }.AsFlexItem()
             }
-        }.Use();
+        }.AsFlexItem().Use();
     }
 
     [StateGen]
