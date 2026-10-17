@@ -31,6 +31,7 @@ namespace Reactive {
 
                 _elapsedTime = 0f;
                 _progress = 0f;
+                _linearProgress = 0f;
 
                 var shouldNotify = !_set;
                 _set = false;
@@ -65,6 +66,7 @@ namespace Reactive {
         private T _startValue;
 
         private float _progress;
+        private float _linearProgress = 1f;
         private float _elapsedTime;
         private bool _set;
 
@@ -73,6 +75,7 @@ namespace Reactive {
             _startValue = value;
             _targetValue = value;
             _targetValue = _valueInterpolator.Lerp(_startValue, _targetValue, 1f);
+            _linearProgress = 1f;
 
             if (!silent) {
                 Progress = 1f;
@@ -97,14 +100,19 @@ namespace Reactive {
 
             if (Duration.Unit is DurationUnit.Seconds) {
                 _elapsedTime += Time.deltaTime;
-                _progress = Mathf.Clamp01(_elapsedTime / Duration);
+                _linearProgress = Mathf.Clamp01(_elapsedTime / Duration);
             } else {
-                _progress = Mathf.Lerp(Progress, 1f, Time.deltaTime * Duration);
+                _linearProgress = Mathf.Lerp(_linearProgress, 1f, Time.deltaTime * Duration);
+
+                // Factor-based progress only approaches 1, so snapping it at the end
+                if (Mathf.Approximately(1f, _linearProgress)) {
+                    _linearProgress = 1f;
+                }
             }
 
-            Progress = Curve.Evaluate(Progress);
+            Progress = Curve.Evaluate(_linearProgress);
             // Finishing if needed
-            if (Mathf.Approximately(1f, Progress)) {
+            if (_linearProgress >= 1f) {
                 FinishAnimation();
             }
         }
