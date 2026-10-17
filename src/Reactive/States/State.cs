@@ -22,6 +22,13 @@ namespace Reactive {
         
         private T _value;
 
+        /// <summary>
+        /// Enforces the state to become invalidated without checking the value. 
+        /// </summary>
+        public void EnforceInvalidation() {
+            NotifyValueInvalidated();
+        }
+        
         public static implicit operator T(State<T> value) {
             return value._value;
         }
