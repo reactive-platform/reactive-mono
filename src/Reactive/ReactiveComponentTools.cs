@@ -11,19 +11,19 @@ public partial class ReactiveComponent {
     protected static float Lerp(float from, float to, float value) {
         return Mathf.LerpUnclamped(from, to, value);
     }
-    
+
     protected static Color Lerp(Color from, Color to, float value) {
         return Color.LerpUnclamped(from, to, value);
     }
-    
+
     protected static Vector2 Lerp(Vector2 from, Vector2 to, float value) {
         return Vector2.LerpUnclamped(from, to, value);
     }
-    
+
     protected static Vector3 Lerp(Vector3 from, Vector3 to, float value) {
         return Vector3.LerpUnclamped(from, to, value);
     }
-    
+
     protected static Quaternion Lerp(Quaternion from, Quaternion to, float value) {
         return Quaternion.LerpUnclamped(from, to, value);
     }
@@ -35,9 +35,13 @@ public partial class ReactiveComponent {
     protected static State<TValue> Remember<TValue>(TValue initialValue) {
         return new State<TValue>(initialValue);
     }
-    
+
     protected static DerivedState<T, TDeps> RememberDerived<T, TDeps>(Func<TDeps, T> predicate, [StateDependencies] TDeps dependencies) where TDeps : ITuple {
         return StateUtils.RememberDerived(predicate, dependencies);
+    }
+
+    protected AnimationPlayer<T> RememberAnimationPlayer<T>(T target) where T : IReactiveComponent {
+        return StateUtils.RememberAnimationPlayer(this, target);
     }
 
     protected AnimatedState<Color> RememberAnimated(

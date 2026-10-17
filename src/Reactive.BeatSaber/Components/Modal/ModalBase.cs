@@ -48,15 +48,36 @@ public abstract class ModalBase : ReactiveComponent {
 
     /// <inheritdoc cref="Overlay.IsPushed"/>
     public bool IsPushed {
-        get => _overlay.IsPushed;
+        get;
         set {
-            if (_overlay.IsPushed == value) {
+            if (field == value) {
                 return;
             }
 
-            _overlay.IsPushed = value;
+            field = value;
+            _blocker.RaycastTarget = value;
+
+            if (value) {
+                // Might still be pushed if opened again while closing
+                _overlay.IsPushed = true;
+
+                if (OpenAnimation is { } openAnimation) {
+                    _animationPlayer.Play(openAnimation);
+                } else {
+                    _animationPlayer.Stop();
+                }
+            } else if (CloseAnimation is { } closeAnimation) {
+                // The overlay is popped once the animation finishes
+                _animationPlayer.Play(closeAnimation, HandleCloseAnimationFinished);
+            } else {
+                _animationPlayer.Stop();
+                _overlay.IsPushed = false;
+            }
         }
     }
+    
+    public Animation<IReactiveComponent>? OpenAnimation { get; set; } = ModalAnimations.JumpOpen;
+    public Animation<IReactiveComponent>? CloseAnimation { get; set; } = ModalAnimations.JumpClose;
 
     #endregion
 
@@ -65,9 +86,10 @@ public abstract class ModalBase : ReactiveComponent {
     private IReactiveComponent _content = null!;
     private Overlay _overlay = null!;
     private Image _blocker = null!;
+    private AnimationPlayer<IReactiveComponent> _animationPlayer = null!;
 
     protected sealed override GameObject Construct() {
-        return new Overlay {
+        var go = new Overlay {
             Enabled = false,
 
             Children = {
@@ -85,12 +107,21 @@ public abstract class ModalBase : ReactiveComponent {
                     .Bind(ref _content)
             }
         }.Bind(ref _overlay).Use();
+
+        _animationPlayer = RememberAnimationPlayer(_content);
+
+        return go;
     }
 
     protected abstract IReactiveComponent ConstructContent();
 
+    private void HandleCloseAnimationFinished() {
+        _overlay.IsPushed = false;
+    }
+
     private void HandleLayoutUpdated(ILayoutItem item) {
-        if (!IsPushed || PlacementAnchor == null) {
+        // Placing while closing too, as the overlay is still pushed
+        if (!_overlay.IsPushed || PlacementAnchor == null) {
             return;
         }
 

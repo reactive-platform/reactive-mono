@@ -9,6 +9,37 @@ public static class ModalCurves {
     public static readonly AnimationCurve JumpCurveY = new JumpCurveY();
 }
 
+[PublicAPI]
+public static class ModalAnimations {
+    /// <summary>
+    /// Stretches the modal out of a line, slightly overshooting horizontally.
+    /// </summary>
+    public static readonly Animation<IReactiveComponent> JumpOpen = new() {
+        Track = new JumpTrack(false), 
+        Duration = 0.15f
+    };
+
+    /// <summary>
+    /// <see cref="JumpOpen"/> played backwards.
+    /// </summary>
+    public static readonly Animation<IReactiveComponent> JumpClose = new() {
+        Track = new JumpTrack(true), 
+        Duration = 0.12f
+    };
+}
+
+internal class JumpTrack(bool reversed) : IAnimationTrack<IReactiveComponent> {
+    public void Apply(IReactiveComponent target, float progress) {
+        var t = reversed ? 1f - progress : progress;
+
+        target.ContentTransform.localScale = new Vector3(
+            ModalCurves.JumpCurveX.Evaluate(t),
+            ModalCurves.JumpCurveY.Evaluate(t),
+            1f
+        );
+    }
+}
+
 internal class JumpCurveX : AnimationCurve {
     public override float Evaluate(float t) {
         return t <= 0.3f ?

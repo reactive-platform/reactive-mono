@@ -12,9 +12,15 @@ namespace Reactive {
         public static State<T> Remember<T>(T initialValue) {
             return new State<T>(initialValue);
         }
-        
+
         public static DerivedState<T, TDeps> RememberDerived<T, TDeps>(Func<TDeps, T> predicate, [StateDependencies] TDeps dependencies) where TDeps : ITuple {
             return new DerivedState<T, TDeps>(predicate, dependencies);
+        }
+
+        public static AnimationPlayer<T> RememberAnimationPlayer<T>(IReactiveModuleBinder binder, T target) where T : IReactiveComponent {
+            var player = new AnimationPlayer<T>(target);
+            binder.BindModule(player);
+            return player;
         }
 
         public static AnimatedState<T> RememberAnimated<T>(
