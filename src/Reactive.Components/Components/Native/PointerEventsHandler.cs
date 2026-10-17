@@ -131,6 +131,31 @@ namespace Reactive.Components {
             NotifyPointerUpdated(eventData);
         }
 
+        // Unity doesn't send pointer events to disabled components, so when an object is disabled
+        // while being hovered it would keep its hovered state
+        private void OnDisable() {
+            if (EventData == null || !IsFocused) {
+                return;
+            }
+
+            if (IsDragging) {
+                IsDragging = false;
+                PointerDragEndEvent?.Invoke(this, EventData);
+            }
+
+            if (IsPressed) {
+                IsPressed = false;
+                PointerUpEvent?.Invoke(this, EventData);
+            }
+
+            if (IsHovered) {
+                IsHovered = false;
+                PointerExitEvent?.Invoke(this, EventData);
+            }
+
+            NotifyPointerUpdated(EventData);
+        }
+
         #endregion
     }
 }
