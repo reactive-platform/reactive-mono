@@ -44,6 +44,12 @@ public class GameResources : ScriptableObject {
         _instance.caretIcon = Find<Sprite>("Caret");
         _instance.verticalIndicatorIcon = Find<Sprite>("VerticalRoundRect8");
         _instance.circleIcon = Find<Sprite>("FullCircle64");
+        _instance.hueWheelIcon = Find<Sprite>("HueWheel");
+        _instance.hueWheelStrokeIcon = Find<Sprite>("HueWheelStroke");
+        _instance.circleSmallIcon = Find<Sprite>("CircleSmall");
+        _instance.circleTinyIcon = Find<Sprite>("CircleTiny");
+        _instance.roundRectTinyIcon = Find<Sprite>("RoundRectTiny");
+        _instance.rectOutlineIcon = Find<Sprite>("RectOutline");
         
         _instance.uiNoGlowMaterial = Find<Material>("UINoGlow");
         _instance.uiFontMaterial = Find<Material>(
@@ -51,6 +57,7 @@ public class GameResources : ScriptableObject {
             x => x.mainTexture.name == "Teko-Medium SDF Atlas"
         );
         _instance.uiFogBackgroundMaterial = Find<Material>("UIFogBG");
+        _instance.uiSVColorPickerMaterial = Find<Material>("UISVColorPicker");
         
         _instance.animatedButtonMaterial = Find<Material>("AnimatedButton");
         _instance.animatedButtonBorderMaterial = Find<Material>("AnimatedButtonBorder");
@@ -80,6 +87,13 @@ public class GameResources : ScriptableObject {
     public Sprite caretIcon;
     public Sprite circleIcon;
     public Sprite verticalIndicatorIcon;
+    public Sprite hueWheelIcon;
+    public Sprite hueWheelStrokeIcon;
+    public Sprite circleSmallIcon;
+    public Sprite circleTinyIcon;
+    public Sprite roundRectTinyIcon;
+    public Sprite rectOutlineIcon;
+    public Material uiSVColorPickerMaterial;
 
     internal Material animatedButtonMaterial;
     internal Material animatedButtonBorderMaterial;
@@ -92,6 +106,8 @@ public class GameResources : ScriptableObject {
     
     internal static Material AnimatedButtonBorderMaterial => _instance.animatedButtonBorderMaterial;
 
+    internal static Material UISVColorPickerMaterial => _instance.uiSVColorPickerMaterial;
+    
     #endregion
     
     #region Static
@@ -122,5 +138,17 @@ public class GameResources : ScriptableObject {
 
     public static Sprite VerticalIndicatorIcon => _instance.verticalIndicatorIcon;
 
+    public static Sprite HueWheelIcon => _instance.hueWheelIcon;
+
+    public static Sprite HueWheelStrokeIcon => _instance.hueWheelStrokeIcon;
+    
+    public static Sprite CircleSmallIcon => _instance.circleSmallIcon;
+
+    public static Sprite CircleTinyIcon => _instance.circleTinyIcon;
+
+    public static Sprite RoundRectTinyIcon => _instance.roundRectTinyIcon;
+
+    public static Sprite RectOutlineIcon => _instance.rectOutlineIcon;
+    
     #endregion
 }
