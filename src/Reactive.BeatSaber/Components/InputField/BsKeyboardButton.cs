@@ -93,7 +93,7 @@ public partial class BsKeyboardButton : ReactiveComponent, ILayoutDriver {
             UseGradient = true,
             GradientDirection = ImageView.GradientDirection.Vertical,
             Sprite = BeatSaberResources.Sprites.background,
-            PixelsPerUnit = 14f,
+            PixelsPerUnit = 12f,
             
             sSkew = _skew,
             
