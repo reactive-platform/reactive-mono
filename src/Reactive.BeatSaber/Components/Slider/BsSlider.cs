@@ -15,7 +15,9 @@ public record struct BsSliderColors(
     ColorSet HandleColors,
     ColorSet TextColors,
     CompositeColorSet LeftButtonColors,
-    CompositeColorSet RightButtonColors
+    CompositeColorSet RightButtonColors,
+    ColorSet LeftButtonArrowColors,
+    ColorSet RightButtonArrowColors
 );
 
 [PublicAPI]
@@ -194,8 +196,8 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
                 CreateButton(
                     _colors,
                     RememberDerived(
-                        static x => x._value.Value > x._minValue.Value,
-                        (_value, _minValue)
+                        static x => x._graphicState.Value.IsInteractable && x._value.Value > x._minValue.Value,
+                        (_value, _minValue, _graphicState)
                     ),
                     _buttonsEnabled,
                     leftButton: true,
@@ -219,7 +221,7 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
                             _graphicState.IsHovered = evt.IsHovered;
                             _graphicState.IsActive = evt.IsPressed;
 
-                            if (!evt.IsPressed || evt.EventData?.position == Vector2.zero) {
+                            if (!_graphicState.IsInteractable || !evt.IsPressed || evt.EventData?.position == Vector2.zero) {
                                 return;
                             }
 
@@ -297,8 +299,8 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
                 CreateButton(
                     _colors,
                     RememberDerived(
-                        static x => x._value.Value < x._maxValue.Value,
-                        (_value, _maxValue)
+                        static x => x._graphicState.Value.IsInteractable && x._value.Value < x._maxValue.Value,
+                        (_value, _maxValue, _graphicState)
                     ),
                     _buttonsEnabled,
                     leftButton: false,
@@ -319,6 +321,8 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
     ) {
         var graphic = Remember(GraphicState.None);
 
+        // Applying the initial value too, as the callback is invoked only on changes
+        graphic.IsInteractable = interactable.Value;
         interactable.AddCallback(x => graphic.IsInteractable = x);
 
         return new Background {
@@ -370,7 +374,10 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
 
                     Sprite = GameResources.ArrowIcon,
                     PreserveAspect = true,
-                    Color = Color.white.ColorWithAlpha(0.8f),
+                    sColor = graphic.MapColorSet(colors, leftButton ?
+                        static x => x.LeftButtonArrowColors :
+                        static x => x.RightButtonArrowColors
+                    ).In(),
                 }
             }
         };

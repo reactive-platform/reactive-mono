@@ -117,9 +117,19 @@ namespace Reactive.BeatSaber {
             },
             HandleColors = new() {
                 Color = Color.white.ColorWithAlpha(0.75f),
+                NotInteractableColor = Color.white.ColorWithAlpha(0.25f)
             },
             TextColors = new() {
-                Color = Color.white
+                Color = Color.white,
+                NotInteractableColor = Color.white.ColorWithAlpha(0.35f)
+            },
+            LeftButtonArrowColors = new() {
+                Color = Color.white with { a = 0.8f },
+                NotInteractableColor = Color.white with { a = 0.25f } * 0.9f
+            },
+            RightButtonArrowColors = new() {
+                Color = Color.white with { a = 0.8f },
+                NotInteractableColor = Color.white with { a = 0.25f } * 0.9f
             }
         };
 
