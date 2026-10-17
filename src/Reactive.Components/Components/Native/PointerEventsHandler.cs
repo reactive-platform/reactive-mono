@@ -108,8 +108,19 @@ namespace Reactive.Components {
 
         public void OnScroll(PointerEventData eventData) {
             EventData = eventData;
-            
-            PointerScrollEvent?.Invoke(this, eventData);
+
+            if (PointerScrollEvent == null) {
+                // Unity sends scroll only to the first IScrollHandler in the hierarchy,
+                // so without a subscriber we pass it further up
+                var parent = transform.parent;
+
+                if (parent != null) {
+                    ExecuteEvents.ExecuteHierarchy(parent.gameObject, eventData, ExecuteEvents.scrollHandler);
+                }
+            } else {
+                PointerScrollEvent.Invoke(this, eventData);
+            }
+
             NotifyPointerUpdated(eventData);
         }
         
