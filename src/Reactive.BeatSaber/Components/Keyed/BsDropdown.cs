@@ -15,6 +15,7 @@ public record struct BsDropdownItem(string? Text, Sprite? Icon);
 
 public record struct BsDropdownColors(
     ColorSet ButtonBackgroundColors,
+    ColorSet ArrowColors,
     ColorSet ItemContentColors,
     ColorSet ItemBackgroundColors
 );
@@ -114,7 +115,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
             },
 
             FlexItem = {
-                Size = new() { y = 7.pt, x = 36.pt }
+                Size = new() { y = 6.pt, x = 36.pt }
             },
 
             Sprite = BeatSaberResources.Sprites.background,
@@ -158,6 +159,20 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent {
                     sEnabled = item.Map(x => x?.Icon != null),
                     sSprite = item.Map(x => x?.Icon),
                     sColor = contentColor.In()
+                },
+                
+                new Image {
+                    Name = "Arrow",
+                    
+                    FlexItem = {
+                        PositionType = PositionType.Absolute,
+                        Size = new() { x = 2.7f.pt, y = 100.pct },
+                        Position = new() { top = 0.1f.pt, right = 2f.pt }
+                    },
+
+                    Sprite = GameResources.ArrowIcon,
+                    PreserveAspect = true,
+                    sColor = graphic.MapColorSet(_colors, x => x.ArrowColors).In()
                 },
 
                 new Modal {
