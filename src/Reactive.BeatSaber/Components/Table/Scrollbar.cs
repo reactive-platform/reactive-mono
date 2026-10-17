@@ -4,7 +4,6 @@ using Reactive.Compiler;
 using Reactive.Components;
 using Reactive.Yoga;
 using UnityEngine;
-using static Reactive.Components.ScrollUpdateType;
 
 namespace Reactive.BeatSaber.Components {
     public enum ScrollbarScrollMode {
@@ -29,7 +28,7 @@ namespace Reactive.BeatSaber.Components {
                 _scrollContext = value;
                 _scrollContextSubscription = _scrollContext.AddCallback(HandleContextUpdated);
 
-                HandleContextUpdated(value);
+                HandleContextUpdated(value, true);
             }
         }
 
@@ -55,7 +54,7 @@ namespace Reactive.BeatSaber.Components {
         // to it while having a null object, hence we introduce another state 
         // to hold null! value by default and initialize it only when the context is set
         // (states are lazy by default so it won't throw)
-        private IMutableState<ScrollContext?> _scrollContextState = null!;
+        private State<ScrollContext?> _scrollContextState = null!;
         private IMutableState<bool> _hideIfNothingToScroll;
         private ScrollContext? _scrollContext;
         private StateSubscription? _scrollContextSubscription;
@@ -80,8 +79,18 @@ namespace Reactive.BeatSaber.Components {
         }
 
         private void HandleContextUpdated(ScrollContext context) {
-            // Update the state to reflect changes in the ui
-            _scrollContextState.Value = context;
+            HandleContextUpdated(context, false);
+        }
+
+        private void HandleContextUpdated(ScrollContext context, bool forceUpdate) {
+            var type = context.UpdateType;
+            
+            if (forceUpdate || type.IsIntent || type.IsMeasurements || type.IsScrollFinished) {
+                // The context is the same instance every time, so the state would skip it as an equal value
+                _scrollContextState.Value = context;
+                _scrollContextState.EnforceInvalidation();
+            }
+
             RefreshHandle();
         }
 
@@ -153,10 +162,7 @@ namespace Reactive.BeatSaber.Components {
             return new Layout {
                 sEnabled = RememberDerived(
                     x => !x.Item2.Value || (x.Item1.Value?.CanScroll ?? true),
-                    (
-                        _scrollContextState.Where(x => x!.UpdateType is ScrollFinished or Measurements),
-                        _hideIfNothingToScroll
-                    )
+                    (_scrollContextState, _hideIfNothingToScroll)
                 ).InLazy(),
 
                 // This will be the default value for the Scrollbar
@@ -207,9 +213,7 @@ namespace Reactive.BeatSaber.Components {
                     // Up button
                     CreateButton(
                         topButton: true,
-                        enabled: _scrollContextState
-                            .Where(x => x!.UpdateType is Intent or Measurements)
-                            .Map(x => x!.CanScrollUp),
+                        enabled: _scrollContextState.Map(x => x?.CanScrollUp ?? false),
                         callback: () => {
                             switch (ScrollMode) {
                                 case ScrollbarScrollMode.Page:
@@ -229,9 +233,7 @@ namespace Reactive.BeatSaber.Components {
                     // Down button
                     CreateButton(
                         topButton: false,
-                        enabled: _scrollContextState
-                            .Where(x => x!.UpdateType is Intent or Measurements)
-                            .Map(x => x!.CanScrollDown),
+                        enabled: _scrollContextState.Map(x => x?.CanScrollDown ?? false),
                         callback: () => {
                             switch (ScrollMode) {
                                 case ScrollbarScrollMode.Page:
