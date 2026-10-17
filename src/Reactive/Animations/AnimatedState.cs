@@ -46,7 +46,7 @@ namespace Reactive {
             private set {
                 _progress = value;
                 Value = _valueInterpolator.Lerp(_startValue, _targetValue, _progress);
-                NotifyValueChanged();
+                NotifyValueInvalidated();
             }
         }
 

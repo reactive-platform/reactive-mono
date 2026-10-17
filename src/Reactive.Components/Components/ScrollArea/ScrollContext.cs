@@ -167,7 +167,7 @@ public class ScrollContext : StateBase<ScrollContext>, IState<ScrollContext> {
     private void NotifyValueChanged(ScrollUpdateType type) {
         UpdateType = type;
 
-        NotifyValueChanged();
+        NotifyValueInvalidated();
         Flush();
 
         UpdateType = ScrollUpdateType.None;

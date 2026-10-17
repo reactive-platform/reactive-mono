@@ -8,7 +8,7 @@ public class BsInputFieldContext : StateBase<BsInputFieldContext>, IState<BsInpu
         get;
         set {
             field = value;
-            NotifyValueChanged();
+            NotifyValueInvalidated();
         }
     }
 
@@ -16,7 +16,7 @@ public class BsInputFieldContext : StateBase<BsInputFieldContext>, IState<BsInpu
         get;
         set {
             field = value;
-            NotifyValueChanged();
+            NotifyValueInvalidated();
         }
     }
 

@@ -25,7 +25,7 @@ public abstract class StateBase<T> : IState {
     /// Notifies that the state has a new value. States derived from it are invalidated at once,
     /// callbacks get the value when the state is flushed.
     /// </summary>
-    protected void NotifyValueChanged() {
+    protected void NotifyValueInvalidated() {
         _list.InvokeInvalidation();
 
         if (_list.HasCallbacks && !IsDirty) {

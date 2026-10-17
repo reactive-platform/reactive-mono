@@ -51,7 +51,7 @@ public class DerivedState<T, TDeps> : StateBase<T>, IState<T>, IDisposable where
         var self = (DerivedState<T, TDeps>)arg1;
 
         self._hasValue = false;
-        self.NotifyValueChanged();
+        self.NotifyValueInvalidated();
     }
 
     public void Dispose() {

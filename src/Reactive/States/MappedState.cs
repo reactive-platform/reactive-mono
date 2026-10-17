@@ -38,7 +38,7 @@ public class MappedState<T, TNew> : StateBase<TNew>, IState<TNew>, IDisposable {
         var self = (MappedState<T, TNew>)arg1;
 
         self._hasValue = false;
-        self.NotifyValueChanged();
+        self.NotifyValueInvalidated();
     }
 
     public void Dispose() {
