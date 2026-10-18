@@ -50,6 +50,9 @@ public class GameResources : ScriptableObject {
         _instance.circleTinyIcon = Find<Sprite>("CircleTiny");
         _instance.roundRectTinyIcon = Find<Sprite>("RoundRectTiny");
         _instance.rectOutlineIcon = Find<Sprite>("RectOutline");
+        _instance.roundRect10Icon = Find<Sprite>("RoundRect10");
+        _instance.roundRect10BorderIcon = Find<Sprite>("RoundRect10Border");
+        _instance.roundRect10OutlineIcon = Find<Sprite>("RoundRect10Outline");
         
         _instance.uiNoGlowMaterial = Find<Material>("UINoGlow");
         _instance.uiFontMaterial = Find<Material>(
@@ -93,6 +96,9 @@ public class GameResources : ScriptableObject {
     public Sprite circleTinyIcon;
     public Sprite roundRectTinyIcon;
     public Sprite rectOutlineIcon;
+    public Sprite roundRect10Icon;
+    public Sprite roundRect10BorderIcon;
+    public Sprite roundRect10OutlineIcon;
     public Material uiSVColorPickerMaterial;
 
     internal Material animatedButtonMaterial;
@@ -149,6 +155,12 @@ public class GameResources : ScriptableObject {
     public static Sprite RoundRectTinyIcon => _instance.roundRectTinyIcon;
 
     public static Sprite RectOutlineIcon => _instance.rectOutlineIcon;
+
+    public static Sprite RoundRect10Icon => _instance.roundRect10Icon;
+
+    public static Sprite RoundRect10BorderIcon => _instance.roundRect10BorderIcon;
+
+    public static Sprite RoundRect10OutlineIcon => _instance.roundRect10OutlineIcon;
     
     #endregion
 }

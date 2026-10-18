@@ -97,9 +97,9 @@ public partial class BsPrimaryButton : ReactiveComponent, ILayoutDriver, ISkewed
 
             UseGradient = true,
             GradientDirection = ImageView.GradientDirection.Vertical,
-            Sprite = BeatSaberResources.Sprites.background,
+            Sprite = GameResources.RoundRect10Icon,
             Material = GameResources.AnimatedButtonMaterial,
-            PixelsPerUnit = 12f,
+            PixelsPerUnit = 1f,
 
             sSkew = _skew,
 
@@ -116,10 +116,11 @@ public partial class BsPrimaryButton : ReactiveComponent, ILayoutDriver, ISkewed
             Children = {
                 new Image {
                     Name = "Border",
-                    Sprite = BeatSaberResources.Sprites.frame,
+                    Sprite = GameResources.RoundRect10BorderIcon,
                     Material = GameResources.AnimatedButtonBorderMaterial,
                     sColor = borderColor.In(),
-                    PixelsPerUnit = 12f,
+                    PixelsPerUnit = 1f,
+                    FillCenter = false,
 
                     sSkew = _skew,
                 }.WithRectExpand(),
@@ -137,10 +138,11 @@ public partial class BsPrimaryButton : ReactiveComponent, ILayoutDriver, ISkewed
                     sSkew = _skew,
                     sEnabled = _graphicState.Map(x => x.IsHovered),
                     sColor = outlineColor.In(),
-
-                    Sprite = BeatSaberResources.Sprites.frame,
+                    
+                    Sprite = GameResources.RoundRect10OutlineIcon,
                     Material = GameResources.AnimatedButtonBorderMaterial,
-                    PixelsPerUnit = 12f,
+                    PixelsPerUnit = 1f,
+                    FillCenter = false,
                 }
             }
         }.Bind(ref _background).Use();
