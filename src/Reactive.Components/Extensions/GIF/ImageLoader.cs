@@ -28,6 +28,10 @@ public static class ImageLoader {
     /// <param name="location">A location to load the data from.</param>
     /// <param name="token">A cancellation token.</param>
     public static async Task<CachedImage?> LoadImage(string location, CancellationToken token) {
+        if (string.IsNullOrWhiteSpace(location)) {
+            return null;
+        }
+
         var semaphore = GetSemaphore(location);
         await semaphore.WaitAsync(token);
 
@@ -161,9 +165,9 @@ public static class ImageLoader {
         var parameters = location.Split(':');
 
         switch (parameters.Length) {
-            case 1:
+            case 1 when parameters[0].IndexOf('.') is var dotIndex and > 0:
                 path = parameters[0];
-                assembly = Assembly.Load(path.Substring(0, path.IndexOf('.')));
+                assembly = Assembly.Load(path.Substring(0, dotIndex));
                 return true;
             case 2:
                 path = parameters[1];

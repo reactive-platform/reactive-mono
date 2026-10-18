@@ -61,7 +61,7 @@ public class WebImage : Image {
         _tokenSource?.Cancel();
         _tokenSource = null;
 
-        if (src == null) {
+        if (string.IsNullOrWhiteSpace(src)) {
             ShowImage(null);
             _spinnerAlpha.TargetValue = 0f;
             return;
