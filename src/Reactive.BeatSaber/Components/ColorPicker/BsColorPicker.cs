@@ -1,14 +1,21 @@
 using JetBrains.Annotations;
 using Reactive.Compiler;
+using Reactive.Components;
 using Reactive.Yoga;
 using UnityEngine;
 
 namespace Reactive.BeatSaber.Components {
+    [PublicAPI]
+    public record struct BsColorPickerColors(
+        ColorSet IconColors,
+        ColorSet SampleColors
+    );
+
     /// <summary>
     /// A color picker component.
     /// </summary>
     [PublicAPI]
-    public partial class BsColorPicker : ReactiveComponent, ISkewedComponent {
+    public partial class BsColorPicker : ReactiveComponent, ISkewedComponent, IInteractableComponent {
         #region Public API
 
         [RawState, Required]
@@ -29,6 +36,16 @@ namespace Reactive.BeatSaber.Components {
             set => _skew.Value = value;
         }
 
+        public bool Interactable {
+            get => _graphicState.IsInteractable;
+            set => _graphicState.IsInteractable = value;
+        }
+
+        public BsColorPickerColors Colors {
+            get => _colors.Value;
+            set => _colors.Value = value;
+        }
+
         private StateSubscription? _contextSubscription;
 
         private void HandleContextUpdated(BsColorPickerContext context) {
@@ -43,10 +60,22 @@ namespace Reactive.BeatSaber.Components {
 
         private State<Color> _sampleColor = null!;
         private State<float> _skew = null!;
+        private State<GraphicState> _graphicState = null!;
+        private State<BsColorPickerColors> _colors = null!;
 
         protected override GameObject Construct() {
             _sampleColor = Remember(Color.white);
             _skew = Remember(0f);
+            _graphicState = Remember(GraphicState.None);
+            _colors = Remember(BeatSaberStyle.BsColorPickerColors);
+
+            var iconColor = _graphicState.MapColorSet(_colors, x => x.IconColors);
+            var sampleTint = _graphicState.MapColorSet(_colors, x => x.SampleColors);
+            
+            var sampleColor = RememberDerived(
+                x => x.color.Value * x.tint.Value,
+                (color: _sampleColor, tint: sampleTint)
+            );
 
             return new BsAeroButton {
                 FlexController = {
@@ -55,6 +84,7 @@ namespace Reactive.BeatSaber.Components {
                 },
 
                 sSkew = _skew,
+                sInteractable = _graphicState.Map(x => x.IsInteractable),
 
                 OnClick = () => {
                     Context.Focused = true;
@@ -83,7 +113,7 @@ namespace Reactive.BeatSaber.Components {
                             Sprite = GameResources.EditIcon,
                             PreserveAspect = true,
                             Skew = BeatSaberStyle.Skew,
-                            Color = BeatSaberStyle.SecondaryTextColor
+                            sColor = iconColor.In()
                         },
 
                         new Image {
@@ -94,7 +124,7 @@ namespace Reactive.BeatSaber.Components {
                             Name = "Sample",
 
                             sSkew = skew.In(),
-                            sColor = _sampleColor,
+                            sColor = sampleColor.In(),
 
                             Sprite = GameResources.CircleIcon,
                             PreserveAspect = true

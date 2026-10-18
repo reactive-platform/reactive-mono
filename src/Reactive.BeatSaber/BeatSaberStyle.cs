@@ -268,6 +268,17 @@ namespace Reactive.BeatSaber {
             }
         };
 
+        public static readonly BsColorPickerColors BsColorPickerColors = new() {
+            IconColors = new() {
+                Color = Color.white * 0.9f,
+                NotInteractableColor = Color.white with { a = 0.35f }
+            },
+            SampleColors = new() {
+                Color = Color.white,
+                NotInteractableColor = Color.white with { a = 0.5f }
+            }
+        };
+
         public static readonly Color TextColor = Color.white;
         public static readonly Color SecondaryTextColor = Color.white * 0.9f;
     }
