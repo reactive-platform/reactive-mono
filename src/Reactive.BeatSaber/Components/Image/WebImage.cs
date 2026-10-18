@@ -9,6 +9,14 @@ using UnityEngine;
 namespace Reactive.BeatSaber.Components;
 
 [PublicAPI]
+public readonly record struct WebImageAnimContext(
+    WebImage Image,
+    Background Background,
+    CanvasGroup BackgroundGroup,
+    Spinner Spinner
+);
+
+[PublicAPI]
 public class WebImage : Image {
     #region Public API
 
@@ -22,22 +30,19 @@ public class WebImage : Image {
         }
     }
 
-    public AnimationDuration FadeDuration {
-        get => _spinnerAlpha.Duration;
-        set => _spinnerAlpha.Duration = value;
-    }
+    /// <summary>
+    /// Played when an image starts loading. Fades the background in by default.
+    /// </summary>
+    public Animation<WebImageAnimContext>? StartAnimation { get; set; }
 
-    public AnimationCurve FadeCurve {
-        get => _spinnerAlpha.Curve;
-        set => _spinnerAlpha.Curve = value;
-    }
-
-    public float FadeAmount {
-        get => _backgroundAlpha;
-        set => _backgroundAlpha.Value = value;
-    }
-
-    public Spinner Spinner => _spinner;
+    /// <summary>
+    /// Played when an image finishes loading. Fades the background out by default.
+    /// </summary>
+    public Animation<WebImageAnimContext>? FinishAnimation { get; set; } = new(
+        AnimationTracks.Fade(1f, 0f).For((WebImageAnimContext x) => x.Background),
+        0.2f,
+        AnimationCurve.EaseInOut
+    );
 
     /// <summary>
     /// Whether an animated image is playing. Kept when the image changes.
@@ -63,17 +68,22 @@ public class WebImage : Image {
 
         if (string.IsNullOrWhiteSpace(src)) {
             ShowImage(null);
-            _spinnerAlpha.TargetValue = 0f;
+            SetOverlayShown(false);
             return;
         }
 
         var tokenSource = _tokenSource = new();
-        _spinnerAlpha.TargetValue = 1f;
+        var task = ImageLoader.LoadImage(src, tokenSource.Token);
+
+        // Cached images complete right away, showing the overlay only when there's something to wait for
+        if (!task.IsCompleted) {
+            SetOverlayShown(true);
+        }
 
         CachedImage? image;
 
         try {
-            image = await ImageLoader.LoadImage(src, tokenSource.Token);
+            image = await task;
         } catch (OperationCanceledException) {
             return;
         } catch (Exception ex) {
@@ -88,7 +98,7 @@ public class WebImage : Image {
         _tokenSource = null;
 
         ShowImage(image);
-        _spinnerAlpha.TargetValue = 0f;
+        SetOverlayShown(false);
     }
 
     private void ShowImage(CachedImage? image) {
@@ -104,34 +114,64 @@ public class WebImage : Image {
 
     #endregion
 
+    #region Animation Defaults
+
+    public static readonly Animation<WebImageAnimContext> DefaultStartAnimation = new(
+        AnimationTracks.Fade(0f, 1f).For((WebImageAnimContext x) => x.Background),
+        0.2f,
+        AnimationCurve.EaseInOut
+    );
+
+    public static readonly Animation<WebImageAnimContext> DefaultFinishAnimation = new(
+        AnimationTracks.Fade(1f, 0f).For((WebImageAnimContext x) => x.Background),
+        0.2f,
+        AnimationCurve.EaseInOut
+    );
+
+    #endregion
+
     #region Construct
 
-    private AnimatedState<float> _spinnerAlpha = null!;
-    private State<float> _backgroundAlpha = null!;
-    private Spinner _spinner = null!;
+    private AnimationPlayer<WebImageAnimContext> _overlayPlayer = null!;
     private GifPlayer _player = null!;
+    private bool _overlayShown;
 
     protected override void Construct(RectTransform rect) {
         base.Construct(rect);
 
-        _spinnerAlpha = RememberAnimated(0f, 200.ms, AnimationCurve.EaseInOut);
-        _backgroundAlpha = Remember(0.9f);
         _player = this.RememberGifPlayer();
 
         new Background {
                 Children = {
                     new Spinner()
-                        .Bind(ref _spinner)
+                        .Export(out var spinner)
                         .AsFlexItem(size: 80.pct)
                 }
             }
             .WithNativeComponent(out CanvasGroup group)
-            .AsBackground()
-            .On(_backgroundAlpha, (x, y) => x.Color = Color.black.ColorWithAlpha(y))
-            .On(_spinnerAlpha, (_, y) => group.alpha = y)
+            .AsBackground(color: Color.black.ColorWithAlpha(0.9f))
+            .Export(out var background)
             .AsFlexGroup(justifyContent: Justify.Center, alignItems: Align.Center)
             .WithRectExpand()
             .Use(rect);
+
+        group.alpha = 0f;
+        _overlayPlayer = RememberAnimationPlayer(new WebImageAnimContext(this, background, group, spinner));
+    }
+
+    private void SetOverlayShown(bool show) {
+        if (show == _overlayShown) {
+            return;
+        }
+
+        _overlayShown = show;
+
+        if ((show ? StartAnimation : FinishAnimation) is { } anim) {
+            _overlayPlayer.Play(anim);
+        } else {
+            _overlayPlayer.Stop();
+            _overlayPlayer.Target.BackgroundGroup.alpha = show ? 1f : 0f;
+        }
     }
 
     protected override void OnInitialize() {
