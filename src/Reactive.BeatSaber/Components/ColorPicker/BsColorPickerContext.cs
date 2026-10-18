@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Reactive.BeatSaber.Components;
 
 [PublicAPI]
-public class ColorPickerContext : StateBase<ColorPickerContext>, IState<ColorPickerContext> {
+public class BsColorPickerContext : StateBase<BsColorPickerContext>, IState<BsColorPickerContext> {
     public Color Color {
         get;
         set {
@@ -29,5 +29,5 @@ public class ColorPickerContext : StateBase<ColorPickerContext>, IState<ColorPic
         }
     }
     
-    ColorPickerContext IState<ColorPickerContext>.Value => this;
+    BsColorPickerContext IState<BsColorPickerContext>.Value => this;
 }

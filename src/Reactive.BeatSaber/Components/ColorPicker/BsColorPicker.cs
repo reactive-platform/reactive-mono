@@ -8,11 +8,11 @@ namespace Reactive.BeatSaber.Components {
     /// A color picker component.
     /// </summary>
     [PublicAPI]
-    public partial class ColorPicker : ReactiveComponent, ISkewedComponent {
+    public partial class BsColorPicker : ReactiveComponent, ISkewedComponent {
         #region Public API
 
         [RawState, Required]
-        public ColorPickerContext Context {
+        public BsColorPickerContext Context {
             get;
             set {
                 _contextSubscription?.RemoveCallback();
@@ -31,7 +31,7 @@ namespace Reactive.BeatSaber.Components {
 
         private StateSubscription? _contextSubscription;
 
-        private void HandleContextUpdated(ColorPickerContext context) {
+        private void HandleContextUpdated(BsColorPickerContext context) {
             var color = context.Focused ? context.Color : context.SelectedColor;
 
             _sampleColor.Value = color with { a = 1f };

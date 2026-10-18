@@ -10,7 +10,7 @@ namespace Reactive.BeatSaber.Components {
     /// A color selector component.
     /// </summary>
     [PublicAPI]
-    public class ColorCircle : ReactiveComponent {
+    public class BsColorCircle : ReactiveComponent {
         #region Public API
 
         /// <summary>
