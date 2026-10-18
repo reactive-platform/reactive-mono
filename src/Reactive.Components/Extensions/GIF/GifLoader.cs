@@ -250,7 +250,7 @@ namespace B83.Image.GIF {
         public EImageDescriptorFlags flags;
         public Color32[] colorTable;
         public Color32[] usedColorTable;
-        public List<byte> data;
+        public byte[] data;
         public int packedSize;
         internal int _Interlaced81 = 0; // count of lines of stage 1
         internal int _Interlaced82 = 0; // count of lines of stage 2
@@ -364,14 +364,16 @@ namespace B83.Image.GIF {
             var bgColor = Parent.screen.globalColorTable[bgColorIndex];
             if (Parent.BackgroundTransparent)
                 bgColor.a = 0;
+            var pixels = data;
             for (int y = 0; y < height; y++) {
                 int iy = y;
                 if (IsInterlaced)
                     iy = GetInterlacedIndex(iy);
                 iy = aHeight - iy - yPos - 1;
                 //Debug.Log("yPos: " + iy);
+                int row = y * width;
                 for (int x = 0; x < width; x++) {
-                    int col = data[x + y * width];
+                    int col = pixels[x + row];
                     int index = xPos + aXOffset + x + (iy + aYOffset) * aWidth;
                     if (col == trColor) {
                         if (useBKColor)
@@ -762,7 +764,7 @@ namespace B83.Image.GIF {
                 bitReader.ReadBit();
             }
             res.packedSize = (int)(aReader.BaseStream.Position - startPos);
-            res.data = output;
+            res.data = output.ToArray();
         }
 
         private Color32[] ReadColorTable(BinaryReader aReader, int aColorCount) {

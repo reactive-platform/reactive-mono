@@ -25,7 +25,7 @@ public sealed class GifPlayer : IReactiveModule {
                 Debug.LogWarning("Setting static images into GifPlayer is not allowed, null will be passed");
                 value = null;
             }
-            
+
             if (value == _image) {
                 return;
             }
@@ -74,7 +74,7 @@ public sealed class GifPlayer : IReactiveModule {
 
     private CachedImage? _image;
     private GIFImage? _gifImage;
-    private RenderTexture? _renderTexture;
+    private Texture2D? _texture;
     private Sprite? _gifSprite;
     private Color32[]? _colors;
     private int _currentIndex;
@@ -86,13 +86,13 @@ public sealed class GifPlayer : IReactiveModule {
         _image = image;
 
         if (image?.Gif is { } gifImage) {
-            _renderTexture = new RenderTexture(gifImage.screen.width, gifImage.screen.height, 0, RenderTextureFormat.Default, 10);
-            _renderTexture.Create();
+            var width = gifImage.screen.width;
+            var height = gifImage.screen.height;
 
-            _gifSprite = SpriteUtils.CreateSprite(_renderTexture)!;
+            _texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            _gifSprite = SpriteUtils.CreateSprite(_texture)!;
 
-            _colors = _gifSprite.texture.GetPixels32();
-            _colors.Initialize();
+            _colors = new Color32[width * height];
 
             _gifImage = gifImage;
         }
@@ -115,33 +115,31 @@ public sealed class GifPlayer : IReactiveModule {
     }
 
     private void ReleaseGif() {
-        _renderTexture?.Release();
+        if (_texture != null) {
+            UnityEngine.Object.Destroy(_gifSprite);
+            UnityEngine.Object.Destroy(_texture);
+        }
 
         _gifImage = null;
-        _renderTexture = null;
+        _texture = null;
         _gifSprite = null;
         _colors = null;
         _currentIndex = 0;
         _deltaAccumulated = 0;
     }
-    
-    private bool DrawFrame(IGIFRenderingBlock frame) {
-        var originalTexture = _gifSprite!.texture;
 
-        frame.Dispose(_colors!, originalTexture.width, originalTexture.height);
+    private void DrawFrame(IGIFRenderingBlock frame) {
+        var texture = _texture!;
+
+        frame.Dispose(_colors!, texture.width, texture.height);
         try {
-            frame.DrawTo(_colors!, _renderTexture!.width, _renderTexture.height);
+            frame.DrawTo(_colors!, texture.width, texture.height);
         } catch (Exception) {
-            originalTexture.SetPixels32(_colors);
-            originalTexture.Apply();
-            Graphics.Blit(originalTexture, _renderTexture);
-            return false;
+            // Showing what got drawn
         }
 
-        originalTexture.SetPixels32(_colors);
-        originalTexture.Apply();
-        Graphics.Blit(originalTexture, _renderTexture);
-        return true;
+        texture.SetPixels32(_colors);
+        texture.Apply(false);
     }
 
     void IReactiveModule.OnUpdate() {
@@ -151,8 +149,8 @@ public sealed class GifPlayer : IReactiveModule {
 
         var frame = _gifImage.imageData[_currentIndex];
 
-        if (_deltaAccumulated == 0 && !DrawFrame(frame)) {
-            return;
+        if (_deltaAccumulated == 0) {
+            DrawFrame(frame);
         }
 
         _deltaAccumulated += Time.deltaTime;
