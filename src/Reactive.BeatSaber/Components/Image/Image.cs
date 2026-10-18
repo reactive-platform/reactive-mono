@@ -64,6 +64,11 @@ public class Image : ReactiveComponent, IComponentHolder<Image>, ISkewedComponen
         set => _image.fillAmount = value;
     }
 
+    public bool FillCenter {
+        get => _image.fillCenter;
+        set => _image.fillCenter = value;
+    }
+
     public float PixelsPerUnit {
         get => _image.pixelsPerUnitMultiplier;
         set {
