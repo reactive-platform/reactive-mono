@@ -1,0 +1,176 @@
+using System;
+using B83.Image.GIF;
+using JetBrains.Annotations;
+using UnityEngine;
+
+namespace Reactive.Components;
+
+[PublicAPI]
+public sealed class GifPlayer : IReactiveModule {
+    #region Public API
+
+    /// <summary>
+    /// The sprite to show. Animated frames are rendered into the same sprite,
+    /// so it has to be reapplied only when <see cref="Image"/> changes.
+    /// </summary>
+    public Sprite? Sprite { get; private set; }
+
+    /// <summary>
+    /// The image to show.
+    /// </summary>
+    public CachedImage? Image {
+        get => _image;
+        set {
+            if (!value?.IsAnimated ?? false) {
+                Debug.LogWarning("Setting static images into GifPlayer is not allowed, null will be passed");
+                value = null;
+            }
+            
+            if (value == _image) {
+                return;
+            }
+
+            SetImage(value);
+        }
+    }
+
+    /// <summary>
+    /// Whether the playback is running. Kept when the image changes.
+    /// </summary>
+    public bool IsPlaying { get; set; } = true;
+
+    /// <summary>
+    /// Whether the first frame is shown. Setting true rewinds to it without changing <see cref="IsPlaying"/>,
+    /// setting false does nothing.
+    /// </summary>
+    public bool IsFirstFrame {
+        get => _currentIndex == 0;
+        set {
+            if (value) {
+                Rewind();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Pauses the playback and rewinds to the first frame.
+    /// </summary>
+    public void Stop() {
+        IsPlaying = false;
+        Rewind();
+    }
+
+    /// <summary>
+    /// Releases the current image. Must be called when the owner is destroyed
+    /// as modules aren't unbound on destroy.
+    /// </summary>
+    public void ClearResources() {
+        Image = null;
+    }
+
+    #endregion
+
+    #region Impl
+
+    private CachedImage? _image;
+    private GIFImage? _gifImage;
+    private RenderTexture? _renderTexture;
+    private Sprite? _gifSprite;
+    private Color32[]? _colors;
+    private int _currentIndex;
+    private float _deltaAccumulated;
+
+    private void SetImage(CachedImage? image) {
+        ReleaseGif();
+
+        _image = image;
+
+        if (image?.Gif is { } gifImage) {
+            _renderTexture = new RenderTexture(gifImage.screen.width, gifImage.screen.height, 0, RenderTextureFormat.Default, 10);
+            _renderTexture.Create();
+
+            _gifSprite = SpriteUtils.CreateSprite(_renderTexture)!;
+
+            _colors = _gifSprite.texture.GetPixels32();
+            _colors.Initialize();
+
+            _gifImage = gifImage;
+        }
+
+        Sprite = _gifSprite ?? image?.Sprite;
+    }
+
+    private void Rewind() {
+        if (_colors != null) {
+            Array.Clear(_colors, 0, _colors.Length);
+        }
+
+        _currentIndex = 0;
+        _deltaAccumulated = 0;
+
+        // Showing the frame right away as it won't be drawn while paused
+        if (_gifImage is { imageData.Count: > 0 }) {
+            DrawFrame(_gifImage.imageData[0]);
+        }
+    }
+
+    private void ReleaseGif() {
+        _renderTexture?.Release();
+
+        _gifImage = null;
+        _renderTexture = null;
+        _gifSprite = null;
+        _colors = null;
+        _currentIndex = 0;
+        _deltaAccumulated = 0;
+    }
+    
+    private bool DrawFrame(IGIFRenderingBlock frame) {
+        var originalTexture = _gifSprite!.texture;
+
+        frame.Dispose(_colors!, originalTexture.width, originalTexture.height);
+        try {
+            frame.DrawTo(_colors!, _renderTexture!.width, _renderTexture.height);
+        } catch (Exception) {
+            originalTexture.SetPixels32(_colors);
+            originalTexture.Apply();
+            Graphics.Blit(originalTexture, _renderTexture);
+            return false;
+        }
+
+        originalTexture.SetPixels32(_colors);
+        originalTexture.Apply();
+        Graphics.Blit(originalTexture, _renderTexture);
+        return true;
+    }
+
+    void IReactiveModule.OnUpdate() {
+        if (!IsPlaying || _gifImage == null || _gifImage.imageData.Count == 0) {
+            return;
+        }
+
+        var frame = _gifImage.imageData[_currentIndex];
+
+        if (_deltaAccumulated == 0 && !DrawFrame(frame)) {
+            return;
+        }
+
+        _deltaAccumulated += Time.deltaTime;
+        if (_deltaAccumulated >= frame.graphicControl.fdelay) {
+            _deltaAccumulated = 0;
+            if (_currentIndex < _gifImage.imageData.Count - 1) {
+                _currentIndex++;
+            } else {
+                _currentIndex = 0;
+            }
+        }
+    }
+
+    void IReactiveModule.OnBind() { }
+
+    void IReactiveModule.OnUnbind() {
+        ClearResources();
+    }
+
+    #endregion
+}
