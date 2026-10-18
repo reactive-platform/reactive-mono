@@ -9,7 +9,7 @@ namespace Reactive;
 /// </summary>
 /// <typeparam name="T">A type of the animated component.</typeparam>
 [PublicAPI]
-public sealed class AnimationPlayer<T> : IReactiveModule where T : IReactiveComponent {
+public sealed class AnimationPlayer<T> : IReactiveModule {
     public AnimationPlayer(T target) {
         Target = target;
     }

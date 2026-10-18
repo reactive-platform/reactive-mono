@@ -40,7 +40,7 @@ public partial class ReactiveComponent {
         return StateUtils.RememberDerived(predicate, dependencies);
     }
 
-    protected AnimationPlayer<T> RememberAnimationPlayer<T>(T target) where T : IReactiveComponent {
+    protected AnimationPlayer<T> RememberAnimationPlayer<T>(T target) {
         return StateUtils.RememberAnimationPlayer(this, target);
     }
 

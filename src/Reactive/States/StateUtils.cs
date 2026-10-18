@@ -17,7 +17,7 @@ namespace Reactive {
             return new DerivedState<T, TDeps>(predicate, dependencies);
         }
 
-        public static AnimationPlayer<T> RememberAnimationPlayer<T>(IReactiveModuleBinder binder, T target) where T : IReactiveComponent {
+        public static AnimationPlayer<T> RememberAnimationPlayer<T>(IReactiveModuleBinder binder, T target) {
             var player = new AnimationPlayer<T>(target);
             binder.BindModule(player);
             return player;

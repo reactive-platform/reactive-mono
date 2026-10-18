@@ -1,3 +1,4 @@
+using System;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -17,9 +18,27 @@ public static class AnimationTracks {
         return Scale(new Vector3(from, from, 1f), new Vector3(to, to, 1f));
     }
 
-    extension<T>(IAnimationTrack<T>) where T : IReactiveComponent {
+    /// <summary>
+    /// Creates a track from a delegate.
+    /// </summary>
+    /// <param name="apply">Applies the track to the target with the given progress.</param>
+    public static IAnimationTrack<T> Create<T>(Action<T, float> apply) {
+        return new DelegateTrack<T>(apply);
+    }
+
+    extension<T>(IAnimationTrack<T>) {
         public static IAnimationTrack<T> operator +(IAnimationTrack<T> left, IAnimationTrack<T> right) {
             return new CombinedTrack<T>(left, right);
+        }
+    }
+
+    extension<T>(IAnimationTrack<T> track) {
+        /// <summary>
+        /// Creates a track that applies this track to a value selected from another target.
+        /// </summary>
+        /// <param name="selector">Selects the value to apply the track to.</param>
+        public IAnimationTrack<TTarget> For<TTarget>(Func<TTarget, T> selector) {
+            return new SelectorTrack<TTarget, T>(track, selector);
         }
     }
 }
@@ -37,9 +56,21 @@ internal sealed class ScaleTrack(Vector3 from, Vector3 to) : IAnimationTrack<IRe
     }
 }
 
-internal sealed class CombinedTrack<T>(IAnimationTrack<T> left, IAnimationTrack<T> right) : IAnimationTrack<T> where T : IReactiveComponent {
+internal sealed class CombinedTrack<T>(IAnimationTrack<T> left, IAnimationTrack<T> right) : IAnimationTrack<T> {
     public void Apply(T target, float progress) {
         left.Apply(target, progress);
         right.Apply(target, progress);
+    }
+}
+
+internal sealed class SelectorTrack<TTarget, T>(IAnimationTrack<T> track, Func<TTarget, T> selector) : IAnimationTrack<TTarget> {
+    public void Apply(TTarget target, float progress) {
+        track.Apply(selector(target), progress);
+    }
+}
+
+internal sealed class DelegateTrack<T>(Action<T, float> apply) : IAnimationTrack<T> {
+    public void Apply(T target, float progress) {
+        apply(target, progress);
     }
 }
