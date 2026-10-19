@@ -3,16 +3,14 @@ using JetBrains.Annotations;
 
 namespace Reactive {
     /// <summary>
-    /// Represents a modifier object that is used to define a component properties in a layout.
+    /// An object containing layout-specific properties for the parent.
     /// </summary>
     [PublicAPI]
-    public interface ILayoutModifier : ICopiable<ILayoutModifier>, IContextMember {
-        event Action? ModifierUpdatedEvent;
-
+    public interface ILayoutModifier : ICopiable<ILayoutModifier> {
         /// <summary>
-        /// Exposes a layout item in case the modifier needs to access impl-specific properties.
+        /// Fired when the modifier got updated. Tracked by <see cref="ILayoutItem"/>,
+        /// shouldn't be subscribed directly.
         /// </summary>
-        /// <param name="item">The item modifier belongs to.</param>
-        void ExposeLayoutItem(ILayoutItem? item);
+        event Action? ModifierUpdatedEvent;
     }
 }

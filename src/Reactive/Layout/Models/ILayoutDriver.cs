@@ -7,7 +7,7 @@ namespace Reactive {
     /// but provides all necessary data to the layout controller if it's presented.
     /// </summary>
     [PublicAPI]
-    public interface ILayoutDriver : ILayoutRecalculationSource {
+    public interface ILayoutDriver {
         /// <summary>
         /// An observable collection with children.
         /// </summary>

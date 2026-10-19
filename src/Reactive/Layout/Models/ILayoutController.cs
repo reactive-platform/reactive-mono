@@ -7,23 +7,23 @@ namespace Reactive {
     /// Represents a standalone layout controller.
     /// </summary>
     [PublicAPI]
-    public interface ILayoutController : IContextMember {
+    public interface ILayoutController : IContextMember, ILayoutMeasurable {
         int ChildCount { get; }
-        
+
         event Action? LayoutControllerUpdatedEvent;
 
         /// <summary>
         /// Adds a child to the controller.
         /// </summary>
-        /// <param name="comp">A component to add.</param>
+        /// <param name="child">A component to add.</param>
         /// <param name="index">An index to insert at.</param>
-        void InsertChild(ILayoutItem comp, int index);
+        void InsertChild(ILayoutItem child, int index);
 
         /// <summary>
         /// Removes a child from the controller.
         /// </summary>
-        /// <param name="comp">A component to remove.</param>
-        void RemoveChild(ILayoutItem comp);
+        /// <param name="child">A component to remove.</param>
+        void RemoveChild(ILayoutItem child);
 
         /// <summary>
         /// Removes all children from the controller.
@@ -33,20 +33,33 @@ namespace Reactive {
         /// <summary>
         /// Checks if the controller has the specified child added to its hierarchy.
         /// </summary>
-        /// <param name="comp">A component to search for.</param>
+        /// <param name="child">A component to search for.</param>
         /// <returns>True if the component is in hierarchy, otherwise False.</returns>
-        bool HasChild(ILayoutItem comp);
-        
+        bool HasChild(ILayoutItem child);
+
         /// <summary>
-        /// Applies calculated layout to first-level children. Own size is not applied.
+        /// Notifies the controller that the specified child has updated values.
         /// </summary>
-        void ApplyChildren();
-        
+        /// <param name="item">A child to update.</param>
+        void UpdateChild(ILayoutItem item);
+
         /// <summary>
-        /// Recalculates the layout starting from this node and applies its own size immediately after recalculation.
-        /// Must be called for the root node only, otherwise the behaviour is undefined. 
+        /// Causes layout recalculation. This method doesn't apply any physical dimensions.
         /// </summary>
-        /// <param name="item">The controller as an item.</param>
-        void Recalculate(ILayoutItem item, Vector2 constraints);
+        /// <param name="constraints">Constraints of the parent object.</param>
+        void Recalculate(Vector2 constraints);
+
+        /// <summary>
+        /// Returns layout dimensions of the controller itself.
+        /// Applicable only if the controller is not a layout participant.
+        /// </summary>
+        /// <returns></returns>
+        LayoutDimensions GetSelfDimensions();
+
+        /// <summary>
+        /// Returns layout dimensions of the specified child. 
+        /// </summary>
+        /// <param name="child">A child whose dimensions should be returned.</param>
+        LayoutDimensions GetChildDimensions(ILayoutItem child);
     }
 }
