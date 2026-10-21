@@ -259,7 +259,7 @@ namespace Reactive.Yoga {
 
             _context = (YogaContext)context;
             _context.Controller = this;
-            
+
             _node = _context.YogaNode;
             _node.SetMeasureFunc(null);
 
@@ -442,8 +442,8 @@ namespace Reactive.Yoga {
             node.StyleSetPositionType(PositionType.Relative);
             node.StyleSetAlignSelf(Align.Auto);
             node.StyleSetFlexBasis(YogaValue.Auto);
-            node.StyleSetFlexGrow(0);
-            node.StyleSetFlexShrink(0);
+            node.StyleSetFlexGrow(float.NaN);
+            node.StyleSetFlexShrink(float.NaN);
             node.StyleSetFlex(float.NaN);
             node.StyleSetWidth(YogaValue.Auto);
             node.StyleSetHeight(YogaValue.Auto);
