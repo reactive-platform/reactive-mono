@@ -69,7 +69,11 @@ namespace Reactive {
 
         public object? LayoutContext => Host.LayoutContext;
 
-        public ref LayoutItemState LayoutState => ref Host.LayoutState;
+        public ref LayoutNodeState LayoutState => ref Host.LayoutState;
+
+        public void RecalculateLayout() {
+            Host.RecalculateLayout();
+        }
 
         public ILayoutModifier? LayoutModifier {
             get => Host.LayoutModifier;
@@ -177,6 +181,12 @@ namespace Reactive {
         /// The layout component should apply only the dimensions of its children.
         /// </summary>
         protected virtual void PromotedApplyLayout(LayoutDimensions dimensions) { }
+
+        /// <summary>
+        /// Called on the layout component when the host is the root of a hierarchy that needs recalculation.
+        /// The layout component should recalculate and apply the hierarchy going down from the host.
+        /// </summary>
+        protected virtual void PromotedRecalculateLayout() { }
 
         #endregion
 

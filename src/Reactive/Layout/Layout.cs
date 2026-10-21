@@ -193,13 +193,16 @@ namespace Reactive {
 
         #region Layout Component
 
-        public void RecalculateLayout() {
-            if (LayoutTool.IsControlledByParent(this)) {
-                throw new InvalidOperationException(
-                    "Cannot recalculate a layout controlled by its parent, schedule a recalculation instead"
-                );
+        protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+            var layoutController = _layoutController.Value;
+            if (layoutController == null) {
+                return base.PromotedMeasure(width, widthMode, height, heightMode);
             }
 
+            return layoutController.Measure(width, widthMode, height, heightMode);
+        }
+
+        protected override void PromotedRecalculateLayout() {
             var layoutController = LayoutController;
             if (layoutController == null || Children.Count == 0) {
                 return;
@@ -216,15 +219,6 @@ namespace Reactive {
             LayoutState.RecalculatedFor = ReactiveScheduler.Layout.CurrentRun;
 
             ApplyLayout(layoutController.GetSelfDimensions());
-        }
-
-        protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
-            var layoutController = _layoutController.Value;
-            if (layoutController == null) {
-                return base.PromotedMeasure(width, widthMode, height, heightMode);
-            }
-
-            return layoutController.Measure(width, widthMode, height, heightMode);
         }
 
         protected override void PromotedApplyLayout(LayoutDimensions dimensions) {
@@ -248,7 +242,7 @@ namespace Reactive {
 
                 if (layoutController.HasChild(child)) {
                     var childDimensions = layoutController.GetChildDimensions(child);
-                    
+
                     child.ApplyLayout(childDimensions);
                 }
             }

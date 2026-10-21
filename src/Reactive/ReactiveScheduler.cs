@@ -45,7 +45,8 @@ public static class ReactiveScheduler {
                 State.Run();
                 Layout.Run();
             }
-        } finally {
+        }
+        finally {
             _running = false;
         }
     }
@@ -90,7 +91,8 @@ public static class ReactiveScheduler {
                         Debug.LogException(e);
                     }
                 }
-            } finally {
+            }
+            finally {
                 IsRunning = false;
             }
         }
@@ -98,8 +100,8 @@ public static class ReactiveScheduler {
 
     [PublicAPI]
     public sealed class LayoutLayer {
-        private readonly Queue<ILayoutItem> _queue = new();
-        private readonly List<ILayoutDriver> _roots = new();
+        private readonly Queue<ILayoutNode> _queue = new();
+        private readonly List<ILayoutNode> _roots = new();
         private int _runs;
 
         internal LayoutLayer() { }
@@ -116,8 +118,8 @@ public static class ReactiveScheduler {
 
         private int NextRun => _runs == int.MaxValue ? 1 : _runs + 1;
 
-        public void Schedule(ILayoutItem item) {
-            ref var state = ref item.LayoutState;
+        public void Schedule(ILayoutNode node) {
+            ref var state = ref node.LayoutState;
             var run = NextRun;
 
             if (state.QueuedFor == run) {
@@ -125,7 +127,7 @@ public static class ReactiveScheduler {
             }
 
             state.QueuedFor = run;
-            _queue.Enqueue(item);
+            _queue.Enqueue(node);
         }
 
         public void Run() {
@@ -138,17 +140,17 @@ public static class ReactiveScheduler {
 
             try {
                 for (var count = _queue.Count; count > 0; count--) {
-                    var item = _queue.Dequeue();
+                    var node = _queue.Dequeue();
 
                     // An item outside the layout is scheduled again when it's enabled
-                    if (!item.WithinLayout) {
+                    if (node is ILayoutItem { WithinLayout: false }) {
                         continue;
                     }
 
-                    item.LayoutState.QueuedFor = 0;
+                    node.LayoutState.QueuedFor = 0;
 
                     try {
-                        CollectRoot(item);
+                        CollectRoot(node);
                     } catch (Exception e) {
                         Debug.LogException(e);
                     }
@@ -161,44 +163,39 @@ public static class ReactiveScheduler {
                         Debug.LogException(e);
                     }
                 }
-            } finally {
+            }
+            finally {
                 _roots.Clear();
                 CurrentRun = 0;
             }
         }
 
-        private void CollectRoot(ILayoutItem item) {
+        private void CollectRoot(ILayoutNode node) {
             var run = CurrentRun;
-            var root = item as ILayoutDriver;
 
-            while (true) {
+            while (node is ILayoutItem item) {
                 ref var state = ref item.LayoutState;
-                
+
                 if (state.PropagatedFor == run) {
                     return;
                 }
 
                 state.PropagatedFor = run;
 
-                if (!LayoutTool.IsControlledByParent(item) || item.LayoutDriver is not ILayoutItem parent) {
+                if (!LayoutTool.IsControlledByParent(item)) {
                     break;
                 }
 
-                root = item.LayoutDriver;
-                item = parent;
-            }
-            
-            if (root == null) {
-                return;
+                node = item.LayoutDriver!;
             }
 
-            ref var rootState = ref item.LayoutState;
+            ref var rootState = ref node.LayoutState;
             if (rootState.RootFor == run) {
                 return;
             }
 
             rootState.RootFor = run;
-            _roots.Add(root);
+            _roots.Add(node);
         }
     }
 }

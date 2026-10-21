@@ -12,7 +12,7 @@ namespace Reactive {
 
             public ILayoutDriver? LayoutDriver => _layoutDriver;
 
-            public ref LayoutItemState LayoutState => ref _layoutState;
+            public ref LayoutNodeState LayoutState => ref _layoutState;
 
             public ILayoutModifier? LayoutModifier {
                 get {
@@ -62,7 +62,7 @@ namespace Reactive {
             public event Action<ILayoutItem>? LayoutAppliedEvent;
 
             private ILayoutDriver? _layoutDriver;
-            private LayoutItemState _layoutState;
+            private LayoutNodeState _layoutState;
             private Optional<ILayoutModifier?> _modifier;
             private bool _beingApplied;
 
@@ -112,6 +112,16 @@ namespace Reactive {
                 }
 
                 LayoutAppliedEvent?.Invoke(this);
+            }
+
+            public void RecalculateLayout() {
+                if (LayoutTool.IsControlledByParent(this)) {
+                    throw new InvalidOperationException(
+                        "Cannot recalculate a layout controlled by its parent, schedule a recalculation instead"
+                    );
+                }
+
+                _layoutComponent?.PromotedRecalculateLayout();
             }
 
             public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {

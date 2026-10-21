@@ -16,7 +16,7 @@ namespace Reactive {
     /// An object inside a layout tree.
     /// </summary>
     [PublicAPI]
-    public interface ILayoutItem : ILayoutMeasurable {
+    public interface ILayoutItem : ILayoutNode, ILayoutMeasurable {
         /// <summary>
         /// A parent this layout item is attached to.
         /// </summary>
@@ -27,12 +27,6 @@ namespace Reactive {
         /// </summary>
         object? LayoutContext { get; }
 
-        /// <summary>
-        /// A state containing data required for efficient layout recalculation.
-        /// Does not affect the layout structure. Should not be written manually either.
-        /// </summary>
-        ref LayoutItemState LayoutState { get; }
-        
         /// <inheritdoc cref="ILayoutModifier"/>
         ILayoutModifier? LayoutModifier { get; set; }
         

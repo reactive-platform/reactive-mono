@@ -7,17 +7,10 @@ namespace Reactive {
     /// but provides all necessary data to the layout controller if it's presented.
     /// </summary>
     [PublicAPI]
-    public interface ILayoutDriver : ILayoutControllerHolder {
+    public interface ILayoutDriver : ILayoutNode, ILayoutControllerHolder {
         /// <summary>
         /// An observable collection with children.
         /// </summary>
         ICollection<ILayoutItem> Children { get; }
-
-        /// <summary>
-        /// Starts an immediate layout recalculation going down from this node.
-        /// Must be called on a root only, a driver controlled by its parent throws.
-        /// </summary>
-        /// <exception cref="System.InvalidOperationException">Thrown when the driver is controlled by its parent.</exception>
-        void RecalculateLayout();
     }
 }
