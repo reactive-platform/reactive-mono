@@ -193,12 +193,27 @@ namespace Reactive.Components.Basic {
             var cell = _cells[0].Cell;
 
             AlignCell(cell.ContentTransform);
-            cell.RecalculateLayoutImmediate();
 
-            _cellSize = cell.ContentTransform.rect.size;
+            _cellSize = MeasureCell(cell);
             _scrollArea.LineSize = CellSize;
 
             _needToRefreshCellSize = false;
+        }
+        
+        private Vector2 MeasureCell(TCell cell) {
+            Vector2 size;
+            float mainSize;
+
+            if (ScrollOrientation is ScrollOrientation.Vertical) {
+                size = cell.Measure(_scrollContent.rect.width, MeasureMode.Exactly, float.NaN, MeasureMode.Undefined);
+                mainSize = size.y;
+            } else {
+                size = cell.Measure(float.NaN, MeasureMode.Undefined, _scrollContent.rect.height, MeasureMode.Exactly);
+                mainSize = size.x;
+            }
+
+            // Cells without a layout component measure nothing, so they keep the size of their rect
+            return mainSize > 0f ? size : cell.ContentTransform.rect.size;
         }
 
         #endregion
