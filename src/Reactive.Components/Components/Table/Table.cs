@@ -251,15 +251,15 @@ namespace Reactive.Components.Basic {
 
             var scrollPos = ScrollContext.ActualScrollPos;
 
-            var startIdx = Mathf.FloorToInt((scrollPos + 0.01f) / CellSize);
-            var endIdx = Mathf.CeilToInt((scrollPos + ScrollContext.ViewSize - 0.01f) / CellSize);
-            var cellsCount = Mathf.Min(endIdx - startIdx, Items.Count);
+            // The scroll position can be out of the content while it's being resized
+            var startIdx = Mathf.Clamp(Mathf.FloorToInt((scrollPos + 0.01f) / CellSize), 0, Items.Count);
+            var endIdx = Mathf.Clamp(Mathf.CeilToInt((scrollPos + ScrollContext.ViewSize - 0.01f) / CellSize), startIdx, Items.Count);
+            var cellsCount = endIdx - startIdx;
 
             _scrollContent.sizeDelta = new(0f, Items.Count * CellSize);
             _cellStartPos = startIdx * CellSize;
 
             var spawnedCellsCount = _cells.Count;
-            var delta = spawnedCellsCount - cellsCount;
 
             for (var i = 0; i < cellsCount; i++) {
                 var itemIdx = i + startIdx;
@@ -289,8 +289,8 @@ namespace Reactive.Components.Basic {
             }
 
             // Remaining cells are just disabled
-            for (var i = 0; i < delta; i++) {
-                _cells[spawnedCellsCount + i - 1].Cell.Enabled = false;
+            for (var i = cellsCount; i < spawnedCellsCount; i++) {
+                _cells[i].Cell.Enabled = false;
             }
         }
 
