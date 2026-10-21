@@ -6,7 +6,7 @@ namespace Reactive {
     /// An object containing layout-specific properties for the parent.
     /// </summary>
     [PublicAPI]
-    public interface ILayoutModifier : ICopiable<ILayoutModifier> {
+    public interface ILayoutModifier {
         /// <summary>
         /// Fired when the modifier got updated. Tracked by <see cref="ILayoutItem"/>,
         /// shouldn't be subscribed directly.

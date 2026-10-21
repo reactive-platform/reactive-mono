@@ -10,17 +10,9 @@ namespace Reactive {
         private class ReactiveHost : MonoBehaviour, ILayoutItem, IReactiveModuleBinder {
             #region LayoutItem
 
-            public ILayoutDriver? LayoutDriver {
-                get => _layoutDriver;
-                set {
-                    if (_layoutDriver == value) return;
-                    // do not change! truncation before assignment can cause deadlock!
-                    var oldDriver = _layoutDriver;
-                    _layoutDriver = value;
-                    oldDriver?.Children.Remove(this);
-                    _layoutDriver?.Children.Add(this);
-                }
-            }
+            public ILayoutDriver? LayoutDriver => _layoutDriver;
+
+            public ref LayoutItemState LayoutState => ref _layoutState;
 
             public ILayoutModifier? LayoutModifier {
                 get {
@@ -35,41 +27,100 @@ namespace Reactive {
                     var oldModifier = _modifier.Value;
 
                     if (oldModifier != null) {
-                        oldModifier.ExposeLayoutItem(null);
-                        oldModifier.ModifierUpdatedEvent -= HandleModifierUpdated;
-                        ReleaseContextMember(oldModifier);
+                        oldModifier.ModifierUpdatedEvent -= NotifyLayoutDataUpdated;
                     }
 
                     _modifier = Optional<ILayoutModifier?>.Some(value);
-                    _lastExposedComponent = null;
 
                     if (value != null) {
-                        value.ModifierUpdatedEvent += HandleModifierUpdated;
-                        InsertContextMember(value);
-                        ReloadLayoutFirstComponent();
+                        value.ModifierUpdatedEvent += NotifyLayoutDataUpdated;
                     }
-
-                    HandleModifierUpdated();
+                    
+                    NotifyLayoutDataUpdated();
                 }
             }
 
-            public bool WithinLayout {
-                get => gameObject.activeSelf || WithinLayoutIfDisabled;
+            public bool WithinLayout => !IsDestroyed && (gameObject.activeInHierarchy || WithinLayoutIfDisabled);
+
+            public bool IgnoreLayout {
+                get;
                 set {
-                    if (WithinLayoutIfDisabled) return;
-                    gameObject.SetActive(value);
+                    field = value;
+                    NotifyLayoutDataUpdated();
                 }
             }
 
-            public bool WithinLayoutIfDisabled { get; set; }
+            public bool WithinLayoutIfDisabled {
+                get;
+                set {
+                    field = value;
+                    NotifyLayoutDataUpdated();
+                }
+            }
 
-            public event Action<ILayoutItem>? ModifierUpdatedEvent;
-            public event Action<ILayoutItem>? StateUpdatedEvent;
-            public event Action<ILayoutItem>? LayoutUpdatedEvent;
+            public event Action<ILayoutItem>? LayoutDataUpdatedEvent;
+            public event Action<ILayoutItem>? LayoutAppliedEvent;
 
             private ILayoutDriver? _layoutDriver;
+            private LayoutItemState _layoutState;
             private Optional<ILayoutModifier?> _modifier;
             private bool _beingApplied;
+
+            public void AssignParent(ILayoutDriver? driver) {
+                _layoutDriver = driver;
+                _layoutState.QueuedFor = 0;
+                _layoutState.HasApplied = false;
+            }
+
+            public void SetLayoutDriver(ILayoutDriver? driver) {
+                if (_layoutDriver == driver) return;
+                _layoutDriver?.Children.Remove(this);
+                driver?.Children.Add(this);
+            }
+
+            public void AttachToParent(Transform? parent) {
+                transform.SetParent(parent, false);
+            }
+
+            public void ApplyLayout(LayoutDimensions dimensions) {
+                ref var state = ref _layoutState;
+
+                if (!state.HasApplied || state.LastApplied != dimensions) {
+                    _beingApplied = true;
+
+                    try {
+                        // Only the parent's controller positions the item, otherwise the position is left to the user
+                        if (LayoutTool.IsControlledByParent(this)) {
+                            _rectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, dimensions.TopOffset, dimensions.Height);
+                            _rectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, dimensions.LeftOffset, dimensions.Width);
+                        } else {
+                            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, dimensions.Width);
+                            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, dimensions.Height);
+                        }
+                    } finally {
+                        _beingApplied = false;
+                    }
+
+                    state.LastApplied = dimensions;
+                    state.HasApplied = true;
+                }
+                
+                _layoutComponent?.PromotedApplyLayout(dimensions);
+
+                for (var i = 0; i < _components.Count; i++) {
+                    _components[i].OnLayoutApply();
+                }
+
+                LayoutAppliedEvent?.Invoke(this);
+            }
+
+            public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+                if (_layoutComponent != null) {
+                    return _layoutComponent.PromotedMeasure(width, widthMode, height, heightMode);
+                }
+
+                return LayoutTool.MeasureNode(Vector2.zero, width, widthMode, height, heightMode);
+            }
 
             public int GetLayoutItemHashCode() {
                 return base.GetHashCode();
@@ -79,78 +130,16 @@ namespace Reactive {
                 return item.GetLayoutItemHashCode() == GetLayoutItemHashCode();
             }
 
-            public RectTransform BeginApply() {
-                if (_beingApplied) {
-                    throw new InvalidOperationException("Cannot begin layout application as it's already started");
-                }
-
-                _beingApplied = true;
-                return _rectTransform;
-            }
-
-            public void EndApply() {
-                _beingApplied = false;
-                for (var i = 0; i < _components.Count; i++) {
-                    _components[i].OnLayoutApply();
-                }
-            }
-
             #endregion
 
             #region Layout
 
-            private bool _recalculationScheduled;
-            private bool _beingRecalculated;
-
             public void ScheduleLayoutRecalculation() {
-                if (_recalculationScheduled) {
-                    return;
-                }
-
-                _recalculationScheduled = true;
                 ReactiveScheduler.Layout.Schedule(this);
             }
 
-            public void RecalculateLayoutImmediate() {
-                if (_beingRecalculated) {
-                    throw new InvalidOperationException("Calling RecalculateLayoutImmediate in a layout cycle is not allowed");
-                }
-
-                _beingRecalculated = true;
-
-                try {
-                    if (LayoutModifier != null && LayoutDriver?.LayoutController != null) {
-                        // If a layout driver is presented, start recalculation from this point
-                        LayoutDriver.RecalculateLayoutImmediate();
-                    } else {
-                        // If not, tell own components to start recalculation (if there is a Layout or a custom layout controller) 
-                        for (var i = 0; i < _components.Count; i++) {
-                            _components[i].OnRecalculateLayoutSelf();
-                        }
-                    }
-                }
-                finally {
-                    LayoutUpdatedEvent?.Invoke(this);
-                    _beingRecalculated = false;
-                    _recalculationScheduled = false;
-                }
-            }
-
-            private void ScheduleLayoutRecalculationAfterStateChange(bool newState) {
-                if (newState) {
-                    ScheduleLayoutRecalculation();
-                } else if (LayoutDriver != null) {
-                    // The current object is disabled and won't be recalculated, so we try to 
-                    // move the recalculation responsibility to the driver if possible. 
-                    // If this object doesn't have a driver, recalculation is omitted as it will
-                    // happen anyway when the object will get enabled back.
-                    LayoutDriver.ScheduleLayoutRecalculation();
-                }
-            }
-
-            private void HandleModifierUpdated() {
-                ModifierUpdatedEvent?.Invoke(this);
-                _components.ForEach(static x => x.OnModifierUpdated());
+            public void NotifyLayoutDataUpdated() {
+                LayoutDataUpdatedEvent?.Invoke(this);
             }
 
             #endregion
@@ -185,49 +174,40 @@ namespace Reactive {
 
             #region Contexts
 
-            private Dictionary<Type, (object context, int members)>? _contexts;
+            // Own context has higher priority
+            public object? LayoutContext => _ownContext ?? _assignedContext;
 
-            public void InsertContextMember(IContextMember member) {
-                _contexts ??= new(1);
+            private object? _assignedContext;
+            private object? _ownContext;
+            private IContextMember? _contextMember;
 
-                var type = member.ContextType;
-                if (type == null) {
-                    return;
-                }
-
-                object context;
-                var members = 1;
-
-                if (_contexts.TryGetValue(type, out var tuple)) {
-                    context = tuple.context;
-                    members += tuple.members;
-                } else {
-                    context = member.CreateContext();
-                }
-
-                member.ProvideContext(context);
-                _contexts[type] = (context, members);
+            public void AssignContext(object? context) {
+                _assignedContext = context;
             }
 
-            public void ReleaseContextMember(IContextMember member) {
-                if (_contexts == null) {
-                    return;
+            public void ClaimLayoutContext(ReactiveComponent comp, IContextMember? member) {
+                if (comp != _layoutComponent) {
+                    if (member == null) return;
+                    throw new InvalidOperationException("Only the layout component can claim a layout context");
                 }
 
-                var type = member.ContextType;
-                if (type == null || !_contexts.TryGetValue(type, out var tuple)) {
-                    return;
+                ReleaseLayoutContext();
+
+                var type = member?.ContextType;
+                if (type != null) {
+                    // The parent's context of the same type is claimed, so both trees share it
+                    _ownContext = _assignedContext?.GetType() == type ? _assignedContext : member!.CreateContext();
+                    _contextMember = member;
+                    member!.ProvideContext(_ownContext);
                 }
 
-                var members = tuple.members - 1;
-                if (members == 0) {
-                    _contexts.Remove(type);
-                } else {
-                    tuple.members = members;
-                    _contexts[type] = tuple;
-                }
+                NotifyLayoutDataUpdated();
+            }
 
-                member.ProvideContext(null);
+            private void ReleaseLayoutContext() {
+                _contextMember?.ProvideContext(null);
+                _contextMember = null;
+                _ownContext = null;
             }
 
             #endregion
@@ -240,9 +220,7 @@ namespace Reactive {
                     gameObject.SetActive(value);
 
                     if (!gameObject.activeInHierarchy) {
-                        // When turning the object off\on in a disabled hierarchy,
-                        // OnEnable and OnDisable events are not called, so we notify listeners manually
-                        StateUpdatedEvent?.Invoke(this);
+                        // When turning the object off\on in a disabled hierarchy, OnEnable and OnDisable events are not called.
                         // To force layout recalculation when enabled
                         _wasActuallyDisabled = true;
                     }
@@ -253,31 +231,27 @@ namespace Reactive {
             public bool IsDestroyed { get; private set; }
 
             private readonly List<ReactiveComponent> _components = new();
-            private ReactiveComponent? _definedExposeComponent;
-            private ReactiveComponent? _lastExposedComponent;
+            private ReactiveComponent? _layoutComponent;
 
-            public void ExposeLayoutFirstComponent(ReactiveComponent? comp) {
+            public void PromoteLayoutComponent(ReactiveComponent? comp) {
                 if (comp != null && !_components.Contains(comp)) {
-                    throw new InvalidOperationException("Cannot expose a component that does not belong to the host");
+                    throw new InvalidOperationException("Cannot promote a component that does not belong to the host");
                 }
 
-                _definedExposeComponent = comp;
-                ReloadLayoutFirstComponent();
-            }
-
-            private void ReloadLayoutFirstComponent() {
-                // Normally the main component is a component that was created the last
-                var comp = _definedExposeComponent ?? _components.LastOrDefault();
-
-                if (comp != null && comp != _lastExposedComponent && _modifier.Value != null) {
-                    _lastExposedComponent = comp;
-                    _modifier.Value.ExposeLayoutItem(comp);
+                if (comp == _layoutComponent) {
+                    return;
                 }
+
+                if (_contextMember != null) {
+                    ReleaseLayoutContext();
+                    NotifyLayoutDataUpdated();
+                }
+
+                _layoutComponent = comp;
             }
 
             public void AddComponent(ReactiveComponent comp) {
                 _components.Add(comp);
-                ReloadLayoutFirstComponent();
 
                 if (IsStarted) {
                     comp.OnStart();
@@ -286,6 +260,10 @@ namespace Reactive {
 
             public void RemoveComponent(ReactiveComponent comp) {
                 _components.Remove(comp);
+
+                if (comp == _layoutComponent) {
+                    PromoteLayoutComponent(null);
+                }
             }
 
             #endregion
@@ -334,16 +312,17 @@ namespace Reactive {
             }
 
             private void OnEnable() {
-                if (_recalculationScheduled) {
-                    ReactiveScheduler.Layout.Schedule(this);
+                // Was skipped by the scheduler while inactive
+                if (_layoutState.QueuedFor != 0) {
+                    ScheduleLayoutRecalculation();
                 }
 
                 if (!_wasActuallyDisabled) {
                     return;
                 }
 
-                StateUpdatedEvent?.Invoke(this);
-                ScheduleLayoutRecalculationAfterStateChange(true);
+                ScheduleLayoutRecalculation();
+                NotifyLayoutDataUpdated();
 
                 for (var i = 0; i < _components.Count; i++) {
                     _components[i].OnEnable();
@@ -356,8 +335,7 @@ namespace Reactive {
                     return;
                 }
 
-                StateUpdatedEvent?.Invoke(this);
-                ScheduleLayoutRecalculationAfterStateChange(false);
+                NotifyLayoutDataUpdated();
 
                 for (var i = 0; i < _components.Count; i++) {
                     _components[i].OnDisable();
@@ -372,6 +350,8 @@ namespace Reactive {
                 // which is not allowed to be performed on the OnRectTransformDimensionsChange stack.
                 // that's why we schedule recalculation to the frame's layout layer
                 if (!_beingApplied) {
+                    // Changed outside the layout system, so the same dimensions have to be applied again
+                    _layoutState.HasApplied = false;
                     ScheduleLayoutRecalculation();
                 }
 

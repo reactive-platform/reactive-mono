@@ -1,6 +1,5 @@
 ﻿using System;
 using JetBrains.Annotations;
-using Reactive.Yoga;
 using UnityEngine;
 
 namespace Reactive;
@@ -10,6 +9,15 @@ namespace Reactive;
 /// </summary>
 [PublicAPI]
 public static class LayoutTool {
+    /// <summary>
+    /// Checks whether the item is laid out by the controller of its parent. Such an item is a part of the parent's
+    /// hierarchy, so its layout can't be recalculated on its own.
+    /// </summary>
+    /// <param name="item">An item to check.</param>
+    public static bool IsControlledByParent(ILayoutItem item) {
+        return !item.IgnoreLayout && (item.LayoutDriver?.LayoutController?.HasChild(item) ?? false);
+    }
+
     /// <summary>
     /// Calculates a leaf size based on provided values.
     /// </summary>

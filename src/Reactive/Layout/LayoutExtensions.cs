@@ -158,52 +158,52 @@ namespace Reactive {
                 modifier = new YogaModifier();
                 setModifierCallback(component, modifier);
             }
-            
+
             if (position != null) {
                 modifier.PositionType = PositionType.Absolute;
                 modifier.Position = position.Value;
             }
-            
+
             if (positionType != null) {
                 modifier.PositionType = positionType.Value;
             }
-            
+
             if (size != null) {
                 modifier.Size = size.Value;
             }
-            
+
             if (flex != null) {
                 modifier.Flex = flex.Value;
             }
-            
+
             if (flexShrink != null) {
                 modifier.FlexShrink = flexShrink.Value;
             }
-            
+
             if (flexGrow != null) {
                 modifier.FlexGrow = flexGrow.Value;
             }
-            
+
             if (basis != null) {
                 modifier.FlexBasis = basis.Value;
             }
-            
+
             if (minSize != null) {
                 modifier.MinSize = minSize.Value;
             }
-            
+
             if (maxSize != null) {
                 modifier.MaxSize = maxSize.Value;
             }
-            
+
             if (margin != null) {
                 modifier.Margin = margin.Value;
             }
-            
+
             if (aspectRatio != null) {
                 modifier.AspectRatio = aspectRatio.Value;
             }
-            
+
             modifier.AlignSelf = alignSelf;
             yogaModifier = modifier;
             return component;
@@ -293,35 +293,35 @@ namespace Reactive {
                 controller = new();
                 component.LayoutController = controller;
             }
-            
+
             if (direction.HasValue) {
                 controller.FlexDirection = direction.Value;
             }
-            
+
             if (justifyContent.HasValue) {
                 controller.JustifyContent = justifyContent.Value;
             }
-            
+
             if (alignContent.HasValue) {
                 controller.AlignContent = alignContent.Value;
             }
-            
+
             if (alignItems.HasValue) {
                 controller.AlignItems = alignItems.Value;
             }
-            
+
             if (wrap.HasValue) {
                 controller.FlexWrap = wrap.Value;
             }
-            
+
             if (overflow.HasValue) {
                 controller.Overflow = overflow.Value;
             }
-            
+
             if (padding.HasValue) {
                 controller.Padding = padding.Value;
             }
-            
+
             if (gap.HasValue) {
                 controller.Gap = gap.Value;
             }
@@ -391,17 +391,6 @@ namespace Reactive {
         }
 
         /// <summary>
-        /// Expands the RectTransform of a layout item to fill its parent.
-        /// </summary>
-        /// <param name="component">A layout item to expand.</param>
-        /// <returns>The expanded layout item.</returns>
-        public static ILayoutItem WithRectExpand(this ILayoutItem component) {
-            component.BeginApply().WithRectExpand();
-            component.EndApply();
-            return component;
-        }
-
-        /// <summary>
         /// Expands the RectTransform to fill its parent.
         /// </summary>
         /// <param name="component">A RectTransform to expand.</param>
@@ -415,18 +404,6 @@ namespace Reactive {
         }
 
         #endregion
-
-        /// <summary>
-        /// Copies properties from another layout modifier.
-        /// </summary>
-        /// <typeparam name="T">A layout modifier type.</typeparam>
-        /// <param name="modifier">A modifier to copy to.</param>
-        /// <param name="apModifier">A modifier to copy from.</param>
-        /// <returns>The updated modifier.</returns>
-        public static T With<T>(this T modifier, ILayoutModifier apModifier) where T : ILayoutModifier {
-            modifier.CopyFrom(apModifier);
-            return modifier;
-        }
 
         /// <summary>
         /// Finds index of an item in the <see cref="ILayoutItem"/> list. You must use this instead of the

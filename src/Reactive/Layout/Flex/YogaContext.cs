@@ -8,6 +8,8 @@ internal class YogaContext {
         }
     }
 
+    public YogaLayoutController? Controller { get; set; }
+
     ~YogaContext() {
         _yogaNode?.Dispose();
     }

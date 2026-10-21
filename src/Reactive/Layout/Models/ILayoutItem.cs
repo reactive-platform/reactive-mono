@@ -34,10 +34,16 @@ namespace Reactive {
         ref LayoutItemState LayoutState { get; }
         
         /// <inheritdoc cref="ILayoutModifier"/>
-        ILayoutModifier? LayoutModifier { get; }
+        ILayoutModifier? LayoutModifier { get; set; }
         
         /// <summary>
-        /// Whether this node participates in the layout calculation.
+        /// Whether this node is enabled from the layout perspective. Items outside the layout
+        /// are neither calculated by the parent nor recalculated on their own.
+        /// </summary>
+        bool WithinLayout { get; }
+
+        /// <summary>
+        /// Whether this node is intentionally detached from the layout calculation while being within the layout.
         /// Applies only to the parent hierarchy, so if the node itself is a driver
         /// it will proceed to work as a separate tree.
         /// </summary>
@@ -45,7 +51,7 @@ namespace Reactive {
 
         /// <summary>
         /// Invoked when some values affecting layout have changed.
-        /// <see cref="LayoutModifier"/> and <see cref="IgnoreLayout"/> are some of those.
+        /// <see cref="LayoutModifier"/>, <see cref="WithinLayout"/> and <see cref="IgnoreLayout"/> are some of those.
         /// Tracked by <see cref="ILayoutDriver"/>, shouldn't be subscribed directly.
         /// </summary>
         event Action<ILayoutItem>? LayoutDataUpdatedEvent;

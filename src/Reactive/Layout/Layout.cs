@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -24,74 +25,54 @@ namespace Reactive {
                 if (oldController != null) {
                     oldController.RemoveAllChildren();
                     oldController.LayoutControllerUpdatedEvent -= ScheduleLayoutRecalculation;
-                    ReleaseContextMember(oldController);
                 }
 
                 _layoutController = Optional<ILayoutController?>.Some(value);
 
                 if (value != null) {
-                    InsertContextMember(value);
                     value.LayoutControllerUpdatedEvent += ScheduleLayoutRecalculation;
+                }
 
-                    var index = 0;
-                    foreach (var child in _childrenOrdered) {
-                        // Components without modifiers are not added to the hierarchy
-                        if (child.LayoutModifier != null) {
-                            value.InsertChild(child, index);
-                            index++;
-                        }
+                ClaimLayoutContext(value);
+
+                for (var i = 0; i < _childrenOrdered.Count; i++) {
+                    var child = _childrenOrdered[i];
+
+                    if (value != null && IsIncluded(child)) {
+                        value.InsertChild(child, value.ChildCount);
                     }
                 }
+
+                ScheduleLayoutRecalculation();
             }
         }
 
         private Optional<ILayoutController?> _layoutController;
-        private bool _beingRecalculated;
-
-        // Guard for requests from other components: calculated in this layout run, it's up to date with them
-        private int _lastRecalculationRun;
-
-        private void RecalculateLayoutInternal() {
-            var layoutController = LayoutController;
-            var run = ReactiveScheduler.Layout.CurrentRun;
-            if (run != 0 && _lastRecalculationRun == run) {
-                return;
-            }
-
-            if (layoutController == null || Children.Count == 0) {
-                return;
-            }
-
-            Vector2 constraints;
-            if (ContentTransform.parent is RectTransform parent) {
-                constraints = parent.rect.size;
-            } else {
-                constraints = new Vector2(float.NaN, float.NaN);
-            }
-
-            layoutController.Recalculate(this, constraints);
-            layoutController.ApplyChildren();
-
-            _lastRecalculationRun = run;
-        }
-
-        public void RecalculateLayoutImmediate() {
-            _beingRecalculated = true;
-
-            // Items without modifiers are not supposed to be controlled
-            if (LayoutModifier != null && LayoutDriver?.LayoutController != null) {
-                LayoutDriver.RecalculateLayoutImmediate();
-
-                _beingRecalculated = false;
-                return;
-            }
-
-            RecalculateLayoutInternal();
-            _beingRecalculated = false;
-        }
 
         public new void ScheduleLayoutRecalculation() {
             base.ScheduleLayoutRecalculation();
+        }
+
+        private static bool IsIncluded(ILayoutItem item) {
+            return item is { WithinLayout: true, IgnoreLayout: false };
+        }
+
+        private int GetControllerIndex(ILayoutItem item, ILayoutController controller) {
+            var index = 0;
+
+            for (var i = 0; i < _childrenOrdered.Count; i++) {
+                var child = _childrenOrdered[i];
+
+                if (child.EqualsToLayoutItem(item)) {
+                    break;
+                }
+
+                if (controller.HasChild(child)) {
+                    index++;
+                }
+            }
+
+            return index;
         }
 
         #endregion
@@ -109,16 +90,16 @@ namespace Reactive {
         private void AppendChildInternal(ILayoutItem item) {
             AppendPhysicalChild(item);
 
-            item.LayoutDriver = this;
-            item.ModifierUpdatedEvent += HandleChildModifierUpdated;
+            var layoutController = LayoutController;
+
+            item.AssignParent(this);
             _childrenOrdered.Add(item);
 
-            var layoutController = LayoutController;
-            if (layoutController != null) {
-                var index = layoutController.ChildCount;
-
-                layoutController.InsertChild(item, index);
+            if (layoutController != null && IsIncluded(item)) {
+                layoutController.InsertChild(item, GetControllerIndex(item, layoutController));
             }
+
+            item.LayoutDataUpdatedEvent += HandleChildLayoutDataUpdated;
 
             ScheduleLayoutRecalculation();
             OnChildrenUpdated();
@@ -127,13 +108,13 @@ namespace Reactive {
         private void TruncateChildInternal(ILayoutItem item) {
             TruncatePhysicalChild(item);
 
-            item.LayoutDriver = null;
-            item.ModifierUpdatedEvent -= HandleChildModifierUpdated;
-            _childrenOrdered.Remove(item);
+            item.LayoutDataUpdatedEvent -= HandleChildLayoutDataUpdated;
+            _childrenOrdered.RemoveAt(_childrenOrdered.FindLayoutItemIndex(item));
 
             LayoutController?.RemoveChild(item);
-            ScheduleLayoutRecalculation();
+            item.AssignParent(null);
 
+            ScheduleLayoutRecalculation();
             OnChildrenUpdated();
         }
 
@@ -143,25 +124,22 @@ namespace Reactive {
             }
         }
 
-        private void HandleChildModifierUpdated(ILayoutItem item) {
+        private void HandleChildLayoutDataUpdated(ILayoutItem item) {
             var layoutController = LayoutController;
-            if (_beingRecalculated || layoutController == null) {
+            if (layoutController == null) {
                 return;
             }
 
             var hasChild = layoutController.HasChild(item);
 
-            if (item.LayoutModifier == null) {
+            if (IsIncluded(item)) {
                 if (hasChild) {
-                    // Here we remove the child from the layout controller exclusively to add it again later
-                    layoutController.RemoveChild(item);
+                    layoutController.UpdateChild(item);
+                } else {
+                    layoutController.InsertChild(item, GetControllerIndex(item, layoutController));
                 }
-            } else {
-                if (!hasChild) {
-                    var index = _childrenOrdered.FindLayoutItemIndex(item);
-                    // It is crucial to maintain the same order as it can break the whole layout
-                    layoutController.InsertChild(item, index);
-                }
+            } else if (hasChild) {
+                layoutController.RemoveChild(item);
             }
 
             ScheduleLayoutRecalculation();
@@ -182,8 +160,7 @@ namespace Reactive {
             if (item is IReactiveComponent comp) {
                 comp.Use(PhysicalContainer);
             } else {
-                item.BeginApply().SetParent(PhysicalContainer, false);
-                item.EndApply();
+                item.AttachToParent(PhysicalContainer);
             }
         }
 
@@ -191,8 +168,7 @@ namespace Reactive {
             if (item is IReactiveComponent comp) {
                 comp.Use(null);
             } else {
-                item.BeginApply().SetParent(null, false);
-                item.EndApply();
+                item.AttachToParent(null);
             }
         }
 
@@ -209,28 +185,72 @@ namespace Reactive {
             );
         }
 
+        protected override void OnInitialize() {
+            PromoteLayoutComponent(this);
+        }
+
         #endregion
 
-        #region Overrides
+        #region Layout Component
 
-        protected sealed override void OnModifierUpdated() {
-            if (LayoutDriver == null && !_beingRecalculated) {
-                ScheduleLayoutRecalculation();
+        public void RecalculateLayout() {
+            if (LayoutTool.IsControlledByParent(this)) {
+                throw new InvalidOperationException(
+                    "Cannot recalculate a layout controlled by its parent, schedule a recalculation instead"
+                );
             }
-        }
 
-        protected override void OnRecalculateLayoutSelf() {
-            RecalculateLayoutImmediate();
-        }
-
-        protected override void OnLayoutApply() {
-            // If was applied outside the layout system
-            if (LayoutDriver == null) {
+            var layoutController = LayoutController;
+            if (layoutController == null || Children.Count == 0) {
                 return;
             }
 
-            if (_children.Count > 0) {
-                LayoutController?.ApplyChildren();
+            Vector2 constraints;
+            if (ContentTransform.parent is RectTransform parent) {
+                constraints = parent.rect.size;
+            } else {
+                constraints = new Vector2(float.NaN, float.NaN);
+            }
+
+            layoutController.Recalculate(constraints);
+            LayoutState.RecalculatedFor = ReactiveScheduler.Layout.CurrentRun;
+
+            ApplyLayout(layoutController.GetSelfDimensions());
+        }
+
+        protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+            var layoutController = _layoutController.Value;
+            if (layoutController == null) {
+                return base.PromotedMeasure(width, widthMode, height, heightMode);
+            }
+
+            return layoutController.Measure(width, widthMode, height, heightMode);
+        }
+
+        protected override void PromotedApplyLayout(LayoutDimensions dimensions) {
+            var layoutController = LayoutController;
+            if (layoutController == null || _childrenOrdered.Count == 0) {
+                return;
+            }
+
+            ref var state = ref LayoutState;
+            var run = ReactiveScheduler.Layout.CurrentRun;
+
+            // Roots are recalculated before being applied, the rest use the size given by the parent
+            if (run == 0 || state.RecalculatedFor != run) {
+                // With stitched hierarchies controller has a shared context and can omit recalculation
+                layoutController.Recalculate(new Vector2(dimensions.Width, dimensions.Height));
+                state.RecalculatedFor = run;
+            }
+
+            for (var i = 0; i < _childrenOrdered.Count; i++) {
+                var child = _childrenOrdered[i];
+
+                if (layoutController.HasChild(child)) {
+                    var childDimensions = layoutController.GetChildDimensions(child);
+                    
+                    child.ApplyLayout(childDimensions);
+                }
             }
         }
 

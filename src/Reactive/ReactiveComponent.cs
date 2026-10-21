@@ -61,52 +61,61 @@ namespace Reactive {
 
         #endregion
 
-        #region Context
-
-        protected void InsertContextMember(IContextMember member) => Host.InsertContextMember(member);
-
-        protected void ReleaseContextMember(IContextMember member) => Host.ReleaseContextMember(member);
-
-        #endregion
-
         #region Layout Item
 
         public ILayoutDriver? LayoutDriver {
             get => Host.LayoutDriver;
-            set => Host.LayoutDriver = value;
         }
+
+        public object? LayoutContext => Host.LayoutContext;
+
+        public ref LayoutItemState LayoutState => ref Host.LayoutState;
 
         public ILayoutModifier? LayoutModifier {
             get => Host.LayoutModifier;
             set => Host.LayoutModifier = value;
         }
 
-        bool ILayoutItem.WithinLayout {
-            get => Enabled || WithinLayoutIfDisabled;
-            set {
-                if (WithinLayoutIfDisabled) return;
-                Enabled = value;
-            }
+        public bool IgnoreLayout {
+            get => Host.IgnoreLayout;
+            set => Host.IgnoreLayout = value;
         }
+
+        public bool WithinLayout => Host.WithinLayout;
 
         public bool WithinLayoutIfDisabled {
             get => _reactiveHost!.WithinLayoutIfDisabled;
             set => _reactiveHost!.WithinLayoutIfDisabled = value;
         }
 
-        public event Action<ILayoutItem>? ModifierUpdatedEvent {
-            add => Host.ModifierUpdatedEvent += value;
-            remove => Host.ModifierUpdatedEvent -= value;
+        public event Action<ILayoutItem>? LayoutDataUpdatedEvent {
+            add => Host.LayoutDataUpdatedEvent += value;
+            remove => Host.LayoutDataUpdatedEvent -= value;
         }
 
-        public event Action<ILayoutItem>? StateUpdatedEvent {
-            add => Host.StateUpdatedEvent += value;
-            remove => Host.StateUpdatedEvent -= value;
+        public event Action<ILayoutItem>? LayoutAppliedEvent {
+            add => Host.LayoutAppliedEvent += value;
+            remove => Host.LayoutAppliedEvent -= value;
         }
 
-        public event Action<ILayoutItem>? LayoutUpdatedEvent {
-            add => Host.LayoutUpdatedEvent += value;
-            remove => Host.LayoutUpdatedEvent -= value;
+        public void AssignParent(ILayoutDriver? driver) {
+            Host.AssignParent(driver);
+        }
+
+        public void AssignContext(object? context) {
+            Host.AssignContext(context);
+        }
+
+        public void AttachToParent(Transform? parent) {
+            Host.AttachToParent(parent);
+        }
+
+        public void ApplyLayout(LayoutDimensions dimensions) {
+            Host.ApplyLayout(dimensions);
+        }
+
+        Vector2 ILayoutMeasurable.Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+            return Host.Measure(width, widthMode, height, heightMode);
         }
 
         public int GetLayoutItemHashCode() {
@@ -117,39 +126,57 @@ namespace Reactive {
             return Host.EqualsToLayoutItem(item);
         }
 
-        public RectTransform BeginApply() {
-            return Host.BeginApply();
-        }
-
-        public void EndApply() {
-            Host.EndApply();
-        }
-
-        void ILayoutRecalculationSource.RecalculateLayoutImmediate() {
-            Host.RecalculateLayoutImmediate();
-        }
-
-        void ILayoutRecalculationSource.ScheduleLayoutRecalculation() {
-            Host.ScheduleLayoutRecalculation();
-        }
-
-        protected void RecalculateLayoutImmediate() {
-            Host.RecalculateLayoutImmediate();
+        /// <summary>
+        /// Notifies the driver that values affecting the layout have changed, e.g. the measured size.
+        /// </summary>
+        protected void NotifyLayoutDataUpdated() {
+            Host.NotifyLayoutDataUpdated();
         }
 
         protected void ScheduleLayoutRecalculation() {
             Host.ScheduleLayoutRecalculation();
         }
 
+        #endregion
+
+        #region Layout Promotion
+
+        private bool _promotedBeforeHost;
+
         /// <summary>
-        /// Exposes the specified component as the layout-first component.
-        /// This call is required in case you want to preserve leaf layout.
-        /// The component won't be overridden until you call this method with null.
+        /// Claims the own layout context of the host for the specified member. If the context assigned by the parent
+        /// has the same type, it's claimed instead of creating a new one. Available for the layout component only.
         /// </summary>
-        /// <param name="component">A component to expose.</param>
-        protected void ExposeLayoutFirstComponent(ReactiveComponent? component) {
-            Host.ExposeLayoutFirstComponent(component);
+        /// <param name="member">A member to claim the context for, or null to release the claimed one.</param>
+        protected void ClaimLayoutContext(IContextMember? member) => Host.ClaimLayoutContext(this, member);
+
+        /// <summary>
+        /// Promotes the specified component to the layout component of the host. The host proxies measuring
+        /// and layout application to it, and only it can claim the own layout context.
+        /// Only one component can be promoted, so the previous one gets demoted.
+        /// </summary>
+        /// <param name="component">A component to promote, or null to demote the current one.</param>
+        protected void PromoteLayoutComponent(ReactiveComponent? component) {
+            if (_reactiveHost == null) {
+                _promotedBeforeHost = component == this;
+                return;
+            }
+
+            Host.PromoteLayoutComponent(component);
         }
+
+        /// <summary>
+        /// Called on the layout component when the host is measured.
+        /// </summary>
+        protected virtual Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+            return LayoutTool.MeasureNode(Vector2.zero, width, widthMode, height, heightMode);
+        }
+
+        /// <summary>
+        /// Called on the layout component after the host has applied the dimensions to itself.
+        /// The layout component should apply only the dimensions of its children.
+        /// </summary>
+        protected virtual void PromotedApplyLayout(LayoutDimensions dimensions) { }
 
         #endregion
 
@@ -183,7 +210,7 @@ namespace Reactive {
         #region Modules
 
         IReadOnlyCollection<IReactiveModule> IReactiveModuleBinder.Modules => Host.Modules;
-        
+
         private HashSet<IReactiveModule>? _modules;
 
         public void BindModule(IReactiveModule module) {
@@ -256,7 +283,7 @@ namespace Reactive {
                 ConstructAndInit();
             }
 
-            LayoutDriver = null;
+            Host.SetLayoutDriver(null);
             ContentTransform.SetParent(parent, false);
 
             return Content;
@@ -276,6 +303,11 @@ namespace Reactive {
             _reactiveHost = _content.GetOrAddComponent<ReactiveHost>();
             IsInitialized = true;
             _reactiveHost.AddComponent(this);
+
+            if (_promotedBeforeHost) {
+                _reactiveHost.PromoteLayoutComponent(this);
+            }
+
             TransferModules();
 
             OnInitialize();
@@ -322,20 +354,6 @@ namespace Reactive {
         protected virtual void OnEnable() { }
         protected virtual void OnDisable() { }
         protected virtual void OnRectDimensionsChanged() { }
-
-        /// <summary>
-        /// Called when modifier is updated.
-        /// </summary>
-        protected virtual void OnModifierUpdated() { }
-
-        /// <summary>
-        /// Called when host doesn't have a driver and needs a layout recalculation.
-        /// </summary>
-        protected virtual void OnRecalculateLayoutSelf() { }
-
-        /// <summary>
-        /// Called when layout application is finished.
-        /// </summary>
         protected virtual void OnLayoutApply() { }
 
         #endregion

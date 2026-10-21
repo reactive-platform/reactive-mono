@@ -249,33 +249,59 @@ namespace Reactive.Yoga {
 
         public void ProvideContext(object? context) {
             if (context == null) {
-                _node = null;
+                ReleaseContext();
                 return;
             }
 
-            _node = ((YogaContext)context).YogaNode;
+            if (_context != null) {
+                throw new InvalidOperationException("YogaLayoutController doesn't support context reinitialization, release the context first");
+            }
+
+            _context = (YogaContext)context;
+            _context.Controller = this;
+            
+            _node = _context.YogaNode;
+            _node.SetMeasureFunc(null);
 
             RefreshAllProperties();
+        }
+
+        private void ReleaseContext() {
+            if (_context == null) {
+                return;
+            }
+
+            RemoveAllChildren();
+
+            _context.Controller = null;
+            _context = null;
+            _node = null;
         }
 
         #endregion
 
         #region Calculations
 
+        private bool IsStitched => YogaNode.GetParent() != null;
         private bool HasValidNode => _node?.IsInitialized ?? false;
 
         private YogaNode YogaNode {
             get {
                 if (!HasValidNode) {
-                    throw new Exception("Node was not initialized");
+                    throw new InvalidOperationException("YogaNode wasn't initialized");
                 }
                 return _node!;
             }
         }
 
+        private YogaContext? _context;
         private YogaNode? _node;
 
-        public void Recalculate(ILayoutItem item, Vector2 constraints) {
+        public void Recalculate(Vector2 constraints) {
+            if (IsStitched) {
+                return;
+            }
+
             if (!ConstrainHorizontal) {
                 constraints.x = float.NaN;
             }
@@ -284,14 +310,36 @@ namespace Reactive.Yoga {
             }
 
             YogaNode.CalculateLayout(constraints.x, constraints.y, Direction);
+        }
 
-            if (YogaNode.GetHasNewLayout()) {
-                var transform = item.BeginApply();
-                // Root nodes don't need to apply position
-                YogaNode.ApplySizeTo(transform);
-
-                item.EndApply();
+        public Vector2 Measure(float width, Reactive.MeasureMode widthMode, float height, Reactive.MeasureMode heightMode) {
+            if (!IsStitched) {
+                YogaNode.CalculateLayout(
+                    widthMode == Reactive.MeasureMode.Exactly ? width : float.NaN,
+                    heightMode == Reactive.MeasureMode.Exactly ? height : float.NaN,
+                    Direction
+                );
             }
+
+            var size = new Vector2(YogaNode.LayoutGetWidth(), YogaNode.LayoutGetHeight());
+
+            return LayoutTool.MeasureNode(size, width, widthMode, height, heightMode);
+        }
+
+        public LayoutDimensions GetSelfDimensions() {
+            return GetDimensions(YogaNode);
+        }
+
+        public LayoutDimensions GetChildDimensions(ILayoutItem child) {
+            if (!_nodes.TryGetValue(child, out var context)) {
+                return default;
+            }
+
+            return GetDimensions(context.YogaNode);
+        }
+
+        private static LayoutDimensions GetDimensions(YogaNode node) {
+            return new(node.LayoutGetTop(), node.LayoutGetLeft(), node.LayoutGetWidth(), node.LayoutGetHeight());
         }
 
         #endregion
@@ -300,53 +348,120 @@ namespace Reactive.Yoga {
 
         public int ChildCount => _nodes.Count;
 
-        private readonly LayoutDictionary<YogaNode> _nodes = new();
+        private readonly LayoutDictionary<YogaContext> _nodes = new();
 
-        public void InsertChild(ILayoutItem comp, int index) {
-            if (comp.LayoutModifier is not YogaModifier modifier) {
+        public void InsertChild(ILayoutItem child, int index) {
+            if (_nodes.ContainsKey(child)) {
                 return;
             }
 
-            if (_nodes.ContainsKey(comp)) {
-                return;
-            }
+            // Claim a compatible context or create a new one
+            var context = child.LayoutContext as YogaContext ?? new YogaContext();
+            child.AssignContext(context);
 
-            YogaNode.InsertChild(modifier.YogaNode, index);
+            RefreshChild(child, context);
+            YogaNode.InsertChild(context.YogaNode, index);
 
-            _nodes.Add(comp, modifier.YogaNode);
+            _nodes.Add(child, context);
         }
 
-        public void RemoveChild(ILayoutItem comp) {
-            if (!_nodes.TryGetValue(comp, out var node)) {
+        public void RemoveChild(ILayoutItem child) {
+            if (!_nodes.TryGetValue(child, out var context)) {
                 return;
             }
 
-            YogaNode.RemoveChild(node);
+            YogaNode.RemoveChild(context.YogaNode);
+            context.YogaNode.SetMeasureFunc(null);
+            child.AssignContext(null);
 
-            _nodes.Remove(comp);
+            _nodes.Remove(child);
         }
 
         public void RemoveAllChildren() {
+            if (_nodes.Count == 0) {
+                return;
+            }
+
+            foreach (var (child, context) in _nodes) {
+                context.YogaNode.SetMeasureFunc(null);
+                child.AssignContext(null);
+            }
+
             YogaNode.RemoveAllChildren();
             _nodes.Clear();
         }
 
-        public bool HasChild(ILayoutItem comp) {
-            return _nodes.ContainsKey(comp);
+        public bool HasChild(ILayoutItem child) {
+            return _nodes.ContainsKey(child);
         }
 
-        public void ApplyChildren() {
-            if (!YogaNode.GetHasNewLayout()) {
+        public void UpdateChild(ILayoutItem child) {
+            if (!_nodes.TryGetValue(child, out var context)) {
                 return;
             }
 
-            YogaNode.SetHasNewLayout(false);
+            // Claiming or releasing the shared context only changes whether the node is stitched or measured
+            RefreshChild(child, context);
+        }
 
-            foreach (var (child, node) in _nodes) {
-                var rect = child.BeginApply();
-                node.ApplyTo(rect);
-                child.EndApply();
+        private static void RefreshChild(ILayoutItem child, YogaContext context) {
+            var node = context.YogaNode;
+            var modifier = child.LayoutModifier;
+
+            if (modifier != null) {
+                (modifier as YogaModifier)?.ApplyTo(node);
+            } else {
+                ApplyDefaultStyle(node);
             }
+
+            if (context.Controller != null) {
+                context.YogaNode.SetMeasureFunc(null);
+                return;
+            }
+
+            if (!node.HasMeasureFunc()) {
+                node.SetMeasureFunc(CreateMeasureFunc(child));
+            }
+
+            node.MarkDirty();
+        }
+
+        private static void ApplyDefaultStyle(YogaNode node) {
+            node.StyleSetPositionType(PositionType.Relative);
+            node.StyleSetAlignSelf(Align.Auto);
+            node.StyleSetFlexBasis(YogaValue.Auto);
+            node.StyleSetFlexGrow(0);
+            node.StyleSetFlexShrink(0);
+            node.StyleSetFlex(float.NaN);
+            node.StyleSetWidth(YogaValue.Auto);
+            node.StyleSetHeight(YogaValue.Auto);
+            node.StyleSetMinWidth(YogaValue.Undefined);
+            node.StyleSetMinHeight(YogaValue.Undefined);
+            node.StyleSetMaxWidth(YogaValue.Undefined);
+            node.StyleSetMaxHeight(YogaValue.Undefined);
+            node.StyleSetAspectRatio(float.NaN);
+
+            for (var edge = Edge.Left; edge <= Edge.Bottom; edge++) {
+                node.StyleSetPosition(edge, YogaValue.Undefined);
+                node.StyleSetMargin(edge, YogaValue.Undefined);
+            }
+        }
+
+        private static YGMeasureFunc CreateMeasureFunc(ILayoutMeasurable item) {
+            return (_, width, widthMode, height, heightMode) => {
+                // An exception can't pass through the native code without crashing the process
+                try {
+                    var size = item.Measure(width, (Reactive.MeasureMode)widthMode, height, (Reactive.MeasureMode)heightMode);
+
+                    return new() {
+                        width = size.x,
+                        height = size.y
+                    };
+                } catch (Exception e) {
+                    Debug.LogException(e);
+                    return default;
+                }
+            };
         }
 
         #endregion

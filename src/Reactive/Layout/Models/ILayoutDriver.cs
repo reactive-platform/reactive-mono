@@ -13,5 +13,12 @@ namespace Reactive {
         /// </summary>
         ICollection<ILayoutItem> Children { get; }
         ILayoutController? LayoutController { get; set; }
+
+        /// <summary>
+        /// Starts an immediate layout recalculation going down from this node.
+        /// Must be called on a root only, a driver controlled by its parent throws.
+        /// </summary>
+        /// <exception cref="System.InvalidOperationException">Thrown when the driver is controlled by its parent.</exception>
+        void RecalculateLayout();
     }
 }

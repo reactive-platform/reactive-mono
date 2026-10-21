@@ -98,7 +98,8 @@ public static class ReactiveScheduler {
 
     [PublicAPI]
     public sealed class LayoutLayer {
-        private readonly Queue<ILayoutRecalculationSource> _queue = new();
+        private readonly Queue<ILayoutItem> _queue = new();
+        private readonly List<ILayoutDriver> _roots = new();
         private int _runs;
 
         internal LayoutLayer() { }
@@ -113,8 +114,18 @@ public static class ReactiveScheduler {
         /// </summary>
         public int CurrentRun { get; private set; }
 
-        public void Schedule(ILayoutRecalculationSource source) {
-            _queue.Enqueue(source);
+        private int NextRun => _runs == int.MaxValue ? 1 : _runs + 1;
+
+        public void Schedule(ILayoutItem item) {
+            ref var state = ref item.LayoutState;
+            var run = NextRun;
+
+            if (state.QueuedFor == run) {
+                return;
+            }
+
+            state.QueuedFor = run;
+            _queue.Enqueue(item);
         }
 
         public void Run() {
@@ -122,27 +133,72 @@ public static class ReactiveScheduler {
                 return;
             }
 
-            _runs = _runs == int.MaxValue ? 1 : _runs + 1;
+            _runs = NextRun;
             CurrentRun = _runs;
 
             try {
                 for (var count = _queue.Count; count > 0; count--) {
-                    var source = _queue.Dequeue();
+                    var item = _queue.Dequeue();
 
-                    // An inactive component is scheduled again when it's enabled
-                    if (source is Behaviour behaviour && (behaviour == null || !behaviour.isActiveAndEnabled)) {
+                    // An item outside the layout is scheduled again when it's enabled
+                    if (!item.WithinLayout) {
                         continue;
                     }
 
+                    item.LayoutState.QueuedFor = 0;
+
                     try {
-                        source.RecalculateLayoutImmediate();
+                        CollectRoot(item);
+                    } catch (Exception e) {
+                        Debug.LogException(e);
+                    }
+                }
+
+                for (var i = 0; i < _roots.Count; i++) {
+                    try {
+                        _roots[i].RecalculateLayout();
                     } catch (Exception e) {
                         Debug.LogException(e);
                     }
                 }
             } finally {
+                _roots.Clear();
                 CurrentRun = 0;
             }
+        }
+
+        private void CollectRoot(ILayoutItem item) {
+            var run = CurrentRun;
+            var root = item as ILayoutDriver;
+
+            while (true) {
+                ref var state = ref item.LayoutState;
+                
+                if (state.PropagatedFor == run) {
+                    return;
+                }
+
+                state.PropagatedFor = run;
+
+                if (!LayoutTool.IsControlledByParent(item) || item.LayoutDriver is not ILayoutItem parent) {
+                    break;
+                }
+
+                root = item.LayoutDriver;
+                item = parent;
+            }
+            
+            if (root == null) {
+                return;
+            }
+
+            ref var rootState = ref item.LayoutState;
+            if (rootState.RootFor == run) {
+                return;
+            }
+
+            rootState.RootFor = run;
+            _roots.Add(root);
         }
     }
 }
