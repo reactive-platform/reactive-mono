@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Reactive.Components.Basic {
     [PublicAPI]
-    public class Image : ReactiveComponent, IComponentHolder<Image>, ILeafLayoutItem, IGraphic, ISpriteRenderer {
+    public class Image : ReactiveComponent, IComponentHolder<Image>, IGraphic, ISpriteRenderer {
         public Sprite? Sprite {
             get => _image.sprite;
             set => _image.sprite = value;
@@ -58,13 +58,15 @@ namespace Reactive.Components.Basic {
 
         private UnityEngine.UI.Image _image = null!;
 
+        protected override void OnInstantiate() {
+            PromoteLayoutComponent(this);
+        }
+
         protected override void Construct(RectTransform rect) {
             _image = rect.gameObject.AddComponent<UnityEngine.UI.Image>();
         }
 
-        public event Action<ILeafLayoutItem>? LeafLayoutUpdatedEvent;
-
-        public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+        protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
             var size = new Vector2(
                 _image.preferredWidth,
                 _image.preferredHeight

@@ -17,8 +17,8 @@ public abstract class ComponentLayout<T> : Layout, IComponentHolder<T> where T :
     private T _component = default!;
 
     protected sealed override GameObject Construct() {
-        // ExposeLayoutItem is called for the main component only,
-        // so we shouldn't care about image implementing ILeafLayoutItem
+        // The layout gets promoted once it's added to the host,
+        // so it replaces the wrapped component as the layout component
         return new T().Bind(ref _component).Use(null);
     }
 }

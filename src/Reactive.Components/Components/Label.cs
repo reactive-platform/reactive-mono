@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Reactive.Components.Basic {
     [PublicAPI]
-    public class Label : ReactiveComponent, IComponentHolder<Label>, ILeafLayoutItem {
+    public class Label : ReactiveComponent, IComponentHolder<Label> {
         public string Text {
             get => _text.text;
             set => _text.text = value;
@@ -76,9 +76,13 @@ namespace Reactive.Components.Basic {
 
         private TextMeshProUGUI _text = null!;
 
+        protected override void OnInstantiate() {
+            PromoteLayoutComponent(this);
+        }
+
         protected override void Construct(RectTransform rect) {
             _text = rect.gameObject.AddComponent<TextMeshProUGUI>();
-            _text.RegisterDirtyLayoutCallback(RequestLeafRecalculation);
+            _text.RegisterDirtyLayoutCallback(NotifyLayoutDataUpdated);
         }
 
         protected override void OnInitialize() {
@@ -88,20 +92,13 @@ namespace Reactive.Components.Basic {
         }
 
         protected override void OnStart() {
-            RequestLeafRecalculation();
+            NotifyLayoutDataUpdated();
         }
 
-        public event Action<ILeafLayoutItem>? LeafLayoutUpdatedEvent;
-
-        public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+        protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
             var size = _text.GetPreferredValues();
 
             return LayoutTool.MeasureNode(size, width, widthMode, height, heightMode);
-        }
-
-        private void RequestLeafRecalculation() {
-            LeafLayoutUpdatedEvent?.Invoke(this);
-            ScheduleLayoutRecalculation();
         }
     }
 }

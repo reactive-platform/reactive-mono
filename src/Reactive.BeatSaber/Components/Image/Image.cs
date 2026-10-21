@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Reactive.BeatSaber.Components;
 
 [PublicAPI]
-public class Image : ReactiveComponent, IComponentHolder<Image>, ISkewedComponent, IGraphic, ILeafLayoutItem, ISpriteRenderer {
+public class Image : ReactiveComponent, IComponentHolder<Image>, ISkewedComponent, IGraphic, ISpriteRenderer {
     public Sprite? Sprite {
         get => _image.sprite;
         set => _image.sprite = value;
@@ -91,25 +91,23 @@ public class Image : ReactiveComponent, IComponentHolder<Image>, ISkewedComponen
 
     private FixedImageView _image = null!;
 
+    protected override void OnInstantiate() {
+        PromoteLayoutComponent(this);
+    }
+
     protected override void Construct(RectTransform rect) {
         _image = rect.gameObject.AddComponent<FixedImageView>();
-        _image.RegisterDirtyLayoutCallback(RequestLeafRecalculation);
+        _image.RegisterDirtyLayoutCallback(NotifyLayoutDataUpdated);
 
         Material = GameResources.UINoGlowMaterial;
     }
 
-    public event Action<ILeafLayoutItem>? LeafLayoutUpdatedEvent;
-
-    public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+    protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
         var size = new Vector2(
             _image.preferredWidth,
             _image.preferredHeight
         );
 
         return LayoutTool.MeasureNode(size, width, widthMode, height, heightMode);
-    }
-
-    private void RequestLeafRecalculation() {
-        LeafLayoutUpdatedEvent?.Invoke(this);
     }
 }

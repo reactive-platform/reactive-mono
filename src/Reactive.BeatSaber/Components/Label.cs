@@ -10,7 +10,7 @@ using UnityEngine;
 namespace Reactive.BeatSaber.Components;
 
 [PublicAPI]
-public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutItem {
+public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
     public string Text {
         get => _text.text;
         set {
@@ -138,6 +138,10 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
     private Vector2 _lastPreferredSize;
     private float _lastRequestTime;
 
+    protected override void OnInstantiate() {
+        PromoteLayoutComponent(this);
+    }
+
     protected override void Construct(RectTransform rect) {
         _text = rect.gameObject.AddComponent<CurvedTextMeshPro>();
         _text.RegisterDirtyLayoutCallback(RequestLeafRecalculationOnDirty);
@@ -154,9 +158,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
         RequestLeafRecalculation();
     }
 
-    public event Action<ILeafLayoutItem>? LeafLayoutUpdatedEvent;
-
-    public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+    protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
         _lastPreferredSize = _text.GetPreferredValues();
 
         return LayoutTool.MeasureNode(_lastPreferredSize, width, widthMode, height, heightMode);
@@ -190,7 +192,6 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic, ILeafLayoutI
     private void RequestLeafRecalculation() {
         _lastPreferredSize = _text.GetPreferredValues();
         
-        LeafLayoutUpdatedEvent?.Invoke(this);
-        ScheduleLayoutRecalculation();
+        NotifyLayoutDataUpdated();
     }
 }
