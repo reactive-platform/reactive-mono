@@ -44,6 +44,13 @@ namespace Reactive {
         void UpdateChild(ILayoutItem item);
 
         /// <summary>
+        /// Applies the own modifier of the item this controller belongs to. Participants get their
+        /// modifier applied by the parent controller, so this is meaningful for roots only.
+        /// </summary>
+        /// <param name="item">An item the controller belongs to.</param>
+        void UpdateSelf(ILayoutItem item);
+
+        /// <summary>
         /// Causes layout recalculation. This method doesn't apply any physical dimensions.
         /// </summary>
         /// <param name="constraints">Constraints of the parent object.</param>

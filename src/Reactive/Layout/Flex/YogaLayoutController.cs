@@ -404,15 +404,27 @@ namespace Reactive.Yoga {
             RefreshChild(child, context);
         }
 
-        private static void RefreshChild(ILayoutItem child, YogaContext context) {
-            var node = context.YogaNode;
-            var modifier = child.LayoutModifier;
+        public void UpdateSelf(ILayoutItem item) {
+            // A stitched node is styled by the parent controller, which owns the same node
+            if (IsStitched) {
+                return;
+            }
 
-            if (modifier != null) {
+            ApplyModifier(item, YogaNode);
+        }
+
+        private static void ApplyModifier(ILayoutItem item, YogaNode node) {
+            if (item.LayoutModifier is { } modifier) {
                 (modifier as YogaModifier)?.ApplyTo(node);
             } else {
                 ApplyDefaultStyle(node);
             }
+        }
+
+        private static void RefreshChild(ILayoutItem child, YogaContext context) {
+            var node = context.YogaNode;
+
+            ApplyModifier(child, node);
 
             if (context.Controller != null) {
                 context.YogaNode.SetMeasureFunc(null);

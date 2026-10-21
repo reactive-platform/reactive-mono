@@ -188,6 +188,12 @@ namespace Reactive {
         /// </summary>
         protected virtual void PromotedRecalculateLayout() { }
 
+        /// <summary>
+        /// Called on the layout component when the host's modifier is replaced or changes its values,
+        /// and when the host gets detached from its driver. A root has nobody else to apply its modifier.
+        /// </summary>
+        protected virtual void PromotedOnModifierUpdate() { }
+
         #endregion
 
         #region Coroutines

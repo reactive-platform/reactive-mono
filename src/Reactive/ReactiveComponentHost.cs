@@ -27,16 +27,16 @@ namespace Reactive {
                     var oldModifier = _modifier.Value;
 
                     if (oldModifier != null) {
-                        oldModifier.ModifierUpdatedEvent -= NotifyLayoutDataUpdated;
+                        oldModifier.ModifierUpdatedEvent -= HandleModifierUpdated;
                     }
 
                     _modifier = Optional<ILayoutModifier?>.Some(value);
 
                     if (value != null) {
-                        value.ModifierUpdatedEvent += NotifyLayoutDataUpdated;
+                        value.ModifierUpdatedEvent += HandleModifierUpdated;
                     }
-                    
-                    NotifyLayoutDataUpdated();
+
+                    HandleModifierUpdated();
                 }
             }
 
@@ -70,6 +70,15 @@ namespace Reactive {
                 _layoutDriver = driver;
                 _layoutState.QueuedFor = 0;
                 _layoutState.HasApplied = false;
+                
+                if (driver == null) {
+                    _layoutComponent?.PromotedOnModifierUpdate();
+                }
+            }
+
+            private void HandleModifierUpdated() {
+                NotifyLayoutDataUpdated();
+                _layoutComponent?.PromotedOnModifierUpdate();
             }
 
             public void SetLayoutDriver(ILayoutDriver? driver) {
@@ -97,14 +106,15 @@ namespace Reactive {
                             _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, dimensions.Width);
                             _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, dimensions.Height);
                         }
-                    } finally {
+                    }
+                    finally {
                         _beingApplied = false;
                     }
 
                     state.LastApplied = dimensions;
                     state.HasApplied = true;
                 }
-                
+
                 _layoutComponent?.PromotedApplyLayout(dimensions);
 
                 for (var i = 0; i < _components.Count; i++) {
