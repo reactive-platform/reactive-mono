@@ -33,16 +33,12 @@ public class WebImage : Image {
     /// <summary>
     /// Played when an image starts loading. Fades the background in by default.
     /// </summary>
-    public Animation<WebImageAnimContext>? StartAnimation { get; set; }
+    public Animation<WebImageAnimContext>? StartAnimation { get; set; } = DefaultStartAnimation;
 
     /// <summary>
     /// Played when an image finishes loading. Fades the background out by default.
     /// </summary>
-    public Animation<WebImageAnimContext>? FinishAnimation { get; set; } = new(
-        AnimationTracks.Fade(1f, 0f).For((WebImageAnimContext x) => x.Background),
-        0.2f,
-        AnimationCurve.EaseInOut
-    );
+    public Animation<WebImageAnimContext>? FinishAnimation { get; set; } = DefaultFinishAnimation;
 
     /// <summary>
     /// Whether an animated image is playing. Kept when the image changes.
