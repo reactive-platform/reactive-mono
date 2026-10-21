@@ -60,7 +60,7 @@ public static class ComponentExtensions {
     [Pure]
     public static T In<T>(this ILayoutItem comp) where T : ILayoutDriver, new() {
         return new T {
-            Children = { comp.WithRectExpand() }
+            Children = { comp }
         };
     }
 
