@@ -102,12 +102,16 @@ public class Image : ReactiveComponent, IComponentHolder<Image>, ISkewedComponen
         Material = GameResources.UINoGlowMaterial;
     }
 
-    protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+    public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
         var size = new Vector2(
             _image.preferredWidth,
             _image.preferredHeight
         );
 
         return LayoutTool.MeasureNode(size, width, widthMode, height, heightMode);
+    }
+    
+    protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+        return Measure(width, widthMode, height, heightMode);
     }
 }

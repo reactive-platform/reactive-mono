@@ -158,10 +158,14 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         RequestLeafRecalculation();
     }
 
-    protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
-        _lastPreferredSize = _text.GetPreferredValues();
+    public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+       _lastPreferredSize = _text.GetPreferredValues();
 
-        return LayoutTool.MeasureNode(_lastPreferredSize, width, widthMode, height, heightMode);
+       return LayoutTool.MeasureNode(_lastPreferredSize, width, widthMode, height, heightMode); 
+    }
+
+    protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+        return Measure(width, widthMode, height, heightMode);
     }
 
     private void RequestLeafRecalculationOnDirty() {
