@@ -152,9 +152,13 @@ public static class ImageLoader {
     }
 
     private static async Task<CachedImage?> LoadAnyRemote(string location, CancellationToken token) {
-        using var stream = await client.GetStreamAsync(location);
+        // Downloading fully as the network stream doesn't support seeking, which the GIF decoder relies on
+        using var response = await client.GetAsync(location, token);
+        response.EnsureSuccessStatusCode();
 
-        return await LoadImageFromStream(stream, null, token);
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+
+        return await LoadImageFromBytes(bytes, token);
     }
 
     #endregion
