@@ -6,12 +6,10 @@ using UnityEngine;
 
 namespace Reactive.Components {
     [PublicAPI]
-    public partial class KeyedContainer<TKey> : ReactiveComponent, ILayoutDriver {
+    public partial class KeyedContainer<TKey> : ReactiveComponent, ILayoutControllerHolder {
         #region Driver Adapter
 
-        ICollection<ILayoutItem> ILayoutDriver.Children => _layout.Children;
-
-        ILayoutController? ILayoutDriver.LayoutController {
+        ILayoutController? ILayoutControllerHolder.LayoutController {
             get => _layout.LayoutController;
             set => _layout.LayoutController = value;
         }

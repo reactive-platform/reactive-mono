@@ -241,7 +241,7 @@ namespace Reactive {
             YogaVector? gap = null,
             bool constrainHorizontal = true,
             bool constrainVertical = true
-        ) where T : ILayoutDriver {
+        ) where T : ILayoutControllerHolder {
             return AsFlexGroup(
                 component,
                 out _,
@@ -288,7 +288,7 @@ namespace Reactive {
             YogaVector? gap = null,
             bool constrainHorizontal = true,
             bool constrainVertical = true
-        ) where T : ILayoutDriver {
+        ) where T : ILayoutControllerHolder {
             if (component.LayoutController is not YogaLayoutController controller) {
                 controller = new();
                 component.LayoutController = controller;

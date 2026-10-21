@@ -18,7 +18,7 @@ public record struct BsAeroButtonColors(
 /// A Beat Saber styled button without any content.
 /// </summary>
 [PublicAPI]
-public partial class BsAeroButton : ReactiveComponent, ILayoutDriver, ISkewedComponent, IInteractableComponent {
+public partial class BsAeroButton : ReactiveComponent, ILayoutControllerHolder, ISkewedComponent, IInteractableComponent {
     public delegate ILayoutItem ConstructContentDelegate(IState<Color> color, IState<float> skew);
 
     #region Public API
@@ -51,8 +51,6 @@ public partial class BsAeroButton : ReactiveComponent, ILayoutDriver, ISkewedCom
     #endregion
 
     #region Layout Driver
-
-    public ICollection<ILayoutItem> Children { get; } = Array.Empty<ILayoutItem>();
 
     public ILayoutController? LayoutController {
         get => _background.LayoutController;

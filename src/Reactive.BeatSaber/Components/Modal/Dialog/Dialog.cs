@@ -5,7 +5,7 @@ using Reactive.Yoga;
 namespace Reactive.BeatSaber.Components;
 
 [PublicAPI]
-public class Dialog : ModalBase, ILayoutDriver {
+public class Dialog : ModalBase, ILayoutControllerHolder {
     #region Public API
 
     public string Title {

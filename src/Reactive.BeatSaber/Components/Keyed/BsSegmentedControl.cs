@@ -20,10 +20,8 @@ public record struct BsSegmentedControlColors(
 );
 
 [PublicAPI]
-public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent, IInteractableComponent, ILayoutDriver {
+public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent, IInteractableComponent, ILayoutControllerHolder {
     #region Layout Driver
-
-    public ICollection<ILayoutItem> Children { get; } = Array.Empty<ILayoutItem>();
 
     public ILayoutController? LayoutController {
         get => _repeater.LayoutController;

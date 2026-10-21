@@ -16,7 +16,7 @@ public record struct BsKeyboardButtonColors(
 );
 
 [PublicAPI]
-public partial class BsKeyboardButton : ReactiveComponent, ILayoutDriver {
+public partial class BsKeyboardButton : ReactiveComponent, ILayoutControllerHolder {
     public delegate ILayoutItem ConstructContentDelegate(IState<Color> color, IState<float> skew);
 
     #region Public API
@@ -49,8 +49,6 @@ public partial class BsKeyboardButton : ReactiveComponent, ILayoutDriver {
     #endregion
 
     #region Layout Driver
-
-    public ICollection<ILayoutItem> Children { get; } = Array.Empty<ILayoutItem>();
 
     public ILayoutController? LayoutController {
         get => _driver.LayoutController;

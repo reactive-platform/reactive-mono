@@ -12,11 +12,8 @@ namespace Reactive.Components {
     /// Spawns physical cells directly in the layout flow.
     /// </summary>
     [PublicAPI]
-    public partial class Repeater<TItem, TCell> : ReactiveComponent, ILayoutDriver where TCell : class, IReactiveComponent {
+    public partial class Repeater<TItem, TCell> : ReactiveComponent, ILayoutControllerHolder where TCell : class, IReactiveComponent {
         #region Layout Driver
-
-        // Avoid using collection expression as it create a new instance of List each time.
-        ICollection<ILayoutItem> ILayoutDriver.Children => Array.Empty<ILayoutItem>();
 
         public ILayoutController? LayoutController {
             get => _container.LayoutController;

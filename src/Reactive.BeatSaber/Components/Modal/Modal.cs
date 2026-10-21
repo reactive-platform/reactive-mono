@@ -11,7 +11,7 @@ namespace Reactive.BeatSaber.Components;
 /// Provides support for placing and managing a view inside an overlay.
 /// </summary>
 [PublicAPI]
-public class Modal : ModalBase, ILayoutDriver {
+public class Modal : ModalBase, ILayoutControllerHolder {
     #region Impl
 
     public ICollection<ILayoutItem> Children => _content.Children;

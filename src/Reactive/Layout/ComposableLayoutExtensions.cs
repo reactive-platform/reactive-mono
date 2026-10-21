@@ -24,7 +24,7 @@ public static class ComposableLayoutExtensions {
         }
     }
         
-    extension(ILayoutDriver item) {
+    extension(ILayoutControllerHolder item) {
         /// <summary>
         /// Returns an existing layout controller or creates a new one.
         /// </summary>

@@ -103,7 +103,7 @@ public abstract class ModalBase : ReactiveComponent {
                     .WithPointerEvents(onDown: _ => OnClickOutside?.Invoke()),
 
                 ConstructContent()
-                    .With(x => x.LayoutUpdatedEvent += HandleLayoutUpdated)
+                    .With(x => x.LayoutAppliedEvent += HandleLayoutUpdated)
                     .Bind(ref _content)
             }
         }.Bind(ref _overlay).Use();
