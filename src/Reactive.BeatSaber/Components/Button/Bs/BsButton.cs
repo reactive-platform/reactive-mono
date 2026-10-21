@@ -115,6 +115,7 @@ public partial class BsButton : ReactiveComponent, ILayoutControllerHolder, ISke
             Children = {
                 new Image {
                     Name = "Underline",
+                    IgnoreLayout = true,
                     sEnabled = _underlineEnabled,
                     sSkew = _skew,
 

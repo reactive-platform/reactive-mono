@@ -108,6 +108,7 @@ public partial class BsKeyboardButton : ReactiveComponent, ILayoutControllerHold
             Children = {
                 new Image {
                     Name = "Border",
+                    IgnoreLayout = true,
                     
                     PixelsPerUnit = 14f,
                     Sprite = BeatSaberResources.Sprites.frame,

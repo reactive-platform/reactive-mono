@@ -186,8 +186,10 @@ namespace Reactive.BeatSaber.Components {
                                 RaycastTarget = false,
                                 sColor = hueColor
                             },
-
-                            CreateCursor(GameResources.CircleTinyIcon, color).Bind(ref _squareCursor)
+                            
+                            CreateCursor(GameResources.CircleTinyIcon, color)
+                                .With(x => x.IgnoreLayout = true)
+                                .Bind(ref _squareCursor)
                         }
                     }
                 }

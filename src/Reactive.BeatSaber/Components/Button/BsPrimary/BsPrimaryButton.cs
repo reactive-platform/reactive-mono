@@ -114,6 +114,7 @@ public partial class BsPrimaryButton : ReactiveComponent, ILayoutControllerHolde
             Children = {
                 new Image {
                     Name = "Border",
+                    IgnoreLayout = true,
                     Sprite = GameResources.RoundRect10BorderIcon,
                     Material = GameResources.AnimatedButtonBorderMaterial,
                     sColor = borderColor.In(),
@@ -125,6 +126,7 @@ public partial class BsPrimaryButton : ReactiveComponent, ILayoutControllerHolde
 
                 new Image {
                     Name = "Outline",
+                    IgnoreLayout = true,
 
                     ContentTransform = {
                         pivot = Vector2.one * 0.5f,

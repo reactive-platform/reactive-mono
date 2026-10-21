@@ -13,7 +13,6 @@ namespace Reactive.BeatSaber.Components {
                 }
                 _component = value;
                 if (_component != null) {
-                    _component.WithRectExpand();
                     _container.Children.Add(_component);
                 }
             }
@@ -48,6 +47,8 @@ namespace Reactive.BeatSaber.Components {
                     //spinner container
                     new Layout {
                         Enabled = false,
+                        IgnoreLayout = true,
+
                         Children = {
                             new Spinner().AsFlexItem(
                                 minSize: new() { x = 2f },

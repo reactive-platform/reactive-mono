@@ -87,6 +87,8 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
             Children = {
                 // Text area
                 new Layout {
+                    IgnoreLayout = true,
+
                     Children = {
                         new Label {
                             ContentTransform = {
@@ -122,6 +124,8 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
 
                 // Knob slide area
                 new Layout {
+                    IgnoreLayout = true,
+
                     Children = {
                         // Knob
                         new Image {

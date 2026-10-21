@@ -62,6 +62,11 @@ public class Overlay : Layout, IOverlay {
 
     #region Overlay Impl
 
+    protected override void OnInitialize() {
+        // TODO: temporary fix, should be reworked before the release
+        IgnoreLayout = true;
+    }
+
     Transform IOverlay.ContentTransform => base.ContentTransform;
     Transform? IOverlay.SetBackParent => null;
 
