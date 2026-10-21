@@ -34,6 +34,7 @@ namespace Reactive {
                 }
 
                 ClaimLayoutContext(value);
+                PromotedOnModifierUpdate();
 
                 for (var i = 0; i < _childrenOrdered.Count; i++) {
                     var child = _childrenOrdered[i];
@@ -192,6 +193,12 @@ namespace Reactive {
         #endregion
 
         #region Layout Component
+
+        protected override void PromotedOnModifierUpdate() {
+            if (_layoutController.Value is { } layoutController && !LayoutTool.IsControlledByParent(this)) {
+                layoutController.UpdateSelf(this);
+            }
+        }
 
         protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
             var layoutController = _layoutController.Value;
