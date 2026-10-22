@@ -77,6 +77,8 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
         get => _value.Value;
         set => UpdateValue(value);
     }
+    
+    public Action<float>? OnValueChanged { get; set; }
 
     private void UpdateValue(float value) {
         var clamped = Mathf.Clamp(value, MinValue, MaxValue);
@@ -89,6 +91,8 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
 
         _value.Value = rounded;
         PlaceHandleWithText();
+
+        OnValueChanged?.Invoke(rounded);
     }
 
     #endregion
