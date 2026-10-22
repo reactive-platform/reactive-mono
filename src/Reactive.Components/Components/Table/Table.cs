@@ -53,7 +53,13 @@ namespace Reactive.Components.Basic {
                     return;
                 }
 
+                var removed = _selectedItems.RemoveWhere(x => !value.Contains(x));
+
                 RefreshCells();
+
+                if (removed > 0) {
+                    OnSelectedItemsChanged?.Invoke(SelectedItems);
+                }
             }
         }
 
@@ -204,7 +210,7 @@ namespace Reactive.Components.Basic {
 
             _needToRefreshCellSize = false;
         }
-        
+
         private Vector2 MeasureCell(TCell cell) {
             Vector2 size;
             float mainSize;
