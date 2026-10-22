@@ -31,6 +31,7 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent, IIn
         set {
             _items = value;
             _itemsState.Value = value;
+            _itemsState.EnforceInvalidation();
 
             if (_initialized) {
                 var index = FindKey(Key);
@@ -113,7 +114,7 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent, IIn
 
         for (var i = 0; i < _items.Count; i++) {
             if (EqualityComparer<T>.Default.Equals(_items[i].Key, key)) {
-                index = i;
+                return i;
             }
         }
 
