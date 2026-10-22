@@ -200,7 +200,7 @@ namespace Reactive.Components {
                     _cells.Add((context, cell));
                     _container.Children.Add(cell);
                 } else {
-                    (context, cell) = _cells[^1];
+                    (context, cell) = _cells[i];
 
                     context.Init(item, i, Items.Count);
                     context.Selected = _selectedItems.Contains(item);
