@@ -50,6 +50,7 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
             if (_initialized) {
                 SetKey(value, true);
             } else {
+                _key = value;
                 DoInitialUpdate();
             }
         }
