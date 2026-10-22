@@ -46,9 +46,14 @@ namespace Reactive.Components.Basic {
         public IReadOnlyList<TItem> Items {
             get => _items!;
             set {
-                // TODO: handle selection
                 _items = value;
-                DoInitialUpdate();
+
+                if (_needsInitialUpdate) {
+                    DoInitialUpdate();
+                    return;
+                }
+
+                RefreshCells();
             }
         }
 
