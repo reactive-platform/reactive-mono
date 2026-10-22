@@ -73,6 +73,10 @@ namespace Reactive.Components.Basic {
                 _image.preferredHeight
             );
 
+            if (PreserveAspect) {
+                size = LayoutTool.FitPreservingAspect(size, width, widthMode, height, heightMode);
+            }
+
             return LayoutTool.MeasureNode(size, width, widthMode, height, heightMode);
         }
     }

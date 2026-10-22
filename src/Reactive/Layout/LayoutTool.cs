@@ -34,6 +34,36 @@ public static class LayoutTool {
     }
 
     /// <summary>
+    /// Fits a size into the constraints keeping its aspect. An imposed axis defines the other one, bounded axes
+    /// scale the size down uniformly. Meant to be applied to a preferred size before measuring.
+    /// </summary>
+    /// <param name="size">A size to fit.</param>
+    /// <param name="width">A width constraint.</param>
+    /// <param name="widthMode">A width measurement mode.</param>
+    /// <param name="height">A height constraint.</param>
+    /// <param name="heightMode">A height measurement mode.</param>
+    public static Vector2 FitPreservingAspect(Vector2 size, float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+        if (size.x <= 0f || size.y <= 0f) {
+            return size;
+        }
+
+        var aspect = size.x / size.y;
+
+        return (widthMode, heightMode) switch {
+            // An imposed axis defines the other one
+            (MeasureMode.Exactly, _) => new(width, width / aspect),
+            (_, MeasureMode.Exactly) => new(height * aspect, height),
+
+            // Bounded axes scale the size down uniformly
+            (MeasureMode.AtMost, MeasureMode.AtMost) => size * Mathf.Min(1f, width / size.x, height / size.y),
+            (MeasureMode.AtMost, _) => size * Mathf.Min(1f, width / size.x),
+            (_, MeasureMode.AtMost) => size * Mathf.Min(1f, height / size.y),
+
+            _ => size
+        };
+    }
+
+    /// <summary>
     /// Calculates a leaf size based on provided values.
     /// </summary>
     /// <param name="preferredSize">A preferred size of the node.</param>
