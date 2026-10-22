@@ -64,6 +64,7 @@ namespace Reactive.Components.Basic {
 
         protected override void Construct(RectTransform rect) {
             _image = rect.gameObject.AddComponent<UnityEngine.UI.Image>();
+            _image.RegisterDirtyLayoutCallback(NotifyLayoutDataUpdated);
         }
 
         protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
