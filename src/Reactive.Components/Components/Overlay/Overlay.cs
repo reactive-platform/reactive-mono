@@ -45,11 +45,20 @@ public class Overlay : Layout, IOverlay {
 
             if (value) {
                 _composition ??= Composition.GetComposition(Content);
+
+                // A pushed overlay belongs to the composition, not to the layout that declared it.
+                // Leaving the driver removes it from the parent's layout entirely, so no flag is involved
+                _previousDriver = LayoutDriver;
+                _previousDriver?.Children.Remove(this);
+
                 _composition!.PushOverlay(this);
-                
                 ContentTransform.WithRectExpand();
             } else {
                 _composition!.PopOverlay(this);
+
+                // Given back to the declaring layout, where it stays an inactive child until pushed again
+                _previousDriver?.Children.Add(this);
+                _previousDriver = null;
             }
 
             field = value;
@@ -57,15 +66,11 @@ public class Overlay : Layout, IOverlay {
     }
 
     private Composition? _composition;
+    private ILayoutDriver? _previousDriver;
 
     #endregion
 
     #region Overlay Impl
-
-    protected override void OnInitialize() {
-        // TODO: temporary fix, should be reworked before the release
-        IgnoreLayout = true;
-    }
 
     Transform IOverlay.ContentTransform => base.ContentTransform;
     Transform? IOverlay.SetBackParent => null;
