@@ -39,25 +39,31 @@ namespace Reactive.BeatSaber {
                 Colors = new() {
                     Color = Color.white,
                     HoveredColor = Color.white,
+                    NotInteractableColor = Color.black with { a = 0.25f },
                 },
                 GradientColors0 = new() {
                     Color = new(0f, 0.5f, 1f),
                     HoveredColor = new(0f, 0.7f, 1f),
+                    NotInteractableColor = Color.white,
                 },
                 GradientColors1 = new() {
                     Color = new(0f, 0.5f, 1f, 0.5f),
                     HoveredColor = new(0f, 0.7f, 1f, 0.5f),
+                    NotInteractableColor = Color.white,
                 }
             },
             ContentColors = new() {
                 Color = Color.white with { a = 0.75f },
                 HoveredColor = Color.white,
+                NotInteractableColor = Color.white with { a = 0.25f },
             },
             BorderColors = new() {
-                Color = new(0f, 0.75f, 1f, 0.7f)
+                Color = new(0f, 0.75f, 1f, 0.7f),
+                NotInteractableColor = Color.clear
             },
             OutlineColors = new() {
-                Color = new(0f, 0.75f, 1f, 0.3f)
+                Color = new(0f, 0.75f, 1f, 0.3f),
+                NotInteractableColor = Color.clear
             }
         };
 
