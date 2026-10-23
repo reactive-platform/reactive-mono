@@ -44,9 +44,8 @@ namespace Reactive.Components {
             get => _views!;
             set {
                 if (_views != null) {
-                    // Items that aren't presented in the new collection are considered removed
                     foreach (var (key, comp) in _views) {
-                        if (value.ContainsKey(key)) {
+                        if (value.TryGetValue(key, out var newComp) && newComp == comp) {
                             continue;
                         }
                         
