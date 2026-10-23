@@ -52,7 +52,7 @@ public class Composition : MonoBehaviour {
         for (var i = _overlays.Count - 1; i >= 0; i--) {
             if (zIndex >= _overlays[i].ZIndex) {
                 _overlays.Insert(i + 1, overlay);
-                return i;
+                return i + 1;
             }
         }
 
