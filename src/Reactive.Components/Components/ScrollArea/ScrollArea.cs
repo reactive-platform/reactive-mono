@@ -50,7 +50,10 @@ namespace Reactive.Components.Basic {
             get;
             set {
                 field = value;
-                ReloadContent();
+
+                if (!_needsInitialUpdate) {
+                    ReloadContent();
+                }
             }
         } = ScrollOrientation.Vertical;
 
