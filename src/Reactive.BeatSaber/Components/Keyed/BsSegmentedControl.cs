@@ -144,7 +144,8 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
 
                     FlexItem = {
                         FlexBasis = YogaValue.FitContent,
-                        Flex = 1f
+                        Flex = 1f,
+                        FlexShrink = 1f
                     },
 
                     sColor = bgColor.In(),
@@ -185,13 +186,15 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
                     Children = {
                         new Label {
                             Alignment = TextAlignmentOptions.Capline,
+                            EnableWrapping = false,
+                            Overflow = TextOverflowModes.Ellipsis,
                             sFontStyle = _skew.Map(x => x > 0 ? FontStyles.Italic : FontStyles.Normal),
 
                             sColor = fgColor.In(),
 
                             sText = item.Map(x => x?.Text).Where(x => x != null),
                             sEnabled = item.Map(x => x?.Text != null)
-                        }.AsFlexItem(),
+                        }.AsFlexItem(flexShrink: 1f),
 
                         new BsImage {
                             FlexItem = {
