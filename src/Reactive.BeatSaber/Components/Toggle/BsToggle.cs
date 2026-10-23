@@ -79,7 +79,11 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
             sColor = bgColor,
 
             Do = x => x.WithPointerEvents(
-                onDown: _ => Toggled = !Toggled,
+                onDown: _ => {
+                    if (_graphic.Value.IsInteractable) {
+                        Toggled = !Toggled;
+                    }
+                },
                 onEnter: _ => _graphic.IsHovered = true,
                 onLeave: _ => _graphic.IsHovered = false
             ),
