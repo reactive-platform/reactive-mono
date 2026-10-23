@@ -29,6 +29,8 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
         get => _items!;
         set {
             _items = value;
+            _itemsState.Value = value;
+            _itemsState.EnforceInvalidation();
             _table.Items = value.Keys.ToArray();
 
             DoInitialUpdate();
@@ -72,7 +74,6 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
     private void DoInitialUpdate() {
         if (!_initialized && _key.HasValue && _items != null) {
             SetKey(_key.Value!, true);
-            _keyState.EnforceInvalidation();
             _initialized = true;
         }
     }
@@ -95,12 +96,14 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
     private Table<T, IReactiveComponent> _table = null!;
     private State<float> _skew = null!;
     private State<T?> _keyState = null!;
+    private State<IReadOnlyDictionary<T, BsDropdownItem>?> _itemsState = null!;
     private State<BsDropdownColors> _colors = null!;
     private State<bool> _modalOpened = null!;
     private State<GraphicState> _graphic = null!;
 
     protected override GameObject Construct() {
         _keyState = Remember<T?>(default);
+        _itemsState = Remember<IReadOnlyDictionary<T, BsDropdownItem>?>(null);
         _skew = Remember(BeatSaberStyle.Skew);
         _colors = Remember(BeatSaberStyle.BsDropdownColors);
 
@@ -110,8 +113,12 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
 
         var contentColor = _graphic.MapColorSet(_colors, x => x.ItemContentColors);
         var bgColor = _graphic.MapColorSet(_colors, x => x.ButtonBackgroundColors);
-
-        var item = _keyState.Map(x => x != null ? _items?[x] : null);
+        
+        var item = RememberDerived(
+            x => x._keyState.Value is { } key && x._itemsState.Value?.TryGetValue(key, out var i) == true ? i : (BsDropdownItem?)null,
+            (_keyState, _itemsState)
+        );
+        
         var scrollContext = new ScrollContext();
 
         return new Background {
@@ -248,7 +255,11 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
     [StateGen]
     private IReactiveComponent CreateCell(CellContext<T> context, IState<BsDropdownColors> colors) {
         var graphic = Remember(GraphicState.None);
-        var item = context.Map(x => Items[x.Item]);
+        // Unused cells can hold keys removed from the items, so they resolve to an empty item
+        var item = RememberDerived(
+            x => x._itemsState.Value?.TryGetValue(x.context.Item, out var i) == true ? i : default,
+            (context, _itemsState)
+        );
 
         var fgColor = graphic.MapColorSet(colors, x => x.ItemContentColors);
         var bgColor = graphic.MapColorSet(colors, x => x.ItemBackgroundColors);

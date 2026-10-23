@@ -37,6 +37,8 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
         get => _items!;
         set {
             _items = value;
+            _itemsState.Value = value;
+            _itemsState.EnforceInvalidation();
             _repeater.Items = value.Keys.ToArray();
 
             DoInitialUpdate();
@@ -102,11 +104,13 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
     private State<float> _skew = null!;
     private State<bool> _interactable = null!;
     private State<BsSegmentedControlColors> _colors = null!;
+    private State<IReadOnlyDictionary<T, BsSegmentedControlItem>?> _itemsState = null!;
 
     protected override GameObject Construct() {
         _skew = Remember(BeatSaberStyle.Skew);
         _interactable = Remember(true);
         _colors = Remember(BeatSaberStyle.BsSegmentedControlColors);
+        _itemsState = Remember<IReadOnlyDictionary<T, BsSegmentedControlItem>?>(null);
 
         return new Repeater<T, Background> {
             FlexController = {
@@ -126,7 +130,10 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
             OnSelectedItemsChanged = x => SetKey(x.First(), false),
 
             ConstructCell = ctx => {
-                var item = ctx.Map(x => _items?[x.Item]);
+                var item = RememberDerived(
+                    x => x._itemsState.Value?.TryGetValue(x.ctx.Item, out var i) == true ? i : (BsSegmentedControlItem?)null,
+                    (ctx, _itemsState)
+                );
                 var graphic = Remember(GraphicState.None);
 
                 ctx.AddCallback(x => graphic.IsActive = x.Selected);
