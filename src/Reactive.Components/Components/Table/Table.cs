@@ -383,7 +383,13 @@ namespace Reactive.Components.Basic {
         }
 
         private void HandleScrollContextUpdated(ScrollContext context) {
-            if (context.UpdateType.IsScroll || context.UpdateType.IsMeasurements) {
+            if (_needsInitialUpdate) {
+                return;
+            }
+            
+            if (context.UpdateType.IsMeasurements) {
+                RefreshCells();
+            } else if (context.UpdateType.IsScroll) {
                 RefreshCellsIfNeeded();
             }
         }
