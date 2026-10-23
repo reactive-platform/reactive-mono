@@ -45,7 +45,7 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
 
     [Required]
     public T Key {
-        get => _key!;
+        get => _key.Value!;
         set {
             if (_initialized) {
                 SetKey(value, true);
@@ -75,11 +75,11 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
 
     private bool _initialized;
     private IReadOnlyDictionary<T, BsSegmentedControlItem>? _items;
-    private T? _key;
+    private Optional<T> _key;
 
     private void DoInitialUpdate() {
-        if (!_initialized && _key != null && _items != null) {
-            SetKey(_key, true);
+        if (!_initialized && _key.HasValue && _items != null) {
+            SetKey(_key.Value!, true);
             _initialized = true;
         }
     }

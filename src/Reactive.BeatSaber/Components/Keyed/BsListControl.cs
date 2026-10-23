@@ -50,7 +50,7 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent, IIn
 
     [Required]
     public T Key {
-        get => _key!;
+        get => _key.Value!;
         set {
             if (_initialized) {
                 SetKey(value);
@@ -80,11 +80,11 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent, IIn
 
     private bool _initialized;
     private IReadOnlyList<BsListControlItem<T>>? _items;
-    private T? _key;
+    private Optional<T> _key;
 
     private void DoInitialUpdate() {
-        if (!_initialized && _key != null && _items != null) {
-            SetKey(_key);
+        if (!_initialized && _key.HasValue && _items != null) {
+            SetKey(_key.Value!);
             _initialized = true;
         }
     }
@@ -102,7 +102,7 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent, IIn
     private void SetKey(int index) {
         _key = _items![index].Key;
         _selectedIdx.Value = index;
-        OnKeyChanged?.Invoke(_key);
+        OnKeyChanged?.Invoke(_key.Value!);
     }
 
     private int FindKey(T key) {
