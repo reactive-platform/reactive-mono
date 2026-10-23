@@ -268,7 +268,11 @@ namespace Reactive.Components.Basic {
             var endIdx = Mathf.Clamp(Mathf.CeilToInt((scrollPos + ScrollContext.ViewSize - 0.01f) / CellSize), startIdx, Items.Count);
             var cellsCount = endIdx - startIdx;
 
-            _scrollContent.sizeDelta = new(0f, Items.Count * CellSize);
+            var contentSize = Items.Count * CellSize;
+            
+            _scrollContent.sizeDelta = ScrollOrientation is ScrollOrientation.Vertical ?
+                new(0f, contentSize) :
+                new(contentSize, 0f);
             _cellStartPos = startIdx * CellSize;
 
             var spawnedCellsCount = _cells.Count;
