@@ -225,7 +225,7 @@ namespace Reactive.BeatSaber.Components {
                                     break;
 
                                 case ScrollbarScrollMode.Fixed:
-                                    ScrollContext.ScrollRelative(FixedScrollSize);
+                                    ScrollContext.ScrollRelative(-FixedScrollSize);
                                     break;
                             }
                         }),
@@ -245,7 +245,7 @@ namespace Reactive.BeatSaber.Components {
                                     break;
 
                                 case ScrollbarScrollMode.Fixed:
-                                    ScrollContext.ScrollRelative(-FixedScrollSize);
+                                    ScrollContext.ScrollRelative(FixedScrollSize);
                                     break;
                             }
                         })
