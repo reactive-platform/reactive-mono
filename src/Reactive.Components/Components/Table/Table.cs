@@ -121,6 +121,7 @@ namespace Reactive.Components.Basic {
                 }
 
                 _scrollArea.ScrollOrientation = value;
+                _needToRefreshCellSize = true;
 
                 if (_scrollContext != null) {
                     RefreshCells();
@@ -388,6 +389,8 @@ namespace Reactive.Components.Basic {
             }
             
             if (context.UpdateType.IsMeasurements) {
+                // Cells are measured against the content's cross size, which changes with the viewport
+                _needToRefreshCellSize = true;
                 RefreshCells();
             } else if (context.UpdateType.IsScroll) {
                 RefreshCellsIfNeeded();
