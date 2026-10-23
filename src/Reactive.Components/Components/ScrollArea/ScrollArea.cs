@@ -238,6 +238,9 @@ namespace Reactive.Components.Basic {
         protected override void OnRectDimensionsChanged() {
             // It's assumed that ScrollContext is initialized here because it's a Required prop
             RefreshMeasurements();
+
+            // Resizing the viewport moves content off
+            _posSet = false;
             UpdateContentPos(true);
         }
 
