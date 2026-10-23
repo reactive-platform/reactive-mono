@@ -40,7 +40,7 @@ namespace Reactive {
                 }
             }
 
-            public bool WithinLayout => !IsDestroyed && (gameObject.activeInHierarchy || WithinLayoutIfDisabled);
+            public bool WithinLayout => !IsDestroyed && (gameObject.activeSelf || WithinLayoutIfDisabled);
 
             public bool IgnoreLayout {
                 get;
@@ -243,6 +243,7 @@ namespace Reactive {
                         // When turning the object off\on in a disabled hierarchy, OnEnable and OnDisable events are not called.
                         // To force layout recalculation when enabled
                         _wasActuallyDisabled = true;
+                        NotifyLayoutDataUpdated();
                     }
                 }
             }
