@@ -235,7 +235,7 @@ namespace Reactive {
             #region Components
 
             public bool Enabled {
-                get => gameObject.activeInHierarchy;
+                get => gameObject.activeSelf;
                 set {
                     gameObject.SetActive(value);
 
