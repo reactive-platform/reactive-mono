@@ -100,7 +100,7 @@ public class BsPrimaryTextButton : ReactiveComponent, ISkewedComponent, IInterac
                     .AsFlexItem()
                     .Bind(ref _label),
                 
-                sFontStyle = skew.Map(x => FontStyle | (x > 0 ? FontStyles.Italic : FontStyles.Normal)),
+                sFontStyle = skew.Map(x => x > 0 ? FontStyle | FontStyles.Italic : FontStyle & ~FontStyles.Italic),
                 sColor = color.In()
             }
         }.Bind(ref _button).Use();
