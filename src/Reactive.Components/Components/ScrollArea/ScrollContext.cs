@@ -72,11 +72,11 @@ public class ScrollContext : StateBase<ScrollContext>, IState<ScrollContext> {
     /// Helper to get or set scroll position in a 0..1 range.
     /// </summary>
     public float NormalizedScrollPos {
-        get => Mathf.Clamp01(ActualScrollPos / MaxScrollPos);
+        get => MaxScrollPos > 0f ? Mathf.Clamp01(ActualScrollPos / MaxScrollPos) : 0f;
     }
 
     public float NormalizedPageHeight {
-        get => Mathf.Clamp01(ViewSize / ContentSize);
+        get => ContentSize > 0f ? Mathf.Clamp01(ViewSize / ContentSize) : 1f;
     }
 
     public float MaxScrollPos {
