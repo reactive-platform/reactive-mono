@@ -194,6 +194,7 @@ namespace Reactive.Components {
                     context.AddCallback(HandleCellContextUpdated);
 
                     context.Init(item, i, Items.Count);
+                    context.Selected = _selectedItems.Contains(item);
 
                     cell = ConstructCell(context);
 
