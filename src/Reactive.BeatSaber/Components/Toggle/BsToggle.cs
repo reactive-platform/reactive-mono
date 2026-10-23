@@ -82,6 +82,7 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
                 onDown: _ => {
                     if (_graphic.Value.IsInteractable) {
                         Toggled = !Toggled;
+                        GameResources.ButtonClickSignal.Raise();
                     }
                 },
                 onEnter: _ => _graphic.IsHovered = true,
