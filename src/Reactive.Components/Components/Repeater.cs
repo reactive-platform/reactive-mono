@@ -67,6 +67,10 @@ namespace Reactive.Components {
                         throw new InvalidOperationException("Cannot set a selected cells list with len > 1 when SelectionMode is Single");
                 }
 
+                if (_selectedItems.SetEquals(value)) {
+                    return;
+                }
+
                 _selectedItems.Clear();
                 _selectedItems.AddRange(value);
 
@@ -92,7 +96,7 @@ namespace Reactive.Components {
                 field = value;
 
                 switch (value) {
-                    case SelectionMode.None:
+                    case SelectionMode.None when _selectedItems.Count > 0:
                         _selectedItems.Clear();
                         break;
 
@@ -102,10 +106,15 @@ namespace Reactive.Components {
                         _selectedItems.Clear();
                         _selectedItems.Add(any);
                         break;
+
+                    default:
+                        return;
                 }
 
                 if (_itemsSet && _constructCellSet) {
                     RefreshSelection();
+
+                    OnSelectedItemsChanged?.Invoke(_selectedItems);
                 }
             }
         } = SelectionMode.Single;
@@ -128,7 +137,6 @@ namespace Reactive.Components {
         #region Selection
 
         private readonly HashSet<TItem> _selectedItems = new();
-        private bool _blockContextUpdates;
 
         private void RefreshSelection() {
             foreach (var pair in _cells) {
@@ -142,34 +150,47 @@ namespace Reactive.Components {
         }
 
         private void HandleCellContextUpdated(CellContext<TItem> context) {
-            if (!context.UpdateType.IsSelection || _blockContextUpdates) {
+            if (!context.UpdateType.IsSelection) {
                 return;
             }
 
-            _blockContextUpdates = true;
+            // Selection synced by the repeater itself is delivered here too, so we skip it when nothing changed
+            bool changed;
 
-            if (context.Selected) {
-                switch (SelectionMode) {
-                    case SelectionMode.None:
-                        return;
+            switch (SelectionMode) {
+                case SelectionMode.None:
+                    context.Selected = false;
+                    changed = false;
+                    break;
 
-                    case SelectionMode.Single when Items.Count > 0:
-                        _selectedItems.Clear();
-                        _selectedItems.Add(context.Item);
-                        break;
+                case SelectionMode.Single:
+                    if (context.Selected) {
+                        changed = _selectedItems.Count != 1 || !_selectedItems.Contains(context.Item);
 
-                    case SelectionMode.Multiple:
-                        _selectedItems.Add(context.Item);
-                        break;
-                }
-            } else {
-                _selectedItems.Remove(context.Item);
+                        if (changed) {
+                            _selectedItems.Clear();
+                            _selectedItems.Add(context.Item);
+                        }
+                    } else {
+                        changed = _selectedItems.Remove(context.Item);
+                    }
+                    break;
+
+                case SelectionMode.Multiple:
+                    changed = context.Selected ?
+                        _selectedItems.Add(context.Item) :
+                        _selectedItems.Remove(context.Item);
+                    break;
+
+                default:
+                    changed = false;
+                    break;
             }
 
-            RefreshSelection();
-            OnSelectedItemsChanged?.Invoke(_selectedItems);
-
-            _blockContextUpdates = false;
+            if (changed) {
+                RefreshSelection();
+                OnSelectedItemsChanged?.Invoke(_selectedItems);
+            }
         }
 
         #endregion
@@ -181,8 +202,6 @@ namespace Reactive.Components {
         private Layout _container = null!;
 
         private void RefreshCells() {
-            _blockContextUpdates = true;
-
             for (var i = 0; i < Items!.Count; i++) {
                 var item = Items[i];
 
@@ -214,8 +233,6 @@ namespace Reactive.Components {
             for (var i = Items.Count; i < _cells.Count; i++) {
                 _cells[i].Item2.Enabled = false;
             }
-
-            _blockContextUpdates = false;
         }
 
         #endregion
