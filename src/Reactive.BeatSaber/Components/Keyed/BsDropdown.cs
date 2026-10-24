@@ -73,12 +73,19 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
 
     private void DoInitialUpdate() {
         if (!_initialized && _key.HasValue && _items != null) {
-            SetKey(_key.Value!, true);
+            var key = _key.Value!;
+            _key = Optional<T>.None();
+
+            SetKey(key, true);
             _initialized = true;
         }
     }
 
     private void SetKey(T value, bool updateTable) {
+        if (_key.HasValue && EqualityComparer<T>.Default.Equals(_key.Value!, value)) {
+            return;
+        }
+
         _key = value;
         _keyState.Value = value;
 

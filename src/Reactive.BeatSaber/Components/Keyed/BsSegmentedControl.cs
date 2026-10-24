@@ -81,12 +81,19 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
 
     private void DoInitialUpdate() {
         if (!_initialized && _key.HasValue && _items != null) {
-            SetKey(_key.Value!, true);
+            var key = _key.Value!;
+            _key = Optional<T>.None();
+
+            SetKey(key, true);
             _initialized = true;
         }
     }
 
     private void SetKey(T value, bool updateListView) {
+        if (_key.HasValue && EqualityComparer<T>.Default.Equals(_key.Value!, value)) {
+            return;
+        }
+
         _key = value;
 
         if (updateListView) {
