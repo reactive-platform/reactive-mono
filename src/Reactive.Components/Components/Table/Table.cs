@@ -77,10 +77,15 @@ namespace Reactive.Components.Basic {
                         throw new InvalidOperationException("Cannot set a selected cells list with len > 1 when SelectionMode is Single");
                 }
 
+                if (_selectedItems.SetEquals(value)) {
+                    return;
+                }
+
                 _selectedItems.Clear();
                 _selectedItems.AddRange(value);
 
                 RefreshSelected();
+                OnSelectedItemsChanged?.Invoke(SelectedItems);
             }
         }
 
@@ -97,7 +102,7 @@ namespace Reactive.Components.Basic {
                 field = value;
 
                 switch (value) {
-                    case SelectionMode.None:
+                    case SelectionMode.None when _selectedItems.Count > 0:
                         _selectedItems.Clear();
                         break;
 
@@ -107,9 +112,13 @@ namespace Reactive.Components.Basic {
                         _selectedItems.Clear();
                         _selectedItems.Add(any);
                         break;
+
+                    default:
+                        return;
                 }
 
                 RefreshSelected();
+                OnSelectedItemsChanged?.Invoke(SelectedItems);
             }
         } = SelectionMode.Single;
 
@@ -161,8 +170,6 @@ namespace Reactive.Components.Basic {
 
                 pair.Context.Selected = SelectedItems.Contains(pair.Context.Item);
             }
-
-            OnSelectedItemsChanged?.Invoke(SelectedItems);
         }
 
         #endregion
@@ -354,8 +361,8 @@ namespace Reactive.Components.Basic {
 
             switch (SelectionMode) {
                 case SelectionMode.None:
-                    _selectedItems.Clear();
-                    changed = true;
+                    context.Selected = false;
+                    changed = false;
                     break;
 
                 case SelectionMode.Single:
@@ -384,6 +391,7 @@ namespace Reactive.Components.Basic {
 
             if (changed) {
                 RefreshSelected();
+                OnSelectedItemsChanged?.Invoke(SelectedItems);
             }
         }
 
