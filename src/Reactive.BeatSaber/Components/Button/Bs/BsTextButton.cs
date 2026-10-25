@@ -105,6 +105,7 @@ public class BsTextButton : ReactiveComponent, ISkewedComponent, IInteractableCo
                     .AsFlexItem()
                     .Bind(ref _label),
                 
+                FontStyle = FontStyles.UpperCase,
                 sFontStyle = skew.Map(x => x > 0 ? FontStyle | FontStyles.Italic : FontStyle & ~FontStyles.Italic),
                 sColor = color.In()
             }
