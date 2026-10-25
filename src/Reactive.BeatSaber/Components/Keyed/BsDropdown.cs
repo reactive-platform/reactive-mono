@@ -33,6 +33,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
             _itemsState.EnforceInvalidation();
             _table.Items = value.Keys.ToArray();
 
+            RefreshListSize();
             DoInitialUpdate();
         }
     }
@@ -65,6 +66,14 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
         set => _colors.Value = value;
     }
 
+    public int MaxVisibleRows {
+        get;
+        set {
+            field = value;
+            RefreshListSize();
+        }
+    } = 5;
+
     public Action<T>? OnKeyChanged { get; set; }
 
     private bool _initialized;
@@ -96,9 +105,18 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
         OnKeyChanged?.Invoke(value);
     }
 
+
+    private void RefreshListSize() {
+        // The list fits its items and scrolls once there are more than fit
+        var rows = Mathf.Clamp(_items?.Count ?? 0, 1, Mathf.Max(1, MaxVisibleRows));
+        _table.FlexItem.Size = new() { x = 36.pt, y = (RowHeight * rows).pt };
+    }
+
     #endregion
 
     #region Construct
+
+    private const float RowHeight = 7f;
 
     private Table<T, IReactiveComponent> _table = null!;
     private State<float> _skew = null!;
@@ -120,12 +138,12 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
 
         var contentColor = _graphic.MapColorSet(_colors, x => x.ItemContentColors);
         var bgColor = _graphic.MapColorSet(_colors, x => x.ButtonBackgroundColors);
-        
+
         var item = RememberDerived(
             x => x._keyState.Value is { } key && x._itemsState.Value?.TryGetValue(key, out var i) == true ? i : (BsDropdownItem?)null,
             (_keyState, _itemsState)
         );
-        
+
         var scrollContext = new ScrollContext();
 
         return new Background {
@@ -185,10 +203,10 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
                     sSprite = item.Map(x => x?.Icon),
                     sColor = contentColor.In()
                 },
-                
+
                 new Image {
                     Name = "Arrow",
-                    
+
                     FlexItem = {
                         PositionType = PositionType.Absolute,
                         Size = new() { x = 2.7f.pt, y = 100.pct },
@@ -231,7 +249,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
                             Children = {
                                 new Table<T, IReactiveComponent> {
                                     FlexItem = {
-                                        Size = new() { x = 36.pt, y = (7 * 5).pt },
+                                        Size = new() { x = 36.pt, y = (RowHeight * MaxVisibleRows).pt },
                                         Margin = new() { top = 1.pt, bottom = 1.pt }
                                     },
 
@@ -280,7 +298,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
             },
 
             FlexItem = {
-                Size = new() { x = 36.pt, y = 7.pt }
+                Size = new() { x = 36.pt, y = RowHeight.pt }
             },
 
             Do = x => x.WithPointerEvents(
