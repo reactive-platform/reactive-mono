@@ -53,7 +53,7 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
         get => _minValue.Value;
         set {
             _minValue.Value = value;
-            UpdateValue(_value);
+            UpdateValue(_requestedValue);
         }
     }
 
@@ -61,7 +61,7 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
         get => _maxValue.Value;
         set {
             _maxValue.Value = value;
-            UpdateValue(_value);
+            UpdateValue(_requestedValue);
         }
     }
 
@@ -69,7 +69,7 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
         get;
         set {
             field = value;
-            UpdateValue(_value);
+            UpdateValue(_requestedValue);
         }
     }
 
@@ -80,7 +80,11 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
     
     public Action<float>? OnValueChanged { get; set; }
 
+    private float _requestedValue;
+
     private void UpdateValue(float value) {
+        _requestedValue = value;
+
         var clamped = Mathf.Clamp(value, MinValue, MaxValue);
         var rounded = MathUtils.RoundStepped(clamped, ValueStep, MinValue);
 
@@ -173,7 +177,7 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
         _valueFormatter = Remember<Func<float, string>?>(null);
         _value = Remember(0f);
         _minValue = Remember(0f);
-        _maxValue = Remember(0f);
+        _maxValue = Remember(1f);
         _buttonsEnabled = Remember(true);
 
         _valueText = RememberDerived(
