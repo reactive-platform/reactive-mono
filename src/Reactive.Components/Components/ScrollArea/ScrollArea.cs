@@ -57,7 +57,8 @@ namespace Reactive.Components.Basic {
             }
         } = ScrollOrientation.Vertical;
 
-        public float LineSize { get; set; }
+        public float LineSize { get; set; } = 10f;
+
         public Func<ScrollContext, float>? FinalizeScroll { get; set; }
 
         private IReactiveComponent? _scrollContent;
@@ -145,7 +146,7 @@ namespace Reactive.Components.Basic {
             if (immediately) {
                 FinalizeScrollPos();
                 UpdateContentPos(true);
-                
+
                 _lastScrollDeltaTime = -1f;
             }
         }
