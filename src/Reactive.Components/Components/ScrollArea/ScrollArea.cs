@@ -95,6 +95,8 @@ namespace Reactive.Components.Basic {
                 if (_prevContentSize != contentSize) {
                     RefreshMeasurements();
                     _prevContentSize = contentSize;
+                    // The destination may be out of the content now
+                    _posSet = false;
                 }
             }
 
@@ -155,6 +157,15 @@ namespace Reactive.Components.Basic {
 
             // Dynamically checking the content size to reflect changes
             RefreshContentSizeIfNeeded();
+
+            // The content or the viewport can change after the destination was set
+            var maxPos = Mathf.Max(0f, ScrollContext.MaxScrollPos);
+
+            if (_destinationPos > maxPos) {
+                // Snapping since animating would show the empty space past the content
+                _destinationPos = maxPos;
+                immediately = true;
+            }
 
             // Calculating pos
             var sourcePos = (Vector2)_contentTransform!.localPosition;
