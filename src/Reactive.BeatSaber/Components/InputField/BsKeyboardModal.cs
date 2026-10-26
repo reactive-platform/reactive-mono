@@ -99,7 +99,16 @@ public partial class BsKeyboardModal : ReactiveComponent {
     }
 
     private void HandleKeyboardTextChanged(string? text) {
-        _context?.Text = text;
+        if (_context == null) {
+            return;
+        }
+
+        _context.Text = text;
+
+        // The context might have rejected the text, so the keyboard is brought back in sync
+        if (_context.Text != text) {
+            _keyboard.Text = _context.Text;
+        }
     }
 
     private void HandleClickOutside() {

@@ -1,3 +1,4 @@
+using System;
 using JetBrains.Annotations;
 
 namespace Reactive.BeatSaber.Components;
@@ -7,10 +8,16 @@ public class BsInputFieldContext : StateBase<BsInputFieldContext>, IState<BsInpu
     public string? Text {
         get;
         set {
+            if (Validate != null && !Validate(value)) {
+                return;
+            }
+
             field = value;
             NotifyValueInvalidated();
         }
     }
+    
+    public Func<string?, bool>? Validate { get; set; }
 
     public bool Focused {
         get;
