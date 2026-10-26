@@ -41,6 +41,16 @@ public class WebImage : Image {
     public Animation<WebImageAnimContext>? FinishAnimation { get; set; } = DefaultFinishAnimation;
 
     /// <summary>
+    /// Shown instead of the image when loading fails. Nothing is shown by default.
+    /// </summary>
+    public Sprite? FallbackSprite { get; set; }
+
+    /// <summary>
+    /// Called when loading fails, after the fallback is shown.
+    /// </summary>
+    public Action? OnLoadFailed { get; set; }
+
+    /// <summary>
     /// Whether an animated image is playing. Kept when the image changes.
     /// </summary>
     public bool IsPlaying {
@@ -77,14 +87,15 @@ public class WebImage : Image {
         }
 
         CachedImage? image;
+        var failure = false;
 
         try {
             image = await task;
         } catch (OperationCanceledException) {
             return;
         } catch (Exception ex) {
-            Debug.LogError($"Image loading has failed: {ex}");
             image = null;
+            failure = true;
         }
 
         if (tokenSource.IsCancellationRequested || IsDestroyed) {
@@ -93,18 +104,23 @@ public class WebImage : Image {
 
         _tokenSource = null;
 
-        ShowImage(image);
+        ShowImage(image, failure ? FallbackSprite : null);
         SetOverlayShown(false);
+
+        if (failure) {
+            Debug.LogError("Image loading has failed");
+            OnLoadFailed?.Invoke();
+        }
     }
 
-    private void ShowImage(CachedImage? image) {
+    private void ShowImage(CachedImage? image, Sprite? fallback = null) {
         // The player accepts animated images only, static ones are shown as they are
         if (image is { IsAnimated: true }) {
             _player.Image = image;
             Sprite = _player.Sprite;
         } else {
             _player.ClearResources();
-            Sprite = image?.Sprite ?? BeatSaberResources.Sprites.transparentPixel;
+            Sprite = image?.Sprite ?? fallback ?? BeatSaberResources.Sprites.transparentPixel;
         }
     }
 
