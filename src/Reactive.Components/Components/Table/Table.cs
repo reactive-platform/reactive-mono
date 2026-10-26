@@ -246,6 +246,7 @@ namespace Reactive.Components.Basic {
         private readonly List<CellPair> _cells = new();
         private Vector2 _cellSize;
         private float _cellStartPos;
+        private (int Start, int End) _visibleRange;
 
         private CellPair SpawnCell(TItem item, int index) {
             // Spawn a new cell if there's no cells left in the pool
@@ -268,11 +269,7 @@ namespace Reactive.Components.Basic {
         private void RefreshCells() {
             RefreshCellSizeIfNeeded();
 
-            var scrollPos = ScrollContext.ActualScrollPos;
-
-            // The scroll position can be out of the content while it's being resized
-            var startIdx = Mathf.Clamp(Mathf.FloorToInt((scrollPos + 0.01f) / CellSize), 0, Items.Count);
-            var endIdx = Mathf.Clamp(Mathf.CeilToInt((scrollPos + ScrollContext.ViewSize - 0.01f) / CellSize), startIdx, Items.Count);
+            var (startIdx, endIdx) = GetVisibleRange();
             var cellsCount = endIdx - startIdx;
 
             var contentSize = Items.Count * CellSize;
@@ -281,6 +278,7 @@ namespace Reactive.Components.Basic {
                 new(0f, contentSize) :
                 new(contentSize, 0f);
             _cellStartPos = startIdx * CellSize;
+            _visibleRange = (startIdx, endIdx);
 
             var spawnedCellsCount = _cells.Count;
 
@@ -318,11 +316,19 @@ namespace Reactive.Components.Basic {
         }
 
         private void RefreshCellsIfNeeded() {
-            var scrollPos = ScrollContext.ActualScrollPos;
-
-            if (scrollPos >= _cellStartPos + CellSize || scrollPos < _cellStartPos) {
+            if (GetVisibleRange() != _visibleRange) {
                 RefreshCells();
             }
+        }
+
+        private (int Start, int End) GetVisibleRange() {
+            var scrollPos = ScrollContext.ActualScrollPos;
+
+            // The scroll position can be out of the content while it's being resized
+            var startIdx = Mathf.Clamp(Mathf.FloorToInt((scrollPos + 0.01f) / CellSize), 0, Items.Count);
+            var endIdx = Mathf.Clamp(Mathf.CeilToInt((scrollPos + ScrollContext.ViewSize - 0.01f) / CellSize), startIdx, Items.Count);
+
+            return (startIdx, endIdx);
         }
 
         #endregion
