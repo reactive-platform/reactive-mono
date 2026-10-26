@@ -36,6 +36,11 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
         get => _placeholder.Value;
         set => _placeholder.Value = value;
     }
+    
+    public Sprite? Icon {
+        get => _icon.Value;
+        set => _icon.Value = value;
+    }
 
     public bool Interactable {
         get => _graphicState.IsInteractable;
@@ -65,6 +70,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
     private State<bool> _focused = null!;
     private State<string?> _text = null!;
     private State<string> _placeholder = null!;
+    private State<Sprite?> _icon = null!;
     private State<GraphicState> _graphicState = null!;
     private State<BsInputFieldColors> _colors = null!;
     private BsAeroButton _button = null!;
@@ -75,6 +81,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
         _focused = Remember(false);
         _text = Remember<string?>(null);
         _placeholder = Remember("Search");
+        _icon = Remember<Sprite?>(GameResources.SearchIcon);
         _graphicState = Remember(GraphicState.None);
         _colors = Remember(BeatSaberStyle.BsInputFieldColors);
 
@@ -137,7 +144,8 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
                         Name = "Icon",
                         PreserveAspect = true,
                         sColor = _graphicState.MapColorSet(_colors, x => x.IconColors).In(),
-                        Sprite = GameResources.SearchIcon,
+                        sSprite = _icon.Where(x => x != null),
+                        sEnabled = _icon.Map(x => x != null)
                     }.AsFlexItem(),
 
                     new Layout {
@@ -179,10 +187,8 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
 
                     CreateCloseButton(
                         closeButtonEnabled,
-                        () => {
-                            _text.Value = null;
-                            Context.Text = null;
-                        }
+                        // The local text follows the context, so a rejected clear leaves the field as it is
+                        () => Context.Text = null
                     )
                 }
             }
