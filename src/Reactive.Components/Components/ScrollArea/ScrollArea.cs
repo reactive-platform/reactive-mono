@@ -119,13 +119,13 @@ namespace Reactive.Components.Basic {
 
         private void ReloadContent() {
             if (ScrollOrientation is ScrollOrientation.Vertical) {
-                _contentTransform!.anchorMin = new(0f, 0f);
-                _contentTransform.anchorMax = new(1f, 0f);
+                _contentTransform!.anchorMin = new(0f, 1f);
+                _contentTransform.anchorMax = new(1f, 1f);
                 _contentTransform.sizeDelta = new(0f, _contentTransform.sizeDelta.y);
                 _contentTransform.pivot = new(1f, 1f);
             } else {
-                _contentTransform!.anchorMin = new(0f, 0f);
-                _contentTransform.anchorMax = new(0f, 1f);
+                _contentTransform!.anchorMin = new(1f, 0f);
+                _contentTransform.anchorMax = new(1f, 1f);
                 _contentTransform.sizeDelta = new(_contentTransform.sizeDelta.x, 0f);
                 _contentTransform.pivot = new(1f, 1f);
             }
