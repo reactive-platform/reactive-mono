@@ -202,6 +202,11 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
                             Alignment = TextAlignmentOptions.Capline,
                             EnableWrapping = false,
                             Overflow = TextOverflowModes.Ellipsis,
+                            
+                            EnableAutoSizing = true,
+                            FontSizeMin = 2f,
+                            FontSizeMax = 4f,
+
                             sFontStyle = _skew.Map(x => x > 0 ? FontStyles.Italic : FontStyles.Normal),
 
                             sColor = fgColor.In(),
@@ -212,7 +217,8 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
 
                         new BsImage {
                             FlexItem = {
-                                Margin = new() { top = 2.pt, bottom = 2.pt },
+                                Size = new() { y = 50.pct },
+                                AlignSelf = Align.Center,
                                 AspectRatio = 1f
                             },
 
@@ -222,7 +228,7 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
 
                             sSprite = item.Map(x => x?.Icon).Where(x => x != null),
                             sEnabled = item.Map(x => x?.Icon != null)
-                        }.AsFlexItem()
+                        }
                     }
                 };
             }
