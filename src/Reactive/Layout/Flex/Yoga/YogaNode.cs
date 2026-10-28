@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ namespace Reactive.Yoga {
         private YogaNode() { }
 
         private static readonly Dictionary<IntPtr, YogaNode> managedNodes = new();
+        private static readonly ConcurrentQueue<YogaNode> pendingDisposal = new();
 
         public static YogaNode New() {
             var node = new YogaNode {
@@ -59,14 +61,31 @@ namespace Reactive.Yoga {
         private IntPtr _nodePtr;
 
         public void Dispose() {
-            if (NodePtr == IntPtr.Zero) {
+            if (_nodePtr == IntPtr.Zero) {
                 return;
             }
 
-            YogaNative.YGNodeFree(NodePtr);
+            YogaNative.YGNodeFree(_nodePtr);
 
             managedNodes.Remove(_nodePtr);
             _nodePtr = IntPtr.Zero;
+            _measureFunc = null;
+        }
+
+        /// <summary>
+        /// Queues the node to be disposed by <see cref="DisposePending"/>. Unlike <see cref="Dispose"/>, can be called from any thread.
+        /// </summary>
+        public void DisposeLater() {
+            pendingDisposal.Enqueue(this);
+        }
+
+        /// <summary>
+        /// Disposes the nodes queued by <see cref="DisposeLater"/>. Yoga and the node table aren't thread-safe, so it must be called on the main thread.
+        /// </summary>
+        public static void DisposePending() {
+            while (pendingDisposal.TryDequeue(out var node)) {
+                node.Dispose();
+            }
         }
 
         public bool Equals(YogaNode other) {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Reactive.Yoga;
 using UnityEngine;
 
 // ReSharper disable ForCanBeConvertedToForeach
@@ -330,6 +331,9 @@ namespace Reactive {
                 }
 
                 IsDestroyed = true;
+
+                ReleaseLayoutContext();
+                (_assignedContext as YogaContext)?.Release();
             }
 
             private void OnEnable() {

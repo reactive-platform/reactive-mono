@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Reactive.Yoga;
 using UnityEngine;
 
 namespace Reactive;
@@ -36,6 +37,8 @@ public static class ReactiveScheduler {
         _running = true;
 
         try {
+            YogaNode.DisposePending();
+
             for (var pass = 0; State.HasWork || Layout.HasWork; pass++) {
                 if (pass == MaxPasses) {
                     Debug.LogError($"Reactive: states and layout kept scheduling each other for {MaxPasses} passes, the rest is left for the next frame");
