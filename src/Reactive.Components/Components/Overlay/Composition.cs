@@ -18,7 +18,7 @@ public class Composition : MonoBehaviour {
 
     public void PushOverlay(IOverlay overlay) {
         if (_overlays.Count == 0) {
-            SetDimmed(overlay.CompositionAnimation);
+            SetDimmed(overlay.CompositionAnimation, overlay.Animated);
         }
 
         var insertIndex = InsertOverlay(overlay);
@@ -52,7 +52,7 @@ public class Composition : MonoBehaviour {
         trans.gameObject.SetActive(false);
 
         if (_overlays.Count == 0) {
-            SetDimmed(_params with { DimCanvas = false });
+            SetDimmed(_params with { DimCanvas = false }, overlay.Animated);
         }
 
         overlay.OnPop();
@@ -82,7 +82,9 @@ public class Composition : MonoBehaviour {
     private float _startAlpha;
     private float _elapsedTime;
 
-    private void SetDimmed(CompositionAnimParams animParams) {
+    private float TargetAlpha => _dimmed ? _params.DimmedAlpha : 1f;
+
+    private void SetDimmed(CompositionAnimParams animParams, bool animated) {
         _canvasGroup ??= gameObject.GetOrAddComponent<CanvasGroup>();
 
         // Restoring uses the params of the overlay that dimmed the composition
@@ -91,17 +93,21 @@ public class Composition : MonoBehaviour {
         _startAlpha = _canvasGroup.alpha;
         _elapsedTime = 0f;
 
-        enabled = true;
+        if (animated) {
+            enabled = true;
+        } else {
+            _canvasGroup!.alpha = TargetAlpha;
+            enabled = false;
+        }
     }
 
     private void Update() {
         _elapsedTime += Time.deltaTime;
 
-        var target = _dimmed ? _params.DimmedAlpha : 1f;
         var progress = _params.Duration > 0f ? Mathf.Clamp01(_elapsedTime / _params.Duration) : 1f;
         var curved = _params.Curve?.Evaluate(progress) ?? progress;
 
-        _canvasGroup!.alpha = Mathf.LerpUnclamped(_startAlpha, target, curved);
+        _canvasGroup!.alpha = Mathf.LerpUnclamped(_startAlpha, TargetAlpha, curved);
 
         if (progress >= 1f) {
             enabled = false;

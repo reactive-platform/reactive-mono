@@ -21,6 +21,11 @@ public interface IOverlay {
     CompositionAnimParams CompositionAnimation { get; }
 
     /// <summary>
+    /// Determines whether the composition transitions caused by the overlay are animated.
+    /// </summary>
+    bool Animated { get; }
+
+    /// <summary>
     /// A transform to push.
     /// </summary>
     Transform ContentTransform { get; }

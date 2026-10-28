@@ -9,9 +9,7 @@ namespace Reactive.Components;
 
 /// <summary>
 /// A component wrapper that displays over the whole reactive composition.
-/// Note that this component is bound to the composition once used, so in case you need to rebind it,
-/// you have to pop and push it again.
-/// For more info see <see cref="Composition"/>. 
+/// The composition is resolved from the hierarchy on every push.
 /// </summary>
 [PublicAPI]
 public class Overlay : Layout, IOverlay {
@@ -28,6 +26,12 @@ public class Overlay : Layout, IOverlay {
     /// Should be set before pushing an overlay.
     /// </summary>
     public CompositionAnimParams CompositionAnimation { get; set; } = new();
+
+    /// <summary>
+    /// Determines whether the composition transitions caused by the overlay are animated.
+    /// Checked when a transition starts, so changing it doesn't affect a running one.
+    /// </summary>
+    public bool Animated { get; set; } = true;
 
     /// <summary>
     /// Called when the overlay gets pushed to the composition.
@@ -48,38 +52,41 @@ public class Overlay : Layout, IOverlay {
             if (value == field) {
                 return;
             }
+            
+            field = value;
 
             if (value) {
-                _composition ??= Composition.GetComposition(Content);
-
-                // A pushed overlay belongs to the composition, not to the layout that declared it.
-                // Leaving the driver removes it from the parent's layout entirely, so no flag is involved
+                _composition = Composition.GetComposition(Content);
+                _previousParent = ContentTransform.parent;
+                
                 _previousDriver = LayoutDriver;
                 _previousDriver?.Children.Remove(this);
 
-                _composition!.PushOverlay(this);
+                _composition.PushOverlay(this);
                 ContentTransform.WithRectExpand();
             } else {
-                _composition!.PopOverlay(this);
+                var driver = _previousDriver;
 
-                // Given back to the declaring layout, where it stays an inactive child until pushed again
-                _previousDriver?.Children.Add(this);
                 _previousDriver = null;
-            }
+                _composition!.PopOverlay(this);
+                _composition = null;
+                _previousParent = null;
 
-            field = value;
+                driver?.Children.Add(this);
+            }
         }
     }
 
     private Composition? _composition;
     private ILayoutDriver? _previousDriver;
+    private Transform? _previousParent;
 
     #endregion
 
     #region Overlay Impl
 
     Transform IOverlay.ContentTransform => base.ContentTransform;
-    Transform? IOverlay.SetBackParent => null;
+    Transform? IOverlay.SetBackParent => _previousParent;
 
     void IOverlay.OnPush() {
         OnPushed?.Invoke();
