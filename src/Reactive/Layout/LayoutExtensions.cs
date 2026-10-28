@@ -42,7 +42,7 @@ namespace Reactive {
             float? aspectRatio = null,
             YogaFrame? position = null,
             PositionType? positionType = null,
-            Align alignSelf = Align.Auto
+            Align? alignSelf = null
         ) where T : ILayoutItem {
             return AsFlexItem(
                 component,
@@ -95,7 +95,7 @@ namespace Reactive {
             float? aspectRatio = null,
             YogaFrame? position = null,
             PositionType? positionType = null,
-            Align alignSelf = Align.Auto
+            Align? alignSelf = null
         ) where T : ILayoutItem {
             return AsFlexItem(
                 component,
@@ -152,7 +152,7 @@ namespace Reactive {
             float? aspectRatio = null,
             YogaFrame? position = null,
             PositionType? positionType = null,
-            Align alignSelf = Align.Auto
+            Align? alignSelf = null
         ) where T : ILayoutItem {
             if (layoutModifier is not YogaModifier modifier) {
                 modifier = new YogaModifier();
@@ -204,7 +204,10 @@ namespace Reactive {
                 modifier.AspectRatio = aspectRatio.Value;
             }
 
-            modifier.AlignSelf = alignSelf;
+            if (alignSelf != null) {
+                modifier.AlignSelf = alignSelf.Value;
+            }
+
             yogaModifier = modifier;
             return component;
         }
