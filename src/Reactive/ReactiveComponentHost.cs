@@ -332,6 +332,13 @@ namespace Reactive {
                 IsDestroyed = true;
             }
 
+            private void OnTransformParentChanged() {
+                // Reparented components (e.g. pooled ones) could end up under another canvas
+                for (var i = 0; i < _components.Count; i++) {
+                    _components[i]._canvas = null;
+                }
+            }
+
             private void OnEnable() {
                 // Was skipped by the scheduler while inactive
                 if (_layoutState.QueuedFor != 0) {
