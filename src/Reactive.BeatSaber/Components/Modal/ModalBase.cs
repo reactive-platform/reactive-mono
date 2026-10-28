@@ -40,6 +40,20 @@ public abstract class ModalBase : ReactiveComponent {
         set => _overlay.CompositionAnimation = value;
     }
 
+    /// <summary>
+    /// Determines whether opening and closing are animated, including the composition dimming.
+    /// </summary>
+    public bool Animated {
+        get => _overlay.Animated;
+        set {
+            _overlay.Animated = value;
+
+            if (!value) {
+                _animationPlayer.Finish();
+            }
+        }
+    }
+
     /// <inheritdoc cref="Overlay.OnPushed"/>
     public Action? OnPushed {
         get => _overlay.OnPushed;
@@ -67,12 +81,12 @@ public abstract class ModalBase : ReactiveComponent {
                 // Might still be pushed if opened again while closing
                 _overlay.IsPushed = true;
 
-                if (OpenAnimation is { } openAnimation) {
+                if (Animated && OpenAnimation is { } openAnimation) {
                     _animationPlayer.Play(openAnimation);
                 } else {
                     _animationPlayer.Stop();
                 }
-            } else if (CloseAnimation is { } closeAnimation) {
+            } else if (Animated && CloseAnimation is { } closeAnimation) {
                 // The overlay is popped once the animation finishes
                 _animationPlayer.Play(closeAnimation, HandleCloseAnimationFinished);
             } else {
@@ -81,9 +95,33 @@ public abstract class ModalBase : ReactiveComponent {
             }
         }
     }
-    
+
     public Animation<IReactiveComponent>? OpenAnimation { get; set; } = ModalAnimations.JumpOpen;
     public Animation<IReactiveComponent>? CloseAnimation { get; set; } = ModalAnimations.JumpClose;
+
+    #endregion
+
+    #region Reset
+
+    protected void ResetModal() {
+        OnPopped = null;
+
+        Animated = false;
+        IsPushed = false;
+        Animated = true;
+
+        // Might be left mid-animation
+        _content.ContentTransform.localScale = Vector3.one;
+
+        PlacementData = new() { Placement = RelativePlacement.Center };
+        PlacementAnchor = null;
+        OnClickOutside = null;
+        OnPushed = null;
+        ZIndex = 0;
+        CompositionAnimation = new();
+        OpenAnimation = ModalAnimations.JumpOpen;
+        CloseAnimation = ModalAnimations.JumpClose;
+    }
 
     #endregion
 

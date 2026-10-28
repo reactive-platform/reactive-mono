@@ -4,7 +4,6 @@ using System.Linq;
 using JetBrains.Annotations;
 using Reactive.Compiler;
 using Reactive.Components;
-using Reactive.Components.Basic;
 using Reactive.Yoga;
 using TMPro;
 using UnityEngine;
@@ -31,9 +30,9 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
             _items = value;
             _itemsState.Value = value;
             _itemsState.EnforceInvalidation();
-            _table.Items = value.Keys.ToArray();
+            _keys = value.Keys.ToArray();
 
-            RefreshListSize();
+            SyncModal();
             DoInitialUpdate();
         }
     }
@@ -63,19 +62,19 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
 
     public BsDropdownColors Colors {
         get => _colors.Value;
-        set => _colors.Value = value;
+        set {
+            _colors.Value = value;
+            SyncModal();
+        }
     }
-    
-    public CompositionAnimParams CompositionAnimation {
-        get => _modal.CompositionAnimation;
-        set => _modal.CompositionAnimation = value;
-    }
+
+    public CompositionAnimParams CompositionAnimation { get; set; } = new();
 
     public int MaxVisibleRows {
         get;
         set {
             field = value;
-            RefreshListSize();
+            SyncModal();
         }
     } = 5;
 
@@ -84,6 +83,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
     private bool _initialized;
     private IReadOnlyDictionary<T, BsDropdownItem>? _items;
     private Optional<T> _key;
+    private T[] _keys = [];
 
     private void DoInitialUpdate() {
         if (!_initialized && _key.HasValue && _items != null) {
@@ -95,7 +95,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
         }
     }
 
-    private void SetKey(T value, bool updateTable) {
+    private void SetKey(T value, bool updateModal) {
         if (_key.HasValue && EqualityComparer<T>.Default.Equals(_key.Value!, value)) {
             return;
         }
@@ -103,34 +103,24 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
         _key = value;
         _keyState.Value = value;
 
-        if (updateTable) {
-            _table.SelectedItems = [value];
+        if (updateModal) {
+            SyncModal();
         }
 
         OnKeyChanged?.Invoke(value);
-    }
-
-
-    private void RefreshListSize() {
-        // The list fits its items and scrolls once there are more than fit
-        var rows = Mathf.Clamp(_items?.Count ?? 0, 1, Mathf.Max(1, MaxVisibleRows));
-        _table.FlexItem.Size = new() { x = 36.pt, y = (RowHeight * rows).pt };
     }
 
     #endregion
 
     #region Construct
 
-    private const float RowHeight = 7f;
-
-    private Table<T, IReactiveComponent> _table = null!;
     private State<float> _skew = null!;
     private State<T?> _keyState = null!;
     private State<IReadOnlyDictionary<T, BsDropdownItem>?> _itemsState = null!;
     private State<BsDropdownColors> _colors = null!;
     private State<bool> _modalOpened = null!;
     private State<GraphicState> _graphic = null!;
-    private Modal _modal = null!;
+    private SharedModal<BsDropdownModal> _modal = null!;
 
     protected override GameObject Construct() {
         _keyState = Remember<T?>(default);
@@ -140,7 +130,6 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
 
         _modalOpened = Remember(false);
         _graphic = Remember(GraphicState.None);
-        var anchor = Remember<RectTransform?>(null);
 
         var contentColor = _graphic.MapColorSet(_colors, x => x.ItemContentColors);
         var bgColor = _graphic.MapColorSet(_colors, x => x.ButtonBackgroundColors);
@@ -149,8 +138,6 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
             x => x._keyState.Value is { } key && x._itemsState.Value?.TryGetValue(key, out var i) == true ? i : (BsDropdownItem?)null,
             (_keyState, _itemsState)
         );
-
-        var scrollContext = new ScrollContext();
 
         return new Background {
             FlexController = {
@@ -183,8 +170,6 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
                         GameResources.ButtonClickSignal.Raise();
                     }
                 );
-
-                anchor.Value = x.ContentTransform;
             },
 
             Children = {
@@ -224,125 +209,39 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
                     sColor = _graphic.MapColorSet(_colors, x => x.ArrowColors).In()
                 },
 
-                new Modal {
+                new SharedModal<BsDropdownModal> {
                     sIsPushed = _modalOpened,
-                    sPlacementAnchor = anchor,
-
-                    OnClickOutside = () => {
-                        _modalOpened.Value = false;
-                    },
-
-                    PlacementData = new() {
-                        Placement = RelativePlacement.Center,
-                        Clip = true
-                    },
-
-                    FlexController = {
-                        FlexDirection = FlexDirection.Row,
-                        Gap = 0.5f.pt
-                    },
-
-                    Children = {
-                        new Background {
-                            FlexItem = {
-                                Flex = 1
-                            },
-
-                            FlexController = {
-                                Padding = new() { top = 1.pt, bottom = 1.pt }
-                            },
-
-                            Children = {
-                                new Table<T, IReactiveComponent> {
-                                    FlexItem = {
-                                        Size = new() { x = 36.pt, y = (RowHeight * MaxVisibleRows).pt },
-                                        Margin = new() { top = 1.pt, bottom = 1.pt }
-                                    },
-
-                                    ScrollContext = scrollContext,
-                                    Items = Array.Empty<T>(),
-
-                                    OnSelectedItemsChanged = x => {
-                                        if (x.Count > 0) {
-                                            SetKey(x.First(), false);
-                                        }
-                                    },
-
-                                    ConstructCell = ctx => CreateCell(ctx, _colors)
-                                }.Bind(ref _table),
-                            }
-                        }.AsBlurBackground(),
-
-                        new Scrollbar {
-                            ScrollContext = scrollContext,
-                            HideIfNothingToScroll = true
-                        }
-                    }
+                    ApplyProps = ApplyModalProps
                 }.Bind(ref _modal)
             }
         }.Use();
     }
 
-    [StateGen]
-    private IReactiveComponent CreateCell(CellContext<T> context, IState<BsDropdownColors> colors) {
-        var graphic = Remember(GraphicState.None);
-        // Unused cells can hold keys removed from the items, so they resolve to an empty item
-        var item = RememberDerived(
-            x => x._itemsState.Value?.TryGetValue(x.context.Item, out var i) == true ? i : default,
-            (context, _itemsState)
-        );
+    private void ApplyModalProps(BsDropdownModal modal) {
+        modal.PlacementAnchor = ContentTransform;
+        modal.CompositionAnimation = CompositionAnimation;
+        modal.OnClickOutside = () => _modalOpened.Value = false;
 
-        var fgColor = graphic.MapColorSet(colors, x => x.ItemContentColors);
-        var bgColor = graphic.MapColorSet(colors, x => x.ItemBackgroundColors);
-
-        context.AddCallback(x => graphic.IsActive = x.Selected);
-
-        return new Background {
-            FlexController = {
-                Gap = 1.pt,
-                JustifyContent = Justify.Center
-            },
-
-            FlexItem = {
-                Size = new() { x = 36.pt, y = RowHeight.pt }
-            },
-
-            Do = x => x.WithPointerEvents(
-                onEnter: _ => graphic.IsHovered = true,
-                onLeave: _ => graphic.IsHovered = false,
-                onDown: _ => {
-                    GameResources.ButtonClickSignal.Raise();
-                    context.Selected = true;
-                    _modalOpened.Value = false;
-                }
-            ),
-
-            Sprite = BeatSaberResources.Sprites.rectangle,
-            sColor = bgColor.In(),
-
-            Children = {
-                new Label {
-                    Alignment = TextAlignmentOptions.Capline,
-
-                    sEnabled = item.Map(x => x.Text != null),
-                    sText = item.Map(x => x.Text),
-                    sColor = fgColor.In()
-                }.AsFlexItem(),
-
-                new Image {
-                    FlexItem = {
-                        Margin = new() { top = 2.pt, bottom = 2.pt },
-                        AspectRatio = 1f
-                    },
-
-                    PreserveAspect = true,
-
-                    sEnabled = item.Map(x => x.Icon != null),
-                    sSprite = item.Map(x => x.Icon),
-                    sColor = fgColor.In()
-                },
-            }
+        modal.OnItemSelected = x => {
+            SetKey(_keys[x], false);
+            _modalOpened.Value = false;
         };
+
+        UpdateModal(modal);
+    }
+
+    private void SyncModal() {
+        // Only an open modal is ours to update, the rest is applied once it's taken from the pool
+        if (_modal?.Modal is { } modal) {
+            UpdateModal(modal);
+        }
+    }
+
+    private void UpdateModal(BsDropdownModal modal) {
+        modal.Colors = _colors.Value;
+        modal.MaxVisibleRows = MaxVisibleRows;
+        modal.Items = _items == null ? [] : _keys.Select(x => _items[x]).ToArray();
+        modal.SelectedIndex = _key.HasValue ? Array.IndexOf(_keys, _key.Value!) : -1;
     }
 
     #endregion

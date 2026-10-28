@@ -1,8 +1,6 @@
 using JetBrains.Annotations;
 using Reactive.Compiler;
 using Reactive.Components;
-using Reactive.Components.Basic;
-using Reactive.Yoga;
 using UnityEngine;
 
 namespace Reactive.BeatSaber.Components;
@@ -23,111 +21,102 @@ public partial class BsKeyboardModal : ReactiveComponent {
             _context = value;
             _contextSubscription = _context.AddCallback(HandleContextUpdated);
 
+            // An open modal follows the replaced context
+            _modal.Modal?.Context = value;
+
             HandleContextUpdated(_context);
         }
     }
 
     public RectTransform? PlacementAnchor {
-        get => _modal.PlacementAnchor;
-        set => _modal.PlacementAnchor = value;
+        get;
+        set {
+            field = value;
+            _modal.Modal?.PlacementAnchor = value;
+        }
     }
 
     public PlacementData PlacementData {
-        get => _modal.PlacementData;
-        set => _modal.PlacementData = value;
-    }
+        get;
+        set {
+            field = value;
+            _modal.Modal?.PlacementData = value;
+        }
+    } = new() {
+        Placement = RelativePlacement.BottomCenter,
+        Offset = new(0f, 1f)
+    };
 
     public CompositionAnimParams CompositionAnimation {
-        get => _modal.CompositionAnimation;
-        set => _modal.CompositionAnimation = value;
-    }
+        get;
+        set {
+            field = value;
+            _modal.Modal?.CompositionAnimation = value;
+        }
+    } = new() {
+        DimCanvas = false
+    };
 
-    public bool ClickOffCloses { get; set; } = true;
+    /// <inheritdoc cref="ModalBase.Animated"/>
+    public bool Animated {
+        get;
+        set {
+            field = value;
+            _modal.Modal?.Animated = value;
+        }
+    } = true;
+
+    public bool ClickOffCloses {
+        get;
+        set {
+            field = value;
+            _modal.Modal?.ClickOffCloses = value;
+        }
+    } = true;
 
     public bool ShowBackground {
-        get => _background.Enabled;
-        set => _background.Enabled = value;
-    }
+        get;
+        set {
+            field = value;
+            _modal.Modal?.ShowBackground = value;
+        }
+    } = true;
 
     public BsKeyboardColors KeyboardColors {
-        get => _keyboard.Colors;
-        set => _keyboard.Colors = value;
-    }
+        get;
+        set {
+            field = value;
+            _modal.Modal?.KeyboardColors = value;
+        }
+    } = BeatSaberStyle.BsKeyboardColors;
 
     #endregion
 
     #region Impl
 
-    private Modal _modal = null!;
-    private BsKeyboard _keyboard = null!;
-    private Background _background = null!;
+    private SharedModal<BsKeyboardModalView> _modal = null!;
     private BsInputFieldContext? _context;
     private StateSubscription? _contextSubscription;
 
     protected override GameObject Construct() {
-        return new Modal {
-            PlacementData = new() {
-                Placement = RelativePlacement.BottomCenter,
-                Offset = new(0f, 1f)
-            },
-
-            CompositionAnimation = new() {
-                DimCanvas = false
-            },
-
-            OnClickOutside = HandleClickOutside,
-
-            Children = {
-                new Background {
-                    FlexController = {
-                        Padding = 2.pt
-                    },
-
-                    Children = {
-                        new BsKeyboard {
-                            FlexItem = {
-                                Size = YogaValue.FitContent
-                            },
-
-                            OnOkClicked = HandleClose,
-                            OnTextChanged = HandleKeyboardTextChanged
-                        }.Bind(ref _keyboard)
-                    }
-                }.AsBlurBackground().AsFlexItem().Bind(ref _background)
-            }
+        return new SharedModal<BsKeyboardModalView> {
+            ApplyProps = ApplyModalProps
         }.Bind(ref _modal).Use();
     }
 
+    private void ApplyModalProps(BsKeyboardModalView modal) {
+        modal.PlacementAnchor = PlacementAnchor;
+        modal.PlacementData = PlacementData;
+        modal.CompositionAnimation = CompositionAnimation;
+        modal.Animated = Animated;
+        modal.ClickOffCloses = ClickOffCloses;
+        modal.ShowBackground = ShowBackground;
+        modal.KeyboardColors = KeyboardColors;
+        modal.Context = _context;
+    }
+
     private void HandleContextUpdated(BsInputFieldContext context) {
-        // The text could be changed outside (e.g. cleared by the input field), so syncing it on open
-        if (context.Focused && !_modal.IsPushed) {
-            _keyboard.Text = context.Text;
-        }
-
         _modal.IsPushed = context.Focused;
-    }
-
-    private void HandleKeyboardTextChanged(string? text) {
-        if (_context == null) {
-            return;
-        }
-
-        _context.Text = text;
-
-        // The context might have rejected the text, so the keyboard is brought back in sync
-        if (_context.Text != text) {
-            _keyboard.Text = _context.Text;
-        }
-    }
-
-    private void HandleClickOutside() {
-        if (ClickOffCloses) {
-            HandleClose();
-        }
-    }
-
-    private void HandleClose() {
-        _context?.Focused = false;
     }
 
     #endregion
