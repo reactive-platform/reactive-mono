@@ -34,6 +34,12 @@ public abstract class ModalBase : ReactiveComponent {
         set => _overlay.ZIndex = value;
     }
 
+    /// <inheritdoc cref="Overlay.CompositionAnimation"/>
+    public CompositionAnimParams CompositionAnimation {
+        get => _overlay.CompositionAnimation;
+        set => _overlay.CompositionAnimation = value;
+    }
+
     /// <inheritdoc cref="Overlay.OnPushed"/>
     public Action? OnPushed {
         get => _overlay.OnPushed;

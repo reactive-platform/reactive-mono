@@ -11,10 +11,16 @@ namespace Reactive;
 /// </summary>
 [PublicAPI]
 public class Composition : MonoBehaviour {
+    #region Overlays
+
     private readonly List<IOverlay> _overlays = new();
     private int _startingSiblingIndex;
 
     public void PushOverlay(IOverlay overlay) {
+        if (_overlays.Count == 0) {
+            SetDimmed(overlay.CompositionAnimation);
+        }
+
         var insertIndex = InsertOverlay(overlay);
         var trans = overlay.ContentTransform;
 
@@ -27,8 +33,9 @@ public class Composition : MonoBehaviour {
             trans.SetSiblingIndex(_startingSiblingIndex + insertIndex);
         }
 
+        trans.gameObject.GetOrAddComponent<CanvasGroup>().ignoreParentGroups = _dimmed;
         trans.gameObject.SetActive(true);
-        
+
         overlay.OnPush();
     }
 
@@ -40,8 +47,13 @@ public class Composition : MonoBehaviour {
         var trans = overlay.ContentTransform;
         var setBackTrans = overlay.SetBackParent;
 
+        trans.GetComponent<CanvasGroup>().ignoreParentGroups = false;
         trans.SetParent(setBackTrans, false);
         trans.gameObject.SetActive(false);
+
+        if (_overlays.Count == 0) {
+            SetDimmed(_params with { DimCanvas = false });
+        }
 
         overlay.OnPop();
     }
@@ -59,6 +71,48 @@ public class Composition : MonoBehaviour {
         _overlays.Insert(0, overlay);
         return 0;
     }
+
+    #endregion
+
+    #region Dimming
+
+    private CanvasGroup? _canvasGroup;
+    private CompositionAnimParams _params;
+    private bool _dimmed;
+    private float _startAlpha;
+    private float _elapsedTime;
+
+    private void SetDimmed(CompositionAnimParams animParams) {
+        _canvasGroup ??= gameObject.GetOrAddComponent<CanvasGroup>();
+
+        // Restoring uses the params of the overlay that dimmed the composition
+        _params = animParams;
+        _dimmed = animParams.DimCanvas;
+        _startAlpha = _canvasGroup.alpha;
+        _elapsedTime = 0f;
+
+        enabled = true;
+    }
+
+    private void Update() {
+        _elapsedTime += Time.deltaTime;
+
+        var target = _dimmed ? _params.DimmedAlpha : 1f;
+        var progress = _params.Duration > 0f ? Mathf.Clamp01(_elapsedTime / _params.Duration) : 1f;
+        var curved = _params.Curve?.Evaluate(progress) ?? progress;
+
+        _canvasGroup!.alpha = Mathf.LerpUnclamped(_startAlpha, target, curved);
+
+        if (progress >= 1f) {
+            enabled = false;
+        }
+    }
+
+    private void Awake() {
+        enabled = false;
+    }
+
+    #endregion
 
     public static Composition GetComposition(GameObject go) {
         return go.GetComponentInParent<Composition>() ?? throw new Exception("The object is not in the composition stack");

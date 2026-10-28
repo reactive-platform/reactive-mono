@@ -65,6 +65,11 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
         get => _colors.Value;
         set => _colors.Value = value;
     }
+    
+    public CompositionAnimParams CompositionAnimation {
+        get => _modal.CompositionAnimation;
+        set => _modal.CompositionAnimation = value;
+    }
 
     public int MaxVisibleRows {
         get;
@@ -125,6 +130,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
     private State<BsDropdownColors> _colors = null!;
     private State<bool> _modalOpened = null!;
     private State<GraphicState> _graphic = null!;
+    private Modal _modal = null!;
 
     protected override GameObject Construct() {
         _keyState = Remember<T?>(default);
@@ -272,7 +278,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
                             HideIfNothingToScroll = true
                         }
                     }
-                }
+                }.Bind(ref _modal)
             }
         }.Use();
     }

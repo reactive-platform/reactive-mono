@@ -39,6 +39,11 @@ public partial class BsColorCircleModal : ReactiveComponent {
         set => _modal.PlacementData = value;
     }
 
+    public CompositionAnimParams CompositionAnimation {
+        get => _modal.CompositionAnimation;
+        set => _modal.CompositionAnimation = value;
+    }
+
     public bool ClickOffCloses { get; set; } = true;
     
     public string? Title {
@@ -75,6 +80,10 @@ public partial class BsColorCircleModal : ReactiveComponent {
             PlacementData = new() {
                 Placement = RelativePlacement.BottomCenter,
                 Offset = new(0f, 1f)
+            },
+            
+            CompositionAnimation = new() {
+                DimCanvas = false
             },
 
             OnClickOutside = HandleClickOutside,

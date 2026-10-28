@@ -16,6 +16,11 @@ public interface IOverlay {
     int ZIndex { get; }
 
     /// <summary>
+    /// Defines how the overlay affects the composition.
+    /// </summary>
+    CompositionAnimParams CompositionAnimation { get; }
+
+    /// <summary>
     /// A transform to push.
     /// </summary>
     Transform ContentTransform { get; }

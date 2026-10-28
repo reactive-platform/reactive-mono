@@ -24,6 +24,12 @@ public class Overlay : Layout, IOverlay {
     public int ZIndex { get; set; }
 
     /// <summary>
+    /// Defines how the overlay affects the composition. See <see cref="CompositionAnimParams"/>.
+    /// Should be set before pushing an overlay.
+    /// </summary>
+    public CompositionAnimParams CompositionAnimation { get; set; } = new();
+
+    /// <summary>
     /// Called when the overlay gets pushed to the composition.
     /// </summary>
     public Action? OnPushed { get; set; }
