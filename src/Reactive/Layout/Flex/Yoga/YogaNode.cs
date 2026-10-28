@@ -67,6 +67,7 @@ namespace Reactive.Yoga {
 
             managedNodes.Remove(_nodePtr);
             _nodePtr = IntPtr.Zero;
+            _measureFunc = null;
         }
 
         public bool Equals(YogaNode other) {

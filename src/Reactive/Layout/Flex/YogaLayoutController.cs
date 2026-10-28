@@ -258,6 +258,7 @@ namespace Reactive.Yoga {
             }
 
             _context = (YogaContext)context;
+            _context.Retain();
             _context.Controller = this;
 
             _node = _context.YogaNode;
@@ -273,9 +274,14 @@ namespace Reactive.Yoga {
 
             RemoveAllChildren();
 
-            _context.Controller = null;
+            var context = _context;
+
+            context.Controller = null;
             _context = null;
             _node = null;
+
+            // Freed right away if the parent doesn't hold it as a child too
+            context.Release();
         }
 
         #endregion
@@ -357,6 +363,7 @@ namespace Reactive.Yoga {
 
             // Claim a compatible context or create a new one
             var context = child.LayoutContext as YogaContext ?? new YogaContext();
+            context.Retain();
             child.AssignContext(context);
 
             RefreshChild(child, context);
@@ -375,6 +382,7 @@ namespace Reactive.Yoga {
             child.AssignContext(null);
 
             _nodes.Remove(child);
+            context.Release();
         }
 
         public void RemoveAllChildren() {
@@ -388,6 +396,12 @@ namespace Reactive.Yoga {
             }
 
             YogaNode.RemoveAllChildren();
+
+            // Released once detached, as the freed nodes can't be in the tree
+            foreach (var (_, context) in _nodes) {
+                context.Release();
+            }
+
             _nodes.Clear();
         }
 

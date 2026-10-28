@@ -70,7 +70,7 @@ namespace Reactive {
                 _layoutDriver = driver;
                 _layoutState.QueuedFor = 0;
                 _layoutState.HasApplied = false;
-                
+
                 if (driver == null) {
                     _layoutComponent?.PromotedOnModifierUpdate();
                 }
@@ -330,6 +330,8 @@ namespace Reactive {
                 }
 
                 IsDestroyed = true;
+
+                ReleaseLayoutContext();
             }
 
             private void OnTransformParentChanged() {
