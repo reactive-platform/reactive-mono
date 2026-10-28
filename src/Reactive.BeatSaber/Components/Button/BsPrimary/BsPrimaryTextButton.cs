@@ -79,6 +79,11 @@ public class BsPrimaryTextButton : ReactiveComponent, ISkewedComponent, IInterac
         set => _button.Interactable = value;
     }
 
+    public BsPrimaryButtonColors Colors {
+        get => _button.Colors;
+        set => _button.Colors = value;
+    }
+
     public Action? OnClick {
         get => _button.OnClick;
         set => _button.OnClick = value;
