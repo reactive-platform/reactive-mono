@@ -40,6 +40,18 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
     }
 
     /// <summary>
+    /// Jumps the current animation to its end, applying the final values and invoking the finish callback.
+    /// </summary>
+    public void Finish() {
+        if (Animation is not { } animation) {
+            return;
+        }
+
+        _elapsedTime = animation.Duration;
+        Evaluate();
+    }
+
+    /// <summary>
     /// Stops the current animation, leaving the target as it is.
     /// </summary>
     public void Stop() {
