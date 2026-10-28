@@ -32,6 +32,8 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
             _settingSelection = true;
             _table.SelectedItems = value >= 0 ? [value] : [];
             _settingSelection = false;
+            _pendingScrollIndex = value;
+            ScrollToPending();
         }
     }
 
@@ -63,13 +65,22 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
     private Table<int, IReactiveComponent> _table = null!;
     private State<IReadOnlyList<BsDropdownItem>> _items = null!;
     private State<BsDropdownColors> _colors = null!;
+    private ScrollContext _scrollContext = null!;
     private bool _settingSelection;
+    private int _pendingScrollIndex = -1;
 
     protected override IReactiveComponent ConstructContent() {
         _items = Remember<IReadOnlyList<BsDropdownItem>>(Array.Empty<BsDropdownItem>());
         _colors = Remember(BeatSaberStyle.BsDropdownColors);
 
         var scrollContext = new ScrollContext();
+        _scrollContext = scrollContext;
+        
+        scrollContext.AddCallback(x => {
+            if (x.UpdateType.IsMeasurements && ScrollToPending()) {
+                _pendingScrollIndex = -1;
+            }
+        }, lazy: true);
 
         return new Layout {
             Name = "Content",
@@ -129,6 +140,19 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
             Placement = RelativePlacement.Center,
             Clip = true
         };
+    }
+    
+    private bool ScrollToPending() {
+        var lineSize = _scrollContext.LineSize;
+
+        if (_pendingScrollIndex < 0 || lineSize <= 0f) {
+            return false;
+        }
+
+        var pos = _pendingScrollIndex * lineSize - (_scrollContext.ViewSize - lineSize) / 2f;
+        _scrollContext.ScrollTo(pos, true);
+
+        return true;
     }
 
     private void RefreshListSize() {
@@ -210,6 +234,8 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
 
         OnItemSelected = null;
         SelectedIndex = -1;
+
+        _scrollContext.ScrollTo(0f, true);
         Items = Array.Empty<BsDropdownItem>();
         MaxVisibleRows = DefaultMaxVisibleRows;
         Colors = BeatSaberStyle.BsDropdownColors;
