@@ -33,6 +33,17 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
         get => _graphic.IsInteractable;
         set => _graphic.IsInteractable = value;
     }
+    
+    public bool Animated {
+        get;
+        set {
+            field = value;
+
+            if (!value) {
+                SnapKnob();
+            }
+        }
+    } = true;
 
     public BsToggleColors Colors {
         get => _colors.Value;
@@ -64,7 +75,11 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
         var knobColor = RememberDerived(x => _colors.Value.KnobColors.GetColor(x._graphic), (_graphic, _colors));
 
         _graphic.AddCallback(x => {
-            _progress.TargetValue = x.IsActive ? 1 : 0;
+            if (Animated && IsInitialized && Content.activeInHierarchy) {
+                _progress.TargetValue = x.IsActive ? 1 : 0;
+            } else {
+                SnapKnob();
+            }
         });
 
         return new Background {
@@ -157,6 +172,19 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
                 }.WithRectExpand().WithSizeDelta(-_knobWidth - _knobMargin, 0f)
             }
         }.AsFlexGroup().Use();
+    }
+
+    protected override void OnDisable() {
+        SnapKnob();
+    }
+
+    private void SnapKnob() {
+        var target = _graphic.IsActive ? 1f : 0f;
+
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
+        if (_progress.Value != target) {
+            _progress.SetValueImmediate(target);
+        }
     }
 
     #endregion
