@@ -269,14 +269,21 @@ namespace Reactive.Components.Basic {
         private void RefreshCells() {
             RefreshCellSizeIfNeeded();
 
-            var (startIdx, endIdx) = GetVisibleRange();
-            var cellsCount = endIdx - startIdx;
-
             var contentSize = Items.Count * CellSize;
-            
+
             _scrollContent.sizeDelta = ScrollOrientation is ScrollOrientation.Vertical ?
                 new(0f, contentSize) :
                 new(contentSize, 0f);
+            
+            // Context.MaxScrollPos isn't updated yet so we calculate this manually
+            var maxPos = Mathf.Max(0f, contentSize - ScrollContext.ViewSize);
+
+            if (ScrollContext.ActualScrollPos > maxPos) {
+                ScrollContext.ScrollTo(maxPos, true);
+            }
+
+            var (startIdx, endIdx) = GetVisibleRange();
+            var cellsCount = endIdx - startIdx;
             _cellStartPos = startIdx * CellSize;
             _visibleRange = (startIdx, endIdx);
 
@@ -322,7 +329,9 @@ namespace Reactive.Components.Basic {
         }
 
         private (int Start, int End) GetVisibleRange() {
-            var scrollPos = ScrollContext.ActualScrollPos;
+            // The actual position catches up with the shrunk content only once the scroll area applies it
+            var maxPos = Mathf.Max(0f, Items.Count * CellSize - ScrollContext.ViewSize);
+            var scrollPos = Mathf.Min(ScrollContext.ActualScrollPos, maxPos);
 
             // The scroll position can be out of the content while it's being resized
             var startIdx = Mathf.Clamp(Mathf.FloorToInt((scrollPos + 0.01f) / CellSize), 0, Items.Count);

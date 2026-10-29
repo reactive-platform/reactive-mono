@@ -80,7 +80,7 @@ public class ScrollContext : StateBase<ScrollContext>, IState<ScrollContext> {
     }
 
     public float MaxScrollPos {
-        get => ContentSize - ViewSize;
+        get => Mathf.Max(0f, ContentSize - ViewSize);
     }
 
     public bool CanScrollUp {
@@ -154,6 +154,11 @@ public class ScrollContext : StateBase<ScrollContext>, IState<ScrollContext> {
         ContentSize = contentSize;
         ViewSize = viewSize;
         LineSize = lineSize;
+        
+        if (ScrollPos > MaxScrollPos) {
+            ScrollPos = MaxScrollPos;
+        }
+
         NotifyValueChanged(ScrollUpdateType.Measurements);
     }
 
