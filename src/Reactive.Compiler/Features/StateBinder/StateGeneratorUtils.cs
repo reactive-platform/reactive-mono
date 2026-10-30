@@ -31,6 +31,22 @@ internal static class StateGeneratorUtils {
             .Any(x => x.IsStateType());
     }
 
+    public const string LifetimeProviderPath = "Reactive.ILifetimeProvider";
+
+    public static bool IsLifetimeProvider(ITypeSymbol symbol) {
+        return symbol.ToDisplayString() == LifetimeProviderPath ||
+            symbol.AllInterfaces.Any(x => x.ToDisplayString() == LifetimeProviderPath);
+    }
+    
+    public static string GetBinderMethod(ITypeSymbol symbol) {
+        if (IsUnityObject(symbol)) {
+            return "AddCallbackUnity";
+        }
+
+        // Objects without a lifetime of their own live as long as they're referenced
+        return IsLifetimeProvider(symbol) ? "AddCallback" : "AddCallbackWeak";
+    }
+
     public static bool IsUnityObject(ITypeSymbol symbol) {
         var current = symbol;
         

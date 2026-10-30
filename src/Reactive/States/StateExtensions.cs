@@ -93,6 +93,30 @@ namespace Reactive {
                 }
             }
 
+            /// <summary>
+            /// Binds a callback to some state capturing an object weakly. Used for objects without a lifetime of their own.
+            /// The binding stays as long as something else references the object, and is removed on the next update once it's collected.
+            /// </summary>
+            /// <param name="comp">An object to capture.</param>
+            /// <param name="callback">A callback to bind. Must not capture the object, or it never gets collected.</param>
+            /// <param name="lazy">Whether the callback should be invoked immediately.</param>
+            public StateSubscription AddCallbackWeak<TComp>(TComp comp, Action<TComp, T> callback, bool lazy = false) where TComp : class {
+                return state.AddCallbackInternal(lazy, Wrapper, new WeakReference<TComp>(comp), callback);
+
+                static void Wrapper(ref RefStateSubscription sub, T val, object arg1, object arg2) {
+                    var reference = (WeakReference<TComp>)arg1;
+                    var callback = (Action<TComp, T>)arg2;
+
+                    // Unsubscribe if nobody uses the object anymore
+                    if (!reference.TryGetTarget(out var comp)) {
+                        sub.RemoveCallback();
+                        return;
+                    }
+
+                    callback(comp, val);
+                }
+            }
+
             private StateSubscription AddCallbackInternal(bool lazy, StateCallback<T> callback, object arg1, object arg2) {
                 var sub = state.AddCallback(callback, arg1, arg2);
 

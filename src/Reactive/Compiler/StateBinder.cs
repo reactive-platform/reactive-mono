@@ -26,6 +26,12 @@ public readonly ref struct StateBinder<T, TState> where TState : IState<T> {
         _state!.AddCallbackUnity(comp, callback, _lazy);
     }
 
+    public void AddCallbackWeak<TComp>(TComp comp, Action<TComp, T> callback) where TComp : class {
+        EnsureInitialized();
+
+        _state!.AddCallbackWeak(comp, callback, _lazy);
+    }
+
     private void EnsureInitialized() {
         if (_state == null) {
             throw new InvalidOperationException("StateBinder wasn't initialized");

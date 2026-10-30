@@ -194,7 +194,7 @@ internal class StateGenerator : IIncrementalGenerator {
 
     private static string GenerateProps(INamedTypeSymbol type, IEnumerable<IGrouping<ISymbol?, string>> propGroups) {
         var buffer = new StringBuilder();
-        var binder = StateGeneratorUtils.IsUnityObject(type) ? "AddCallbackUnity" : "AddCallback";
+        var binder = StateGeneratorUtils.GetBinderMethod(type);
 
         foreach (var nameGroup in propGroups) {
             var prop = nameGroup.Key!;
