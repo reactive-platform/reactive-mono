@@ -274,12 +274,16 @@ namespace Reactive.Components.Basic {
             _scrollContent.sizeDelta = ScrollOrientation is ScrollOrientation.Vertical ?
                 new(0f, contentSize) :
                 new(contentSize, 0f);
-            
+
             // Context.MaxScrollPos isn't updated yet so we calculate this manually
             var maxPos = Mathf.Max(0f, contentSize - ScrollContext.ViewSize);
 
             if (ScrollContext.ActualScrollPos > maxPos) {
                 ScrollContext.ScrollTo(maxPos, true);
+            }
+
+            if (!Mathf.Approximately(ScrollContext.ContentSize, contentSize)) {
+                ScrollContext.ControllerSetMeasurements(contentSize, ScrollContext.ViewSize, CellSize);
             }
 
             var (startIdx, endIdx) = GetVisibleRange();
@@ -414,7 +418,7 @@ namespace Reactive.Components.Basic {
             if (_needsInitialUpdate) {
                 return;
             }
-            
+
             if (context.UpdateType.IsMeasurements) {
                 // Cells are measured against the content's cross size, which changes with the viewport
                 _needToRefreshCellSize = true;
