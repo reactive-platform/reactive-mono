@@ -161,6 +161,8 @@ internal class StateGenerator : IIncrementalGenerator {
     private static string GenerateTypeExtension(INamedTypeSymbol containingType, INamedTypeSymbol type, IEnumerable<IGrouping<ISymbol?, string>> propGroups) {
         var template =
             """
+            #nullable enable
+
             {5}
 
             [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
