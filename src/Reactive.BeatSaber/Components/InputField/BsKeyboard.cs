@@ -166,6 +166,8 @@ public class BsKeyboard : ReactiveComponent {
                                 Text += " ";
                             },
 
+                            sColors = keyColors,
+
                             ConstructContent = (color, _) => new Label {
                                 Text = "SPACE",
                                 Alignment = TextAlignmentOptions.Capline,
@@ -183,6 +185,8 @@ public class BsKeyboard : ReactiveComponent {
                             OnClick = () => {
                                 OnOkClicked?.Invoke();
                             },
+
+                            sColors = keyColors,
 
                             ConstructContent = (state, _) => new Label {
                                 Text = "OK",
