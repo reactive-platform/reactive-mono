@@ -12,18 +12,22 @@ namespace Reactive.Compiler;
 [Generator]
 internal class StateGenerator : IIncrementalGenerator {
     public void Initialize(IncrementalGeneratorInitializationContext context) {
-        // Filter assignment expressions and get semantic model
+        // Every bindable property of an initialized type in Debug, so completion can suggest them before they're used
+        var generateAll = BuildConfiguration.CreateIsDebugProvider(context);
+
+        // `new Foo { sB }` without `=` is parsed as a collection initializer, so we match both
         var candidates = context.SyntaxProvider
             .CreateSyntaxProvider(
-                predicate: static (node, _) => node is AssignmentExpressionSyntax { RawKind: (int)SyntaxKind.SimpleAssignmentExpression },
-                transform: static (ctx, ct) => {
-                    var assignment = (AssignmentExpressionSyntax)ctx.Node;
-                    var semanticModel = ctx.SemanticModel;
-                    return GetCandidate(assignment, semanticModel, ct);
-                }
+                predicate: static (node, _) => node is InitializerExpressionSyntax {
+                    RawKind: (int)SyntaxKind.ObjectInitializerExpression or (int)SyntaxKind.CollectionInitializerExpression,
+                    Parent: BaseObjectCreationExpressionSyntax or AssignmentExpressionSyntax
+                },
+                transform: static (ctx, _) => ctx
             )
-            .Where(static candidate => candidate.HasValue)
-            .Select(static (candidate, _) => candidate!.Value);
+            .Combine(generateAll)
+            .SelectMany(static (pair, ct) =>
+                GetCandidates((InitializerExpressionSyntax)pair.Left.Node, pair.Left.SemanticModel, pair.Right, ct)
+            );
 
         // Group by containing type
         var groupedByType = candidates
@@ -60,37 +64,127 @@ internal class StateGenerator : IIncrementalGenerator {
         );
     }
 
-    private static (ISymbol targetProp, string genName)? GetCandidate(
-        AssignmentExpressionSyntax assignment,
+    private static IEnumerable<(ISymbol targetProp, string genName)> GetCandidates(
+        InitializerExpressionSyntax initializer,
         SemanticModel semanticModel,
+        bool includeUnused,
         CancellationToken cancellationToken
     ) {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (GetPatterns(assignment, semanticModel) is not { } patterns) {
-            return null;
+        if (GetPatterns(initializer, semanticModel) is not { } patterns) {
+            return [];
         }
 
-        // Ignoring state type here as we simply need to ensure that the resulting 
-        // object is IState, the target type is taken from the target property
-        if (!assignment.Right.IsStateExpression(semanticModel)) {
-            return null;
+        // Get type of the object that is being initialized
+        if (SyntaxExtensions.FindInitializerType(initializer, semanticModel) is not { } type) {
+            return [];
         }
 
-        // We only need unresolved symbols
-        if (semanticModel.GetSymbolInfo(assignment.Left).Symbol != null) {
-            return null;
+        return includeUnused
+            ? CollectAllProperties(initializer, patterns, type, semanticModel)
+            : CollectMatchingProperties(initializer, patterns, type, semanticModel);
+    }
+    
+    private static List<(ISymbol targetProp, string genName)> CollectMatchingProperties(
+        InitializerExpressionSyntax initializer,
+        string[] patterns,
+        ITypeSymbol type,
+        SemanticModel semanticModel
+    ) {
+        var result = new List<(ISymbol targetProp, string genName)>();
+
+        foreach (var expression in initializer.Expressions) {
+            if (expression is not AssignmentExpressionSyntax { RawKind: (int)SyntaxKind.SimpleAssignmentExpression } assignment) {
+                continue;
+            }
+            
+            if (!assignment.Right.IsStateExpression(semanticModel)) {
+                continue;
+            }
+
+            // We only need unresolved symbols
+            if (semanticModel.GetSymbolInfo(assignment.Left).Symbol != null) {
+                continue;
+            }
+
+            var statePropName = assignment.Left.ToString();
+            var position = assignment.Left.SpanStart;
+
+            foreach (var pattern in patterns) {
+                var rex = pattern.Replace("{}", "([A-Za-z0-9_]+)");
+                if (Regex.Match(statePropName, rex) is not { Success: true } match) {
+                    continue;
+                }
+
+                var matchedPropName = match.Groups[1].Value;
+
+                var symbols = semanticModel.LookupSymbols(
+                    position,
+                    type,
+                    matchedPropName,
+                    includeReducedExtensionMethods: true // CRUCIAL!! Captures extension properties
+                );
+
+                if (symbols.FirstOrDefault() is IPropertySymbol prop && IsBindable(prop, position, semanticModel)) {
+                    result.Add((prop.OriginalDefinition, statePropName));
+                    break;
+                }
+            }
         }
 
-        if (GetTargetProperty(patterns, assignment, semanticModel) is not { } tuple) {
-            return null;
+        return result;
+    }
+    
+    private static List<(ISymbol targetProp, string genName)> CollectAllProperties(
+        InitializerExpressionSyntax initializer,
+        string[] patterns,
+        ITypeSymbol type,
+        SemanticModel semanticModel
+    ) {
+        var result = new List<(ISymbol targetProp, string genName)>();
+        var position = initializer.OpenBraceToken.Span.End;
+
+        var members = semanticModel.LookupSymbols(
+            position,
+            type,
+            includeReducedExtensionMethods: true // CRUCIAL!! Captures extension properties
+        );
+
+        foreach (var member in members) {
+            if (member is not IPropertySymbol prop || !IsBindable(prop, position, semanticModel)) {
+                continue;
+            }
+
+            foreach (var pattern in patterns) {
+                result.Add((prop.OriginalDefinition, pattern.Replace("{}", prop.Name)));
+            }
         }
 
-        return tuple;
+        return result;
+    }
+    
+    private static bool IsBindable(IPropertySymbol prop, int position, SemanticModel semanticModel) {
+        if (prop is not { IsStatic: false, IsIndexer: false, SetMethod: { IsInitOnly: false } setter }) {
+            return false;
+        }
+
+        if (!semanticModel.IsAccessible(position, setter)) {
+            return false;
+        }
+
+        // Extensions on a bare type parameter (e.g. `extension<T>(T comp)`) can't be targeted by a typed extension.
+        // Checking the original definition, as that's what gets generated and the lookup substitutes T
+        if (prop.OriginalDefinition.ContainingType is { IsExtension: true, ExtensionParameter.Type: not INamedTypeSymbol }) {
+            return false;
+        }
+
+        // Raw states are excluded from the generation process
+        return prop.GetDerivedAttribute<RawStateAttribute>(semanticModel) == null;
     }
 
-    private static string[]? GetPatterns(AssignmentExpressionSyntax assignment, SemanticModel semanticModel) {
-        if (assignment.GetEnclosingMember() is not { } methodSyntax) {
+    private static string[]? GetPatterns(SyntaxNode node, SemanticModel semanticModel) {
+        if (node.GetEnclosingMember() is not { } methodSyntax) {
             return null;
         }
 
@@ -116,46 +210,6 @@ internal class StateGenerator : IIncrementalGenerator {
         }
 
         return patterns;
-    }
-
-    private static (ISymbol, string)? GetTargetProperty(string[] patterns, AssignmentExpressionSyntax assignment, SemanticModel semanticModel) {
-        // Get type of the object that is being initialized
-        var containingType = SyntaxExtensions.FindInitializerType(assignment.Parent!, semanticModel);
-        if (containingType == null) {
-            return null;
-        }
-
-        var statePropName = assignment.Left.ToString();
-        var position = assignment.Left.SpanStart;
-
-        foreach (var pattern in patterns) {
-            var rex = pattern.Replace("{}", "([A-Za-z0-9_]+)");
-            if (Regex.Match(statePropName, rex) is not { Success: true } match) {
-                continue;
-            }
-
-            var matchedPropName = match.Groups[1].Value;
-
-            var symbols = semanticModel.LookupSymbols(
-                position,
-                containingType,
-                matchedPropName,
-                includeReducedExtensionMethods: true // CRUCIAL!! Captures extension properties
-            );
-
-            var symbol = symbols.FirstOrDefault();
-
-            if (symbol is IPropertySymbol prop) {
-                // Raw states are excluded from the generation process
-                if (symbol.GetDerivedAttribute<RawStateAttribute>(semanticModel) != null) {
-                    continue;
-                }
-
-                return (prop.OriginalDefinition, statePropName);
-            }
-        }
-
-        return null;
     }
 
     private static string GenerateTypeExtension(INamedTypeSymbol containingType, INamedTypeSymbol type, IEnumerable<IGrouping<ISymbol?, string>> propGroups) {
