@@ -141,12 +141,6 @@ public static class ReactiveScheduler {
             try {
                 for (var count = _queue.Count; count > 0; count--) {
                     var node = _queue.Dequeue();
-
-                    // An item outside the layout is scheduled again when it's enabled
-                    if (node is ILayoutItem { WithinLayout: false }) {
-                        continue;
-                    }
-
                     node.LayoutState.QueuedFor = 0;
 
                     try {

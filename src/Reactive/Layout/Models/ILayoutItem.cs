@@ -31,21 +31,20 @@ namespace Reactive {
         ILayoutModifier? LayoutModifier { get; set; }
         
         /// <summary>
-        /// Whether this node is enabled from the layout perspective. Items outside the layout
-        /// are neither calculated by the parent nor recalculated on their own.
+        /// Whether this node takes part in its parent's layout and occupies space there.
+        /// Depends on the node alone, not on its parents. 
         /// </summary>
+        /// <remarks>
+        /// A node can be out of the layout implicitly (disabled) or explicitly (detached on purpose), the parent treats
+        /// both the same way. A node out of the layout still lays out its own hierarchy as a separate tree while active.
+        /// A node inside a hidden hierarchy is still within the layout.
+        /// See <see cref="ILayoutNode.IsActiveInHierarchy"/> if you need the actual state.
+        /// </remarks>
         bool WithinLayout { get; }
 
         /// <summary>
-        /// Whether this node is intentionally detached from the layout calculation while being within the layout.
-        /// Applies only to the parent hierarchy, so if the node itself is a driver
-        /// it will proceed to work as a separate tree.
-        /// </summary>
-        bool IgnoreLayout { get; }
-
-        /// <summary>
         /// Invoked when some values affecting layout have changed.
-        /// <see cref="LayoutModifier"/>, <see cref="WithinLayout"/> and <see cref="IgnoreLayout"/> are some of those.
+        /// <see cref="LayoutModifier"/> and <see cref="WithinLayout"/> are some of those.
         /// Tracked by <see cref="ILayoutDriver"/>, shouldn't be subscribed directly.
         /// </summary>
         event Action<ILayoutItem>? LayoutDataUpdatedEvent;

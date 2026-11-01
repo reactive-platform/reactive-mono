@@ -15,7 +15,7 @@ public static class LayoutTool {
     /// </summary>
     /// <param name="item">An item to check.</param>
     public static bool IsControlledByParent(ILayoutItem item) {
-        return !item.IgnoreLayout && (item.LayoutDriver?.LayoutController?.HasChild(item) ?? false);
+        return item.WithinLayout && (item.LayoutDriver?.LayoutController?.HasChild(item) ?? false);
     }
 
     /// <summary>

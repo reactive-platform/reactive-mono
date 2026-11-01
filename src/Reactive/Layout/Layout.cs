@@ -39,7 +39,7 @@ namespace Reactive {
                 for (var i = 0; i < _childrenOrdered.Count; i++) {
                     var child = _childrenOrdered[i];
 
-                    if (value != null && IsIncluded(child)) {
+                    if (value != null && child.WithinLayout) {
                         value.InsertChild(child, value.ChildCount);
                     }
                 }
@@ -52,10 +52,6 @@ namespace Reactive {
 
         public new void ScheduleLayoutRecalculation() {
             base.ScheduleLayoutRecalculation();
-        }
-
-        private static bool IsIncluded(ILayoutItem item) {
-            return item is { WithinLayout: true, IgnoreLayout: false };
         }
 
         private int GetControllerIndex(ILayoutItem item, ILayoutController controller) {
@@ -96,7 +92,7 @@ namespace Reactive {
             item.AssignParent(this);
             _childrenOrdered.Add(item);
 
-            if (layoutController != null && IsIncluded(item)) {
+            if (layoutController != null && item.WithinLayout) {
                 layoutController.InsertChild(item, GetControllerIndex(item, layoutController));
             }
 
@@ -133,7 +129,7 @@ namespace Reactive {
 
             var hasChild = layoutController.HasChild(item);
 
-            if (IsIncluded(item)) {
+            if (item.WithinLayout) {
                 if (hasChild) {
                     layoutController.UpdateChild(item);
                 } else {
