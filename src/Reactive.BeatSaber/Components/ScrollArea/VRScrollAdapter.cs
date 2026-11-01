@@ -16,7 +16,7 @@ namespace Reactive.BeatSaber.Components {
             _pointerEventsHandler = GetComponent<PointerEventsHandler>();
             var context = BeatSaberUtils.MenuContainer;
             _platformHelper = context.Resolve<IVRPlatformHelper>();
-            _multiplier = BeatSaberUtils.UsesFPFC ? -10f : -1f;
+            _multiplier = BeatSaberUtils.UsesFPFC ? 10f : 1f;
         }
 
         private void Update() {
