@@ -14,45 +14,44 @@ namespace Reactive.BeatSaber.Components {
         #region Public API
 
         /// <summary>
-        /// Represents a color related to the current handle position. Updates each time the handle is moved.
+        /// The color at the current handle position. Setting it moves the handle and makes it the <see cref="SavedColor"/> too,
+        /// invoking both callbacks like a completed user change.
         /// </summary>
         public Color Color {
-            get;
-            private set {
-                field = value;
-                OnColorUpdated?.Invoke(value);
+            get => _color;
+            set {
+                Color.RGBToHSV(value, out var hue, out var saturation, out var brightness);
+
+                // Hue is undefined for grayscale colors, so keeping the current one to avoid the handle jumping
+                if (saturation == 0f || brightness == 0f) {
+                    hue = _hsv.Value.x;
+                }
+
+                _hsv.Value = new(hue, saturation, brightness);
+
+                var color = CurrentColor;
+
+                if (color != _color) {
+                    _color = color;
+                    OnColorUpdated?.Invoke(color);
+                }
+
+                if (color != SavedColor) {
+                    SavedColor = color;
+                    OnColorSaved?.Invoke(color);
+                }
             }
-        } = Color.white;
+        }
 
         /// <summary>
-        /// Represents a color after releasing the handle. Updates only once you release the handle.
+        /// Represents a color after releasing the handle, or the last one assigned to <see cref="Color"/>.
         /// </summary>
-        public Color SavedColor {
-            get;
-            private set {
-                field = value;
-                OnColorSaved?.Invoke(value);
-            }
-        } = Color.white;
+        public Color SavedColor { get; private set; } = Color.white;
 
         public Action<Color>? OnColorSaved { get; set; }
         public Action<Color>? OnColorUpdated { get; set; }
 
-        public void SetColor(Color color, bool notifyListeners = true) {
-            Color.RGBToHSV(color, out var hue, out var saturation, out var value);
-
-            // Hue is undefined for grayscale colors, so keeping the current one to avoid the handle jumping
-            if (saturation == 0f || value == 0f) {
-                hue = _hsv.Value.x;
-            }
-
-            _hsv.Value = new(hue, saturation, value);
-
-            if (notifyListeners) {
-                Color = CurrentColor;
-                SavedColor = CurrentColor;
-            }
-        }
+        private Color _color = Color.white;
 
         #endregion
 
@@ -186,7 +185,7 @@ namespace Reactive.BeatSaber.Components {
                                 RaycastTarget = false,
                                 sColor = hueColor
                             },
-                            
+
                             CreateCursor(GameResources.CircleTinyIcon, color)
                                 .With(x => x.IgnoreLayout = true)
                                 .Bind(ref _squareCursor)
@@ -281,12 +280,16 @@ namespace Reactive.BeatSaber.Components {
             }
 
             _hsv.Value = hsv;
-            Color = CurrentColor;
+            _color = CurrentColor;
+
+            OnColorUpdated?.Invoke(_color);
         }
 
         private void HandlePointerUp() {
             _curvedCanvasSettings = null;
-            SavedColor = CurrentColor;
+            SavedColor = _color;
+
+            OnColorSaved?.Invoke(SavedColor);
         }
 
         #endregion

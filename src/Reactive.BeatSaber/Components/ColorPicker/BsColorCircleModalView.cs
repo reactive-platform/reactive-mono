@@ -6,18 +6,17 @@ namespace Reactive.BeatSaber.Components;
 internal class BsColorCircleModalView : ModalBase, IPoolableComponent {
     #region Public API
 
-    /// <summary>
-    /// A context to edit. The circle picks up its selected color when assigned.
-    /// </summary>
     public BsColorPickerContext? Context {
         get;
         set {
-            field = value;
+            field = null;
 
-            // Synced without echoing it back
             if (value != null) {
-                _circle.SetColor(value.SelectedColor, false);
+                _circle.Color = value.SelectedColor;
+                value.Color = value.SelectedColor;
             }
+
+            field = value;
         }
     }
 
