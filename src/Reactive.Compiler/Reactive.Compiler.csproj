@@ -2,7 +2,6 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <IsPackable>false</IsPackable>
         <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
 
@@ -13,13 +12,40 @@
         <PackageId>Reactive.Compiler</PackageId>
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
+    
+    <PropertyGroup>
+        <IsPackable>true</IsPackable>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+        <!--
+            NU5128: an analyzer package has no lib folder by design.
+            NU5131: the models are a compile-only reference on purpose, adding them to lib/ would ship them at runtime
+        -->
+        <NoWarn>$(NoWarn);NU5128;NU5131</NoWarn>
+
+        <Description>Source generators and analyzers for Reactive.</Description>
+        <RepositoryUrl>https://github.com/reactive-platform/reactive-mono</RepositoryUrl>
+        <PackageTags>reactive;roslyn;analyzer;source-generator</PackageTags>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="$(OutputPath)/$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="build/Reactive.Compiler.props" Pack="true" PackagePath="build" />
+        <None Include="../Reactive.Compiler.Models/bin/$(Configuration)/netstandard2.0/Reactive.Compiler.Models.dll" Pack="true" PackagePath="ref/netstandard2.0" Visible="false" />
+    </ItemGroup>
+
+    <!-- Built for packing only, the compiler embeds the models' sources itself -->
+    <ItemGroup>
+        <ProjectReference Include="../Reactive.Compiler.Models/Reactive.Compiler.Models.csproj" ReferenceOutputAssembly="false" />
+    </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" PrivateAssets="all" />
     </ItemGroup>
 
     <!-- 

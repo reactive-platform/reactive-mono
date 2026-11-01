@@ -1,0 +1,6 @@
+<Project>
+    <!-- Lets the state generator pre-generate every binding in Debug, so completion can suggest them -->
+    <ItemGroup>
+        <CompilerVisibleProperty Include="Configuration" />
+    </ItemGroup>
+</Project>
