@@ -107,10 +107,10 @@ internal class RequiredCtorGenerator : IIncrementalGenerator {
             buffer.AppendLine();
         }
 
-        buffer.AppendLine("[System.CodeDom.Compiler.GeneratedCode(\"Reactive_RequiredCtorGenerator\", \"1.0\")]");
         buffer.AppendLine($"partial class {type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)} {{");
         buffer.AppendLine("    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]");
 
+        buffer.AppendLine("    [System.CodeDom.Compiler.GeneratedCode(\"Reactive_RequiredCtorGenerator\", \"1.0\")]");
         buffer.Append($"    public {type.Name}(Reactive.Compiler.Nothing _ = default)");
         if (data.HasRequiredSuperclass) {
             buffer.Append(" : base(_)");
