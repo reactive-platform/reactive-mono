@@ -30,6 +30,8 @@ public struct PlacementData(
     Vector2 offset,
     bool clip
 ) {
+    public PlacementData() : this(RelativePlacement.Center, Vector2.zero, true) { }
+
     /// <summary>
     /// Defines placement against anchor object.
     /// </summary>
@@ -41,7 +43,7 @@ public struct PlacementData(
     public Vector2 Offset { get; init; } = offset;
 
     /// <summary>
-    /// Defines whether the object should be clipped within parent bounds or not.
+    /// Defines whether the object should be moved back inside the root canvas when it doesn't fit. Enabled by default.
     /// </summary>
     public bool Clip { get; init; } = clip;
 }
@@ -66,38 +68,68 @@ public static class PlacementTool {
             out var pivot
         );
 
-        if (data.Clip && parent is RectTransform parentRect) {
-            var parentSize = parentRect.rect.size;
-
-            // Translating from any pivot to 0,0
-            var translationDelta = parentRect.pivot * parentSize;
-            var actualPos = position + translationDelta;
+        if (data.Clip && TryGetClipBounds(target, out var bounds)) {
+            var size = target.rect.size;
 
             // Clipping both x and y
             for (var i = 0; i < 2; i++) {
-                actualPos[i] = CalculateClippedPos(actualPos[i], target.rect.size[i], pivot[i], parentSize[i]);
+                position[i] = CalculateClippedPos(position[i], size[i], pivot[i], bounds.min[i], bounds.max[i]);
             }
-
-            position = actualPos - translationDelta;
         }
 
         target.localPosition = position;
         target.pivot = pivot;
     }
 
-    public static float CalculateClippedPos(float pos, float size, float pivot, float parentSize) {
+    /// <summary>
+    /// Shifts a position so the rect stays within the bounds. Rects larger than the bounds are aligned to the min edge.
+    /// </summary>
+    public static float CalculateClippedPos(float pos, float size, float pivot, float boundsMin, float boundsMax) {
         // Calculate the edges of the rect based on pivot and size
         var minPos = pos - pivot * size;
         var maxPos = pos + (1 - pivot) * size;
 
         // Shift the position if it goes out of bounds
-        if (minPos < 0) {
-            pos += 0f - minPos;
-        } else if (maxPos > parentSize) {
-            pos -= maxPos - parentSize;
+        if (maxPos > boundsMax) {
+            pos -= maxPos - boundsMax;
+            minPos -= maxPos - boundsMax;
+        }
+
+        if (minPos < boundsMin) {
+            pos += boundsMin - minPos;
         }
 
         return pos;
+    }
+
+    private static readonly Vector3[] corners = new Vector3[4];
+
+    /// <summary>
+    /// Gets the root canvas rect in the local space of the target's parent.
+    /// </summary>
+    private static bool TryGetClipBounds(RectTransform target, out Rect bounds) {
+        var parent = target.parent;
+        var canvas = target.GetComponentInParent<Canvas>()?.rootCanvas;
+
+        if (parent == null || canvas == null) {
+            bounds = default;
+            return false;
+        }
+
+        ((RectTransform)canvas.transform).GetWorldCorners(corners);
+
+        // Bottom left and top right, the canvas can be rotated against the parent but not skewed
+        var min = (Vector2)parent.InverseTransformPoint(corners[0]);
+        var max = (Vector2)parent.InverseTransformPoint(corners[2]);
+
+        bounds = Rect.MinMaxRect(
+            Mathf.Min(min.x, max.x),
+            Mathf.Min(min.y, max.y),
+            Mathf.Max(min.x, max.x),
+            Mathf.Max(min.y, max.y)
+        );
+
+        return true;
     }
 
     public static void CalculateRelativePlacement(
