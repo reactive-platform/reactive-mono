@@ -25,8 +25,8 @@ internal static class SyntaxExtensions {
 
         while (current != null) {
             switch (current) {
-                // `new Foo { ... }`
-                case ObjectCreationExpressionSyntax objectCreation:
+                // `new Foo { ... }` and target-typed `new() { ... }`
+                case BaseObjectCreationExpressionSyntax objectCreation:
                     return model.GetTypeInfo(objectCreation).Type;
 
                 // `new Foo { Another = { ... } }`
