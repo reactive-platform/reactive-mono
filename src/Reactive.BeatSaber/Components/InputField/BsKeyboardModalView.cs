@@ -28,6 +28,11 @@ internal class BsKeyboardModalView : ModalBase, IPoolableComponent {
         set => _keyboard.Colors = value;
     }
 
+    public bool ShowNumbersRow {
+        get => _keyboard.ShowNumbersRow;
+        set => _keyboard.ShowNumbersRow = value;
+    }
+
     #endregion
 
     #region Impl
@@ -106,6 +111,7 @@ internal class BsKeyboardModalView : ModalBase, IPoolableComponent {
         ClickOffCloses = true;
         ShowBackground = true;
         KeyboardColors = BeatSaberStyle.BsKeyboardColors;
+        ShowNumbersRow = false;
     }
 
     #endregion

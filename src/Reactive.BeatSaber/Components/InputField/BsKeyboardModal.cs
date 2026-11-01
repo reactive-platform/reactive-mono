@@ -89,6 +89,14 @@ public partial class BsKeyboardModal : ReactiveComponent {
             _modal.Modal?.KeyboardColors = value;
         }
     } = BeatSaberStyle.BsKeyboardColors;
+    
+    public bool ShowNumbersRow {
+        get;
+        set {
+            field = value;
+            _modal.Modal?.ShowNumbersRow = value;
+        }
+    }
 
     #endregion
 
@@ -112,6 +120,7 @@ public partial class BsKeyboardModal : ReactiveComponent {
         modal.ClickOffCloses = ClickOffCloses;
         modal.ShowBackground = ShowBackground;
         modal.KeyboardColors = KeyboardColors;
+        modal.ShowNumbersRow = ShowNumbersRow;
         modal.Context = _context;
     }
 

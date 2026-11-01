@@ -179,6 +179,10 @@ namespace Reactive.BeatSaber {
             }
         };
 
+        public static readonly BsNumpadColors BsNumpadColors = new() {
+            KeyColors = BsKeyboardColors.KeyColors
+        };
+
         public static readonly BsDropdownColors BsDropdownColors = new() {
             ItemBackgroundColors = new() {
                 HoveredColor = Color.white with { a = 0.2f },

@@ -29,12 +29,24 @@ public class BsKeyboard : ReactiveComponent {
         set => _colors.Value = value;
     }
 
+    public bool ShowNumbersRow {
+        get => _showNumbersRow.Value;
+        set => _showNumbersRow.Value = value;
+    }
+
     public Action<string?>? OnTextChanged { get; set; }
     public Action? OnOkClicked { get; set; }
 
     #endregion
 
     #region Construct
+
+    private const float KeyWidth = 7f;
+    private const float KeyHeight = 7f;
+    private const float NumberKeyWidth = 5.5f;
+    private const float NumberKeyHeight = 5f;
+
+    private static readonly char[] _numberRow = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '+'];
 
     private static readonly char[][] _alphabetRows = [
         ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
@@ -44,10 +56,12 @@ public class BsKeyboard : ReactiveComponent {
 
     private State<string?> _text = null!;
     private State<BsKeyboardColors> _colors = null!;
+    private State<bool> _showNumbersRow = null!;
 
     protected override GameObject Construct() {
         _text = Remember<string?>(null);
         _colors = Remember(BeatSaberStyle.BsKeyboardColors);
+        _showNumbersRow = Remember(false);
 
         var keyColors = _colors.Map(x => x.KeyColors);
         var uppercase = Remember(false);
@@ -65,6 +79,9 @@ public class BsKeyboard : ReactiveComponent {
             },
 
             Children = {
+                CreateRow(_numberRow, onClick, uppercase, keyColors, NumberKeyWidth, NumberKeyHeight)
+                    .With(x => _showNumbersRow.AddCallback(x, static (row, show) => row.Enabled = show)),
+
                 CreateRow(_alphabetRows[0], onClick, uppercase, keyColors),
                 CreateRow(_alphabetRows[1], onClick, uppercase, keyColors),
 
@@ -89,7 +106,7 @@ public class BsKeyboard : ReactiveComponent {
                             OnClick = () => {
                                 uppercase.Value = !uppercase.Value;
                             },
-                            
+
                             sColors = keyColors,
 
                             ConstructContent = (color, _) => new Image {
@@ -120,9 +137,9 @@ public class BsKeyboard : ReactiveComponent {
 
                                 Text = Text.Length == 1 ? null : Text[..^1];
                             },
-                            
+
                             sColors = keyColors,
-                            
+
                             ConstructContent = (color, _) => new Label {
                                 Text = "DEL",
                                 Alignment = TextAlignmentOptions.Capline,
@@ -181,8 +198,37 @@ public class BsKeyboard : ReactiveComponent {
         }.AsFlexItem().Use();
     }
 
+    private static char ApplyShift(char c, bool shifted) {
+        if (!shifted) {
+            return c;
+        }
+        
+        return c switch {
+            '1' => '!',
+            '2' => '@',
+            '3' => '#',
+            '4' => '$',
+            '5' => '%',
+            '6' => '^',
+            '7' => '&',
+            '8' => '*',
+            '9' => '(',
+            '0' => ')',
+            '-' => '_',
+            '+' => '=',
+            _ => char.ToUpper(c)
+        };
+    }
+
     [StateGen]
-    private static IReactiveComponent CreateRow(char[] row, Action<char> onClick, IState<bool> uppercase, IState<BsKeyboardButtonColors> colors) {
+    private static IReactiveComponent CreateRow(
+        char[] row,
+        Action<char> onClick,
+        IState<bool> uppercase,
+        IState<BsKeyboardButtonColors> colors,
+        float width = KeyWidth,
+        float height = KeyHeight
+    ) {
         return new Repeater<char, BsKeyboardButton> {
             FlexController = {
                 FlexDirection = FlexDirection.Row,
@@ -193,22 +239,23 @@ public class BsKeyboard : ReactiveComponent {
             Items = row,
 
             ConstructCell = ctx => new BsKeyboardButton {
+                FlexItem = {
+                    Size = new() { y = height.pt },
+                    MinSize = new() { x = width.pt }
+                },
+
                 OnClick = () => {
-                    var c = uppercase.Value ? char.ToUpper(ctx.Item) : ctx.Item;
-                    onClick.Invoke(c);
+                    onClick.Invoke(ApplyShift(ctx.Item, uppercase.Value));
                 },
 
                 sColors = colors.In(),
-                
+
                 ConstructContent = (color, _) => new Label {
                     Alignment = TextAlignmentOptions.Capline,
                     FontStyle = FontStyles.Italic,
 
                     sText = RememberDerived(
-                        x => {
-                            var c = x.uppercase.Value ? char.ToUpper(x.ctx.Item) : x.ctx.Item;
-                            return c.ToString();
-                        },
+                        x => ApplyShift(x.ctx.Item, x.uppercase.Value).ToString(),
                         (uppercase, ctx)
                     ),
 
