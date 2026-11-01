@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -98,30 +99,26 @@ internal class RequiredCtorGenerator : IIncrementalGenerator {
     }
 
     private static string GenerateCtor(CtorGenerationData data) {
-        var definition = """
-            {0}
-
-            [System.CodeDom.Compiler.GeneratedCode("Reactive_RequiredCtorGenerator", "1.0")]
-            partial class {1} {{
-                [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-                public {2}(Reactive.Compiler.Nothing _ = default) {3} {{ }}
-            }}
-        """;
-
         var type = data.TypeSymbol;
-        
-        var namespaceName = type.ContainingNamespace.IsGlobalNamespace
-            ? ""
-            : $"namespace {type.ContainingNamespace.ToDisplayString()};";
-        
-        var superCtor = data.HasRequiredSuperclass ? ": base(_)" : "";
-        
-        return string.Format(
-            definition,
-            namespaceName,
-            type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-            type.Name,
-            superCtor
-        );
+        var buffer = new StringBuilder();
+
+        if (!type.ContainingNamespace.IsGlobalNamespace) {
+            buffer.AppendLine($"namespace {type.ContainingNamespace.ToDisplayString()};");
+            buffer.AppendLine();
+        }
+
+        buffer.AppendLine("[System.CodeDom.Compiler.GeneratedCode(\"Reactive_RequiredCtorGenerator\", \"1.0\")]");
+        buffer.AppendLine($"partial class {type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)} {{");
+        buffer.AppendLine("    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]");
+
+        buffer.Append($"    public {type.Name}(Reactive.Compiler.Nothing _ = default)");
+        if (data.HasRequiredSuperclass) {
+            buffer.Append(" : base(_)");
+        }
+        buffer.AppendLine(" { }");
+
+        buffer.AppendLine("}");
+
+        return buffer.ToString();
     }
 }

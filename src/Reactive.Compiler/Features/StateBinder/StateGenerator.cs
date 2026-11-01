@@ -159,82 +159,69 @@ internal class StateGenerator : IIncrementalGenerator {
     }
 
     private static string GenerateTypeExtension(INamedTypeSymbol containingType, INamedTypeSymbol type, IEnumerable<IGrouping<ISymbol?, string>> propGroups) {
-        var template =
-            """
-            #nullable enable
-
-            {5}
-
-            [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-            [System.CodeDom.Compiler.GeneratedCode("Reactive_StateGenerator", "1.0")]
-            internal static class Reactive_{0}_StateGenExt {{
-                extension{3}({1} obj) {4} {{
-                    {2}
-                }}
-            }}
-            """;
-
         var typeIdentifier = type.GetTypeIdentifier();
-        var propertyBlocks = GenerateProps(type, propGroups);
-
         var genericArguments = CompilerHelper.GenerateGenericsDecl(containingType, true);
-        var genericConstrainments = CompilerHelper.GenerateConstrainments(containingType);
-        var imports = CompilerHelper.GenerateImportOf(containingType);
+        var constraints = CompilerHelper.GenerateConstrainments(containingType).Trim();
+        var import = CompilerHelper.GenerateImportOf(containingType);
 
-        template = string.Format(
-            template,
-            typeIdentifier,
-            type,
-            propertyBlocks,
-            genericArguments,
-            genericConstrainments,
-            imports
-        );
-
-        return template.Insert(0, "\t\t").Replace("\n", "\n\t\t");
-    }
-
-    private static string GenerateProps(INamedTypeSymbol type, IEnumerable<IGrouping<ISymbol?, string>> propGroups) {
         var buffer = new StringBuilder();
-        var binder = StateGeneratorUtils.GetBinderMethod(type);
 
-        foreach (var nameGroup in propGroups) {
-            var prop = nameGroup.Key!;
-            var propType = SemanticExtensions.GetReturnType(prop)!;
-            var sourcePropName = prop.Name;
+        buffer.AppendLine("#nullable enable");
+        buffer.AppendLine();
 
-            foreach (var propName in nameGroup) {
-                var propExtension = GenerateProp(propType, propName, sourcePropName, binder);
-
-                buffer.AppendLine(propExtension);
-            }
+        if (import != null) {
+            buffer.AppendLine(import);
+            buffer.AppendLine();
         }
+
+        buffer.AppendLine("[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]");
+        buffer.AppendLine("[System.CodeDom.Compiler.GeneratedCode(\"Reactive_StateGenerator\", \"1.0\")]");
+        buffer.AppendLine($"internal static class Reactive_{typeIdentifier}_StateGenExt {{");
+
+        buffer.Append($"    extension{genericArguments}({type} obj)");
+        if (constraints.Length > 0) {
+            buffer.Append($" {constraints}");
+        }
+        buffer.AppendLine(" {");
+
+        AppendProps(buffer, type, propGroups);
+
+        buffer.AppendLine("    }");
+        buffer.AppendLine("}");
 
         return buffer.ToString();
     }
 
-    private static string GenerateProp(ITypeSymbol stateType, string propName, string sourcePropName, string binderMethodName) {
-        var definition =
-            """
-            [Reactive.Compiler.SetsRequiredAttribute(Names = ["{4}"])]
-            public {0}<{2}, {1}<{2}>> {3} {{
-                set {{
-                    value.{5}(obj, static (x, y) => x.{4} = y);
-                }}
-            }}
+    private static void AppendProps(StringBuilder buffer, INamedTypeSymbol type, IEnumerable<IGrouping<ISymbol?, string>> propGroups) {
+        var binder = StateGeneratorUtils.GetBinderMethod(type);
+        var first = true;
 
-            """;
+        foreach (var nameGroup in propGroups) {
+            var prop = nameGroup.Key!;
+            var propType = SemanticExtensions.GetReturnType(prop)!;
 
-        definition = string.Format(
-            definition,
-            StateGeneratorUtils.StateBinderPath, // StateBinder<>
-            StateGeneratorUtils.StatePath,       // IState<>
-            stateType,                           // State target type (State<T>)
-            propName,                            // Prop name
-            sourcePropName,                      // Target prop name
-            binderMethodName                     // Binder name (e.g. AddCallback)
-        );
+            foreach (var propName in nameGroup) {
+                // Blank lines go between the props only
+                if (!first) {
+                    buffer.AppendLine();
+                }
 
-        return definition;
+                first = false;
+                AppendProp(buffer, propType, propName, prop.Name, binder);
+            }
+        }
+    }
+
+    private static void AppendProp(StringBuilder buffer, ITypeSymbol stateType, string propName, string sourcePropName, string binderMethodName) {
+        const string Indent = "        ";
+
+        var binderType = $"{StateGeneratorUtils.StateBinderPath}<{stateType}, {StateGeneratorUtils.StatePath}<{stateType}>>";
+
+        buffer.AppendLine($"{Indent}[Reactive.Compiler.SetsRequiredAttribute(Names = [\"{sourcePropName}\"])]");
+        buffer.AppendLine($"{Indent}public {binderType} {propName} {{");
+        buffer.AppendLine($"{Indent}    set {{");
+        buffer.AppendLine($"{Indent}        value.{binderMethodName}(obj, static (x, y) => x.{sourcePropName} = y);");
+        buffer.AppendLine($"{Indent}    }}");
+        buffer.AppendLine($"{Indent}}}");
     }
 }
