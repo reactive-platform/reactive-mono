@@ -114,6 +114,7 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
                             ContentTransform = {
                                 anchorMin = new(0f, 0f),
                                 anchorMax = new(0.5f, 1f),
+                                sizeDelta = Vector2.zero
                             },
 
                             Text = "I",
@@ -129,6 +130,7 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
                             ContentTransform = {
                                 anchorMin = new(0.5f, 0f),
                                 anchorMax = new(1f, 1f),
+                                sizeDelta = Vector2.zero
                             },
 
                             Text = "O",
