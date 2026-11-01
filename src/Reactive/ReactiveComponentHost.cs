@@ -42,6 +42,8 @@ namespace Reactive {
 
             public bool WithinLayout => !IsDestroyed && (gameObject.activeSelf || WithinLayoutIfDisabled);
 
+            public bool IsActiveInHierarchy => !IsDestroyed && gameObject.activeInHierarchy;
+
             public bool IgnoreLayout {
                 get;
                 set {

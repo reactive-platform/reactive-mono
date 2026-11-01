@@ -87,6 +87,8 @@ namespace Reactive {
 
         public bool WithinLayout => Host.WithinLayout;
 
+        public bool IsActiveInHierarchy => Host.IsActiveInHierarchy;
+        
         public bool WithinLayoutIfDisabled {
             get => _reactiveHost!.WithinLayoutIfDisabled;
             set => _reactiveHost!.WithinLayoutIfDisabled = value;

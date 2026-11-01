@@ -157,8 +157,15 @@ public static class ReactiveScheduler {
                 }
 
                 for (var i = 0; i < _roots.Count; i++) {
+                    var root = _roots[i];
+                    
+                    if (!root.IsActiveInHierarchy) {
+                        root.LayoutState.QueuedFor = CurrentRun;
+                        continue;
+                    }
+
                     try {
-                        _roots[i].RecalculateLayout();
+                        root.RecalculateLayout();
                     } catch (Exception e) {
                         Debug.LogException(e);
                     }

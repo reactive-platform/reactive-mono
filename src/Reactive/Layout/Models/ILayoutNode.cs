@@ -15,6 +15,12 @@ public interface ILayoutNode {
     ref LayoutNodeState LayoutState { get; }
 
     /// <summary>
+    /// Whether the node is active in the hierarchy. The scheduler skips inactive roots,
+    /// so a node has to schedule itself again once it gets enabled.
+    /// </summary>
+    bool IsActiveInHierarchy { get; }
+
+    /// <summary>
     /// Starts an immediate layout recalculation going down from this node. Does nothing for nodes
     /// without a layout of their own. Must be called on a root only, a node controlled by its parent throws.
     /// </summary>
