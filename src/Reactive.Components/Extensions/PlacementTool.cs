@@ -73,7 +73,15 @@ public static class PlacementTool {
 
             // Clipping both x and y
             for (var i = 0; i < 2; i++) {
-                position[i] = CalculateClippedPos(position[i], size[i], pivot[i], bounds.min[i], bounds.max[i]);
+                if (size[i] <= 0f) {
+                    continue;
+                }
+
+                var shift = CalculateClippedPos(position[i], size[i], pivot[i], bounds.min[i], bounds.max[i]) - position[i];
+
+                // Moving the rect by shifting the pivot instead of the position,
+                // so the pivot stays at the intended point and animations scale from there
+                pivot[i] -= shift / size[i];
             }
         }
 
