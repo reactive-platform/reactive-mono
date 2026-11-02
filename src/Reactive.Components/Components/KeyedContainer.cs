@@ -48,7 +48,7 @@ namespace Reactive.Components {
                         if (value.TryGetValue(key, out var newComp) && newComp == comp) {
                             continue;
                         }
-                        
+
                         _layout.Children.Remove(comp);
                         comp.Enabled = false;
                     }
@@ -62,7 +62,6 @@ namespace Reactive.Components {
                 }
 
                 // Re-selects the view for the current key or falls back to the DummyView if the key is missing
-                _selectedView = null;
                 RefreshSelectedView();
             }
         }
@@ -86,13 +85,13 @@ namespace Reactive.Components {
                 OnKeyChanged?.Invoke(value);
             }
         }
-        
+
         public Action<TKey?>? OnKeyChanged { get; set; }
 
         private IReadOnlyDictionary<TKey, IReactiveComponent>? _views;
         private IReactiveComponent? _selectedView;
         private bool _keyEverSet;
-        
+
         private Layout _layout = null!;
 
         private void RefreshSelectedView() {
