@@ -1,8 +1,7 @@
-﻿using B83.Image.GIF;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using UnityEngine;
 
-namespace Reactive.Components;
+namespace Reactive.Components.GIF;
 
 // TODO: make this a closed hierarchy after C# 15
 [PublicAPI]

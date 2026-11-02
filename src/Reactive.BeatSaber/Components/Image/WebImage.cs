@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Reactive.Components;
+using Reactive.Components.GIF;
 using Reactive.Yoga;
 using UnityEngine;
 

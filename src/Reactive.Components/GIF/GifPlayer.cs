@@ -1,9 +1,8 @@
 using System;
-using B83.Image.GIF;
 using JetBrains.Annotations;
 using UnityEngine;
 
-namespace Reactive.Components;
+namespace Reactive.Components.GIF;
 
 [PublicAPI]
 public sealed class GifPlayer : IReactiveModule {

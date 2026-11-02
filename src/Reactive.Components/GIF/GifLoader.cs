@@ -36,7 +36,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace B83.Image.GIF {
+namespace Reactive.Components.GIF {
     #region Enums and interfaces
 
     public enum EScreenDescriptorFlags : byte {

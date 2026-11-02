@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using Reactive.Components.GIF;
 
 namespace Reactive.Components;
 

@@ -5,12 +5,11 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using B83.Image.GIF;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace Reactive.Components;
+namespace Reactive.Components.GIF;
 
 [PublicAPI]
 public static class ImageLoader {
