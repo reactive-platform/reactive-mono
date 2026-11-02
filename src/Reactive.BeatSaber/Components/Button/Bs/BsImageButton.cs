@@ -85,12 +85,10 @@ public class BsImageButton : ReactiveComponent, ISkewedComponent, IInteractableC
     protected override GameObject Construct() {
         return new BsButton {
             ConstructContent = (color, skew) => new Image {
-                    sSkew = skew.In(),
-                    sColor = color.In(),
-                    PreserveAspect = true
-                }
-                .AsFlexItem()
-                .Bind(ref _image)
+                sSkew = skew.In(),
+                sColor = color.In(),
+                PreserveAspect = true
+            }.Bind(ref _image)
         }.Bind(ref _button).Use();
     }
 

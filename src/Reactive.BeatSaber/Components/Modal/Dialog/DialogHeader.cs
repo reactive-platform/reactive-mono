@@ -12,7 +12,7 @@ namespace Reactive.BeatSaber.Components {
         }
 
         Label IComponentHolder<Label>.Component => _label;
-        
+
         private Label _label = null!;
 
         protected override GameObject Construct() {
@@ -21,9 +21,7 @@ namespace Reactive.BeatSaber.Components {
                 Color = (Color.white * 0.9f).ColorWithAlpha(1f),
 
                 Children = {
-                    new Label()
-                        .AsFlexItem()
-                        .Bind(ref _label)
+                    new Label().Bind(ref _label)
                 }
             }.AsFlexGroup(justifyContent: Justify.Center).AsBlurBackground().Use();
         }

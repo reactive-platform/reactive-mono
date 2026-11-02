@@ -80,12 +80,10 @@ public class BsPrimaryImageButton : ReactiveComponent, ISkewedComponent, IIntera
     protected override GameObject Construct() {
         return new BsPrimaryButton {
             ConstructContent = (color, skew) => new Image {
-                    sSkew = skew.In(),
-                    sColor = color.In(),
-                    PreserveAspect = true
-                }
-                .AsFlexItem()
-                .Bind(ref _image)
+                sSkew = skew.In(),
+                sColor = color.In(),
+                PreserveAspect = true
+            }.Bind(ref _image)
         }.Bind(ref _button).Use();
     }
 

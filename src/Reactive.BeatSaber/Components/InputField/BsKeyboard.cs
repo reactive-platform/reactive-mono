@@ -146,10 +146,10 @@ public class BsKeyboard : ReactiveComponent {
                                 FontStyle = FontStyles.Italic,
 
                                 sColor = color.In(),
-                            }.AsFlexItem()
+                            }
                         }
                     }
-                }.AsFlexItem(),
+                },
 
                 new Layout {
                     FlexController = {
@@ -174,7 +174,7 @@ public class BsKeyboard : ReactiveComponent {
                                 FontStyle = FontStyles.Italic,
 
                                 sColor = color.In(),
-                            }.AsFlexItem()
+                            }
                         },
 
                         new BsKeyboardButton {
@@ -194,12 +194,12 @@ public class BsKeyboard : ReactiveComponent {
                                 FontStyle = FontStyles.Italic,
 
                                 sColor = state.In(),
-                            }.AsFlexItem()
+                            }
                         }
                     }
-                }.AsFlexItem()
+                }
             }
-        }.AsFlexItem().Use();
+        }.Use();
     }
 
     private static char ApplyShift(char c, bool shifted) {
@@ -266,7 +266,7 @@ public class BsKeyboard : ReactiveComponent {
                     sColor = color.In(),
                 }
             }
-        }.AsFlexItem();
+        };
     }
 
     #endregion

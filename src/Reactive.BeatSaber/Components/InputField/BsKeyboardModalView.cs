@@ -65,7 +65,7 @@ internal class BsKeyboardModalView : ModalBase, IPoolableComponent {
                             OnTextChanged = HandleKeyboardTextChanged
                         }.Bind(ref _keyboard)
                     }
-                }.AsBlurBackground().AsFlexItem().Bind(ref _background)
+                }.AsBlurBackground().Bind(ref _background)
             }
         };
     }

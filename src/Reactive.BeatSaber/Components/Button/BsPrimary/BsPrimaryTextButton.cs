@@ -68,7 +68,7 @@ public class BsPrimaryTextButton : ReactiveComponent, ISkewedComponent, IInterac
         get => _label.Alignment;
         set => _label.Alignment = value;
     }
-    
+
     public float Skew {
         get => _button.Skew;
         set => _button.Skew = value;
@@ -101,10 +101,8 @@ public class BsPrimaryTextButton : ReactiveComponent, ISkewedComponent, IInterac
     protected override GameObject Construct() {
         return new BsPrimaryButton {
             ConstructContent = (color, skew) => new Label {
-                Do = x => x
-                    .AsFlexItem()
-                    .Bind(ref _label),
-                
+                Do = x => x.Bind(ref _label),
+
                 FontStyle = FontStyles.UpperCase,
                 sFontStyle = skew.Map(x => x > 0 ? FontStyle | FontStyles.Italic : FontStyle & ~FontStyles.Italic),
                 sColor = color.In()

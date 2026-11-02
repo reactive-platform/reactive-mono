@@ -60,9 +60,5 @@ namespace Reactive.BeatSaber.Components {
                 }
             }.AsFlexGroup().Use();
         }
-
-        protected override void OnInitialize() {
-            this.AsFlexItem();
-        }
     }
 }

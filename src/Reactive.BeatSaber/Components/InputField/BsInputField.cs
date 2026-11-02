@@ -146,7 +146,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
                         sColor = _graphicState.MapColorSet(_colors, x => x.IconColors).In(),
                         sSprite = _icon.Where(x => x != null),
                         sEnabled = _icon.Map(x => x != null)
-                    }.AsFlexItem(),
+                    },
 
                     new Layout {
                         Name = "Rail",
@@ -253,7 +253,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
                         new Image {
                             Sprite = GameResources.CloseIcon,
                             PreserveAspect = true
-                        }.AsFlexItem()
+                        }
                     }
                 }
             },

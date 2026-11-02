@@ -128,7 +128,7 @@ namespace Reactive.BeatSaber.Components {
                         },
                     }
                 }
-            }.AsFlexItem().Use();
+            }.Use();
         }
 
         #endregion

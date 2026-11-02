@@ -8,7 +8,7 @@ namespace Reactive.BeatSaber.Components {
     public class NamedRail : ReactiveComponent, IComponentHolder<Label> {
         public Label Label => _label;
         Label IComponentHolder<Label>.Component => _label;
-        
+
         public ILayoutItem? Component {
             get => _component;
             set {
@@ -17,7 +17,6 @@ namespace Reactive.BeatSaber.Components {
                 }
                 _component = value;
                 if (_component != null) {
-                    _component.AsFlexItem();
                     _container.Children.Add(_component);
                 }
             }
@@ -38,10 +37,6 @@ namespace Reactive.BeatSaber.Components {
                 justifyContent: Justify.SpaceBetween,
                 gap: 1f
             ).Bind(ref _container).Use();
-        }
-
-        protected override void OnInitialize() {
-            this.AsFlexItem();
         }
     }
 }

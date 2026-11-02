@@ -204,7 +204,7 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
                     sEnabled = item.Map(x => x.Text != null),
                     sText = item.Map(x => x.Text),
                     sColor = fgColor.In()
-                }.AsFlexItem(),
+                },
 
                 new Image {
                     FlexItem = {

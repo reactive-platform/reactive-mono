@@ -172,7 +172,7 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent, IIn
                     sText = selected.Map(x => x?.Text).Where(x => x != null),
                     sEnabled = selected.Map(x => x?.Text != null),
                     sColor = contentColor.In()
-                }.AsFlexItem(),
+                },
 
                 new BsImage {
                     FlexItem = {

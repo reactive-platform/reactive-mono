@@ -68,12 +68,12 @@ public class BsTextButton : ReactiveComponent, ISkewedComponent, IInteractableCo
         get => _label.Alignment;
         set => _label.Alignment = value;
     }
-    
+
     public bool ShowUnderline {
         get => _button.ShowUnderline;
         set => _button.ShowUnderline = value;
     }
-    
+
     public float Skew {
         get => _button.Skew;
         set => _button.Skew = value;
@@ -106,10 +106,8 @@ public class BsTextButton : ReactiveComponent, ISkewedComponent, IInteractableCo
     protected override GameObject Construct() {
         return new BsButton {
             ConstructContent = (color, skew) => new Label {
-                Do = x => x
-                    .AsFlexItem()
-                    .Bind(ref _label),
-                
+                Do = x => x.Bind(ref _label),
+
                 FontStyle = FontStyles.UpperCase,
                 sFontStyle = skew.Map(x => x > 0 ? FontStyle | FontStyles.Italic : FontStyle & ~FontStyles.Italic),
                 sColor = color.In()

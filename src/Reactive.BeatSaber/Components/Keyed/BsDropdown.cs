@@ -180,7 +180,7 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
                     sEnabled = item.Map(x => x?.Text != null),
                     sText = item.Map(x => x?.Text),
                     sColor = contentColor.In(),
-                }.AsFlexItem(),
+                },
 
                 new Image {
                     FlexItem = {

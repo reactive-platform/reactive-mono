@@ -91,7 +91,7 @@ internal class BsColorCircleModalView : ModalBase, IPoolableComponent {
                             }
                         }
                     }
-                }.AsBlurBackground().AsFlexItem().Bind(ref _background)
+                }.AsBlurBackground().Bind(ref _background)
             }
         };
     }
