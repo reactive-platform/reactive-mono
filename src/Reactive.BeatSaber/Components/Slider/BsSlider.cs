@@ -181,14 +181,8 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
         _buttonsEnabled = Remember(true);
 
         _valueText = RememberDerived(
-            x => {
-                if (x._valueFormatter.Value is { } formatter) {
-                    return formatter(_value);
-                }
-
-                return _value.Value.ToString(CultureInfo.CurrentCulture);
-            },
-            (_value, _valueFormatter)
+            _value, _valueFormatter,
+            (value, formatter) => formatter != null ? formatter(value) : value.ToString(CultureInfo.CurrentCulture)
         );
 
         return new Layout {
@@ -204,8 +198,8 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
                 CreateButton(
                     _colors,
                     RememberDerived(
-                        static x => x._graphicState.Value.IsInteractable && x._value.Value > x._minValue.Value,
-                        (_value, _minValue, _graphicState)
+                        _value, _minValue, _graphicState,
+                        static (value, min, graphic) => graphic.IsInteractable && value > min
                     ),
                     _buttonsEnabled,
                     leftButton: true,
@@ -307,8 +301,10 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
                 CreateButton(
                     _colors,
                     RememberDerived(
-                        static x => x._graphicState.Value.IsInteractable && x._value.Value < x._maxValue.Value,
-                        (_value, _maxValue, _graphicState)
+                        _value,
+                        _maxValue,
+                        _graphicState,
+                        static (value, max, graphic) => graphic.IsInteractable && value < max
                     ),
                     _buttonsEnabled,
                     leftButton: false,

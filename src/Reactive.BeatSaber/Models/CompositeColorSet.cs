@@ -38,7 +38,7 @@ public static class ColorSetExtensions {
         }
 
         public IState<CompositeColors> MapColorSet<T>(IState<T> style, Func<T, CompositeColorSet> predicate) {
-            return StateUtils.RememberDerived(x => predicate(x.style.Value).GetColors(x.state.Value), (state, style));
+            return StateUtils.RememberDerived(state, style, (state, style) => predicate(style).GetColors(state));
         }
     }
 

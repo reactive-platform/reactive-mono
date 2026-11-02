@@ -71,8 +71,8 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
         _graphic = Remember(GraphicState.None);
         _colors = Remember(BeatSaberStyle.BsToggleColors);
 
-        var bgColor = RememberDerived(x => _colors.Value.BackgroundColors.GetColor(x._graphic), (_graphic, _colors));
-        var knobColor = RememberDerived(x => _colors.Value.KnobColors.GetColor(x._graphic), (_graphic, _colors));
+        var bgColor = RememberDerived(_graphic, _colors, (graphic, colors) => colors.BackgroundColors.GetColor(graphic));
+        var knobColor = RememberDerived(_graphic, _colors, (graphic, colors) => colors.KnobColors.GetColor(graphic));
 
         _graphic.AddCallback(x => {
             if (Animated && IsInitialized && Content.activeInHierarchy) {
@@ -121,8 +121,10 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
                             Alignment = TextAlignmentOptions.Capline,
 
                             sColor = RememberDerived(
-                                x => Color.Lerp(Color.clear, x._colors.Value.TextColors.GetColor(_graphic), x._progress),
-                                (_graphic, _colors, _progress)
+                                _graphic,
+                                _colors,
+                                _progress,
+                                (graphic, colors, progress) => Color.Lerp(Color.clear, colors.TextColors.GetColor(graphic), progress)
                             )
                         },
 
@@ -137,8 +139,10 @@ public class BsToggle : ReactiveComponent, IInteractableComponent {
                             Alignment = TextAlignmentOptions.Capline,
 
                             sColor = RememberDerived(
-                                x => Color.Lerp(Color.clear, x._colors.Value.TextColors.GetColor(_graphic), 1 - x._progress),
-                                (_graphic, _colors, _progress)
+                                _graphic,
+                                _colors,
+                                _progress,
+                                (graphic, colors, progress) => Color.Lerp(Color.clear, colors.TextColors.GetColor(graphic), 1 - progress)
                             )
                         }
                     }

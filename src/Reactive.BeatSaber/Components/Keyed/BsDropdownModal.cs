@@ -75,7 +75,7 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
 
         var scrollContext = new ScrollContext();
         _scrollContext = scrollContext;
-        
+
         scrollContext.AddCallback(x => {
             if (x.UpdateType.IsMeasurements && ScrollToPending()) {
                 _pendingScrollIndex = -1;
@@ -141,7 +141,7 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
             Clip = true
         };
     }
-    
+
     private bool ScrollToPending() {
         var lineSize = _scrollContext.LineSize;
 
@@ -166,8 +166,8 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
         var graphic = Remember(GraphicState.None);
         // Unused cells can hold indices beyond the items, so they resolve to an empty item
         var item = RememberDerived(
-            x => x.context.Item < x._items.Value.Count ? x._items.Value[x.context.Item] : default,
-            (context, _items)
+            context, _items,
+            (context, items) => context.Item < items.Count ? items[context.Item] : default
         );
 
         var fgColor = graphic.MapColorSet(colors, x => x.ItemContentColors);

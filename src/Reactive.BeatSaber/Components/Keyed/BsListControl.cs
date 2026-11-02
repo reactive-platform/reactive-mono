@@ -140,19 +140,19 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent, IIn
 
         // Items are a dependency too, otherwise selecting the same index after the items are set won't update the view
         var selected = RememberDerived(
-            x => x._itemsState.Value is { } items && x._selectedIdx.Value < items.Count ? items[x._selectedIdx.Value] : (BsListControlItem<T>?)null,
-            (_selectedIdx, _itemsState)
+            _selectedIdx, _itemsState,
+            (selectedIdx, items) => items != null && selectedIdx < items.Count ? items[selectedIdx] : (BsListControlItem<T>?)null
         );
         var contentColor = _graphic.MapColorSet(_colors, x => x.ContentColors);
 
         var nextAvailable = RememberDerived(
-            x => x._graphic.IsInteractable && x._selectedIdx < x._itemsState.Value?.Count - 1,
-            (_selectedIdx, _graphic, _itemsState)
+            _selectedIdx, _graphic, _itemsState,
+            (selectedIdx, graphic, items) => graphic.IsInteractable && selectedIdx < items?.Count - 1
         );
 
         var prevAvailable = RememberDerived(
-            x => x._graphic.IsInteractable && x._selectedIdx > 0 && x._itemsState.Value?.Count > 1,
-            (_selectedIdx, _graphic, _itemsState)
+            _selectedIdx, _graphic, _itemsState,
+            (selectedIdx, graphic, items) => graphic.IsInteractable && selectedIdx > 0 && items?.Count > 1
         );
 
         return new Layout {

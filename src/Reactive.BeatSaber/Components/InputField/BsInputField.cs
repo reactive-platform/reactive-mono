@@ -27,7 +27,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
 
             field = value;
             _contextSubscription = field.AddCallback(HandleContextUpdated);
-            
+
             HandleContextUpdated(field);
         }
     }
@@ -36,7 +36,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
         get => _placeholder.Value;
         set => _placeholder.Value = value;
     }
-    
+
     public Sprite? Icon {
         get => _icon.Value;
         set => _icon.Value = value;
@@ -86,10 +86,10 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
         _colors = Remember(BeatSaberStyle.BsInputFieldColors);
 
         var closeButtonEnabled = RememberDerived(
-            x => x._graphicState.Value.IsInteractable && !x._focused.Value && x._text.Value != null,
-            (_focused, _text, _graphicState)
+            _focused, _text, _graphicState,
+            (focused, text, graphic) => graphic.IsInteractable && !focused && text != null
         );
-        
+
         var contentColor = _graphicState.MapColorSet(_colors, x => x.ContentColors);
         var placeholderColor = _graphicState.MapColorSet(_colors, x => x.PlaceholderColors);
 
@@ -104,7 +104,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
                 _focused.Value = true;
                 Context.Focused = true;
             },
-            
+
             Do = x => x.WithPointerEvents(
                 onEnter: _ => _graphicState.IsHovered = true,
                 onLeave: _ => _graphicState.IsHovered = false
@@ -172,14 +172,13 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
                                 Alignment = TextAlignmentOptions.CaplineLeft,
                                 FontStyle = FontStyles.Italic,
 
-                                sText = RememberDerived(
-                                    x => x._text.Value ?? x._placeholder.Value,
-                                    (_text, _placeholder)
-                                ),
-                                
+                                sText = RememberDerived(_text, _placeholder, (text, placeholder) => text ?? placeholder),
+
                                 sColor = RememberDerived(
-                                    x => x._text.Value == null ? x.placeholderColor.Value : x.contentColor.Value,
-                                    (_text, placeholderColor, contentColor)
+                                    _text,
+                                    placeholderColor,
+                                    contentColor,
+                                    (text, placeholderColor, contentColor) => text == null ? placeholderColor : contentColor
                                 ),
                             }.Bind(ref _label)
                         }

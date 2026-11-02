@@ -138,8 +138,8 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
 
             ConstructCell = ctx => {
                 var item = RememberDerived(
-                    x => x._itemsState.Value?.TryGetValue(x.ctx.Item, out var i) == true ? i : (BsSegmentedControlItem?)null,
-                    (ctx, _itemsState)
+                    ctx, _itemsState,
+                    (ctx, items) => items?.TryGetValue(ctx.Item, out var i) == true ? i : (BsSegmentedControlItem?)null
                 );
                 var graphic = Remember(GraphicState.None);
 

@@ -116,10 +116,7 @@ namespace Reactive.Components {
             }
 
             public IState<Color> MapColorSet<T>(IState<T> style, Func<T, ColorSet> predicate) {
-                return StateUtils.RememberDerived(
-                    x => predicate(x.style.Value).GetColor(x.state.Value),
-                    (state, style)
-                );
+                return StateUtils.RememberDerived(state, style, (state, style) => predicate(style).GetColor(state));
             }
         }
     }

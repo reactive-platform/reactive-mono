@@ -135,8 +135,8 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
         var bgColor = _graphic.MapColorSet(_colors, x => x.ButtonBackgroundColors);
 
         var item = RememberDerived(
-            x => x._keyState.Value is { } key && x._itemsState.Value?.TryGetValue(key, out var i) == true ? i : (BsDropdownItem?)null,
-            (_keyState, _itemsState)
+            _keyState, _itemsState,
+            (key, items) => key is { } k && items?.TryGetValue(k, out var i) == true ? i : (BsDropdownItem?)null
         );
 
         return new Background {

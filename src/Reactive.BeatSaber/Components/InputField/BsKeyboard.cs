@@ -206,7 +206,7 @@ public class BsKeyboard : ReactiveComponent {
         if (!shifted) {
             return c;
         }
-        
+
         return c switch {
             '1' => '!',
             '2' => '@',
@@ -259,8 +259,8 @@ public class BsKeyboard : ReactiveComponent {
                     FontStyle = FontStyles.Italic,
 
                     sText = RememberDerived(
-                        x => ApplyShift(x.ctx.Item, x.uppercase.Value).ToString(),
-                        (uppercase, ctx)
+                        uppercase, ctx,
+                        (uppercase, ctx) => ApplyShift(ctx.Item, uppercase).ToString()
                     ),
 
                     sColor = color.In(),

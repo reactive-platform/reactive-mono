@@ -72,10 +72,7 @@ namespace Reactive.BeatSaber.Components {
             var iconColor = _graphicState.MapColorSet(_colors, x => x.IconColors);
             var sampleTint = _graphicState.MapColorSet(_colors, x => x.SampleColors);
             
-            var sampleColor = RememberDerived(
-                x => x.color.Value * x.tint.Value,
-                (color: _sampleColor, tint: sampleTint)
-            );
+            var sampleColor = RememberDerived(_sampleColor, sampleTint, (color, tint) => color * tint);
 
             return new BsAeroButton {
                 FlexController = {

@@ -143,13 +143,13 @@ namespace Reactive.BeatSaber.Components {
                         PreserveAspect = true,
                         
                         // Must be lazy because initially scroll context is null
-                        sColor = RememberDerived(x => {
-                            if (x.enabled.Value) {
-                                return Color.white.ColorWithAlpha(x.hovered ? 1f : 0.5f);
+                        sColor = RememberDerived(hovered, enabled, (hovered, enabled) => {
+                            if (enabled) {
+                                return Color.white.ColorWithAlpha(hovered ? 1f : 0.5f);
                             } else {
                                 return Color.black.ColorWithAlpha(0.5f);
                             }
-                        }, (hovered, enabled)).InLazy(),
+                        }).InLazy(),
                     }
                 }
             };
@@ -161,8 +161,8 @@ namespace Reactive.BeatSaber.Components {
 
             return new Layout {
                 sEnabled = RememberDerived(
-                    x => !x.Item2.Value || (x.Item1.Value?.CanScroll ?? true),
-                    (_scrollContextState, _hideIfNothingToScroll)
+                    _scrollContextState, _hideIfNothingToScroll,
+                    (context, hideIfNothingToScroll) => !hideIfNothingToScroll || (context?.CanScroll ?? true)
                 ).InLazy(),
 
                 // This will be the default value for the Scrollbar
