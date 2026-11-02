@@ -126,7 +126,7 @@ internal class StateGenerator : IIncrementalGenerator {
                     includeReducedExtensionMethods: true // CRUCIAL!! Captures extension properties
                 );
 
-                if (symbols.FirstOrDefault() is IPropertySymbol prop && IsBindable(prop, position, semanticModel)) {
+                if (symbols.FirstOrDefault() is IPropertySymbol prop && IsBindable(prop, semanticModel)) {
                     result.Add((prop.OriginalDefinition, statePropName));
                     break;
                 }
@@ -152,7 +152,7 @@ internal class StateGenerator : IIncrementalGenerator {
         );
 
         foreach (var member in members) {
-            if (member is not IPropertySymbol prop || !IsBindable(prop, position, semanticModel)) {
+            if (member is not IPropertySymbol prop || !IsBindable(prop, semanticModel)) {
                 continue;
             }
 
@@ -164,18 +164,28 @@ internal class StateGenerator : IIncrementalGenerator {
         return result;
     }
     
-    private static bool IsBindable(IPropertySymbol prop, int position, SemanticModel semanticModel) {
+    private static bool IsBindable(IPropertySymbol prop, SemanticModel semanticModel) {
         if (prop is not { IsStatic: false, IsIndexer: false, SetMethod: { IsInitOnly: false } setter }) {
-            return false;
-        }
-
-        if (!semanticModel.IsAccessible(position, setter)) {
             return false;
         }
 
         // Extensions on a bare type parameter (e.g. `extension<T>(T comp)`) can't be targeted by a typed extension.
         // Checking the original definition, as that's what gets generated and the lookup substitutes T
-        if (prop.OriginalDefinition.ContainingType is { IsExtension: true, ExtensionParameter.Type: not INamedTypeSymbol }) {
+        var containingType = prop.OriginalDefinition.ContainingType;
+        var receiver = containingType.IsExtension ? containingType.ExtensionParameter?.Type : containingType;
+
+        if (receiver is not INamedTypeSymbol) {
+            return false;
+        }
+
+        // The binding is generated into a top-level class of this assembly, so everything it mentions has to be
+        // reachable from there, not just from the initializer, which might be inside a type seeing its private members
+        var compilation = semanticModel.Compilation;
+        var assembly = compilation.Assembly;
+
+        if (!compilation.IsSymbolAccessibleWithin(setter, assembly) ||
+            !compilation.IsSymbolAccessibleWithin(receiver, assembly) ||
+            !compilation.IsSymbolAccessibleWithin(prop.Type, assembly)) {
             return false;
         }
 
