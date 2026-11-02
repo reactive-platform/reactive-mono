@@ -34,8 +34,8 @@ public class Sample : ReactiveComponent {
                     },
 
                     sText = RememberDerived(
-                        deps => $"The label is {deps.color.Value} and displays {deps.text.Value}",
-                        (text, color) // Try adding an extra argument that is a literal or not a state
+                        text, color,
+                        (t, c) => $"The label is {c} and displays {t}"
                     ),
 
                     sColor = color,

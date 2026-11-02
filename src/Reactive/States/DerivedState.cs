@@ -1,62 +1,74 @@
 using System;
-using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
-using UnityEngine;
+using Reactive.Compiler;
 
 namespace Reactive;
 
 /// <summary>
-/// A wrapper class over <see cref="IState"/> that updates when one of the dependencies does.
+/// A state computed from other states. The value is cached until one of them changes.
 /// </summary>
 [PublicAPI]
-public class DerivedState<T, TDeps> : StateBase<T>, IState<T>, IDisposable where TDeps : ITuple {
+public abstract class DerivedStateBase<T> : StateBase<T>, IState<T>, IDisposable {
     public T Value {
         get {
             if (!_hasValue) {
-                field = _predicate(_dependencies);
+                field = Compute();
                 _hasValue = true;
             }
-            
+
             return field;
         }
     }
 
-    private readonly TDeps _dependencies;
-    private readonly Func<TDeps, T> _predicate;
-    private readonly StateSubscription[] _subscriptions;
-    private readonly int _occupiedSubsLen;
     private bool _hasValue;
 
-    public DerivedState(Func<TDeps, T> predicate, TDeps dependencies) {
-        _dependencies = dependencies;
-        _predicate = predicate;
-        _subscriptions = new StateSubscription[dependencies.Length];
+    protected abstract T Compute();
+    public abstract void Dispose();
 
-        // C# does not support variadic generics (or templates) as C++ does,
-        // hence to avoid writing custom generators or lots of boilerplate,
-        // we use this workaround as a "temporary" solution
-
-        for (var i = 0; i < dependencies.Length; i++) {
-            // Non-state objects are simply ignored
-            if (dependencies[i] is IState state) {
-                _subscriptions[_occupiedSubsLen] = state.AddInvalidationCallback(HandleStateUpdated, this, null!);
-                _occupiedSubsLen++;
-            } else {
-                Debug.LogWarning("You've passed a dependency which is not a state, consider removing it and passing directly");
-            }
-        }
+    protected StateSubscription Subscribe(IState state) {
+        return state.AddInvalidationCallback(HandleStateUpdated, this, null!);
     }
 
     private static void HandleStateUpdated(ref RefStateSubscription sub, object arg1, object arg2) {
-        var self = (DerivedState<T, TDeps>)arg1;
+        var self = (DerivedStateBase<T>)arg1;
 
         self._hasValue = false;
         self.NotifyValueInvalidated();
     }
+}
 
-    public void Dispose() {
-        for (var i = 0; i < _occupiedSubsLen; i++) {
-            _subscriptions[i].RemoveCallback();
-        }
+/// <summary>
+/// A state computed from other states, recalculated when one of them changes.
+/// The predicate receives their values in the same order.
+/// </summary>
+[PublicAPI]
+[VariadicGen(
+    8,
+    "T{}",
+    "IState<T{}> state{}",
+    "IState<T{}> _state{}",
+    "StateSubscription _subscription{}",
+    "_state{} = state{}",
+    "_subscription{} = Subscribe(state{})",
+    "_state{}.Value",
+    "_subscription{}.RemoveCallback()"
+)]
+public sealed class DerivedState<T1, T> : DerivedStateBase<T> {
+    private readonly Func<T1, T> _predicate;
+    private readonly IState<T1> _state1;
+    private readonly StateSubscription _subscription1;
+
+    public DerivedState(IState<T1> state1, [NoStateCapture] Func<T1, T> predicate) {
+        _predicate = predicate;
+        _state1 = state1;
+        _subscription1 = Subscribe(state1);
+    }
+
+    protected override T Compute() {
+        return _predicate(_state1.Value);
+    }
+
+    public override void Dispose() {
+        _subscription1.RemoveCallback();
     }
 }

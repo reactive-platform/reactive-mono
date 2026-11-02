@@ -41,6 +41,7 @@
 
     <ItemGroup>
         <ProjectReference Include="../Reactive.Compiler.Models/Reactive.Compiler.Models.csproj" />
+        <ProjectReference Include="../Reactive.Compiler/Reactive.Compiler.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     </ItemGroup>
 
     <ItemGroup>

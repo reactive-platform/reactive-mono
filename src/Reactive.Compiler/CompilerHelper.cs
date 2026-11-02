@@ -4,8 +4,6 @@ using Microsoft.CodeAnalysis;
 namespace Reactive.Compiler;
 
 internal static class CompilerHelper {
-    public const string StateDependenciesAttrPath = "Reactive.Compiler.StateDependenciesAttribute";
-
     public static string? GenerateImportOf(INamedTypeSymbol symbol) {
         var ns = symbol.ContainingNamespace;
 

@@ -6,15 +6,16 @@ using UnityEngine;
 
 namespace Reactive {
     [PublicAPI]
-    public static class StateUtils {
+    public static partial class StateUtils {
         #region Owned
 
         public static State<T> Remember<T>(T initialValue) {
             return new State<T>(initialValue);
         }
-
-        public static DerivedState<T, TDeps> RememberDerived<T, TDeps>(Func<TDeps, T> predicate, [StateDependencies] TDeps dependencies) where TDeps : ITuple {
-            return new DerivedState<T, TDeps>(predicate, dependencies);
+        
+        [VariadicGen(8, "T{}", "IState<T{}> state{}", "state{}")]
+        public static DerivedState<T1, T> RememberDerived<T1, T>(IState<T1> state1, [NoStateCapture] Func<T1, T> predicate) {
+            return new(state1, predicate);
         }
 
         public static AnimationPlayer<T> RememberAnimationPlayer<T>(IReactiveModuleBinder binder, T target) {

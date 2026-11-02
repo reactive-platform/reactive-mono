@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using Reactive.Compiler;
 using UnityEngine;
 
@@ -35,9 +34,10 @@ public partial class ReactiveComponent {
     protected static State<TValue> Remember<TValue>(TValue initialValue) {
         return new State<TValue>(initialValue);
     }
-
-    protected static DerivedState<T, TDeps> RememberDerived<T, TDeps>(Func<TDeps, T> predicate, [StateDependencies] TDeps dependencies) where TDeps : ITuple {
-        return StateUtils.RememberDerived(predicate, dependencies);
+    
+    [VariadicGen(8, "T{}", "IState<T{}> state{}", "state{}")]
+    protected static DerivedState<T1, T> RememberDerived<T1, T>(IState<T1> state1, [NoStateCapture] Func<T1, T> predicate) {
+        return StateUtils.RememberDerived(state1, predicate);
     }
 
     protected AnimationPlayer<T> RememberAnimationPlayer<T>(T target) {
