@@ -29,6 +29,22 @@ namespace Reactive {
             }
         }
 
+        extension<TState>(TState state) where TState : IState {
+            /// <summary>
+            /// Maps a state to itself, so its data besides the value can be read from places that only receive values.
+            /// The mapped state notifies whenever the original one changes.
+            /// </summary>
+            /// <param name="state">A state to wrap.</param>
+            /// <typeparam name="TState">A type of the state, kept as is.</typeparam>
+            /// <example>
+            /// <code>RememberDerived(anim.MapSelf(), color, (anim, color) => anim.IsFinished ? color : anim.TargetValue)</code>
+            /// </example>
+            /// <returns>A wrapper over the original state instance.</returns>
+            public SelfMappedState<TState> MapSelf() {
+                return new(state);
+            }
+        }
+
         #endregion
 
         #region On
