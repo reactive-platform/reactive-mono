@@ -12,22 +12,16 @@ namespace Reactive {
         #region Layout Controller
 
         public ILayoutController? LayoutController {
-            get {
-                if (!_layoutController.HasValue && ComponentDefaults.LayoutController.TryCreate(out var controller)) {
-                    LayoutController = controller;
-                }
-
-                return _layoutController.Value;
-            }
+            get => _layoutController;
             set {
-                var oldController = _layoutController.Value;
+                var oldController = _layoutController;
 
                 if (oldController != null) {
                     oldController.RemoveAllChildren();
                     oldController.LayoutControllerUpdatedEvent -= ScheduleLayoutRecalculation;
                 }
 
-                _layoutController = Optional<ILayoutController?>.Some(value);
+                _layoutController = value;
 
                 if (value != null) {
                     value.LayoutControllerUpdatedEvent += ScheduleLayoutRecalculation;
@@ -48,7 +42,7 @@ namespace Reactive {
             }
         }
 
-        private Optional<ILayoutController?> _layoutController;
+        private ILayoutController? _layoutController;
 
         public new void ScheduleLayoutRecalculation() {
             base.ScheduleLayoutRecalculation();
@@ -191,13 +185,13 @@ namespace Reactive {
         #region Layout Component
 
         protected override void PromotedOnModifierUpdate() {
-            if (_layoutController.Value is { } layoutController && !LayoutTool.IsControlledByParent(this)) {
+            if (_layoutController is { } layoutController && !LayoutTool.IsControlledByParent(this)) {
                 layoutController.UpdateSelf(this);
             }
         }
 
         protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
-            var layoutController = _layoutController.Value;
+            var layoutController = _layoutController;
             if (layoutController == null) {
                 return base.PromotedMeasure(width, widthMode, height, heightMode);
             }

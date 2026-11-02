@@ -15,22 +15,15 @@ namespace Reactive {
             public ref LayoutNodeState LayoutState => ref _layoutState;
 
             public ILayoutModifier? LayoutModifier {
-                get {
-                    if (!_modifier.HasValue && ComponentDefaults.LayoutModifier.TryCreate(out var modifier)) {
-                        // Not the best solution but since _modifier is reassigned before calling modifier event it doesn't cause recursion cycles
-                        LayoutModifier = modifier;
-                    }
-
-                    return _modifier.Value;
-                }
+                get => _modifier;
                 set {
-                    var oldModifier = _modifier.Value;
+                    var oldModifier = _modifier;
 
                     if (oldModifier != null) {
                         oldModifier.ModifierUpdatedEvent -= HandleModifierUpdated;
                     }
 
-                    _modifier = Optional<ILayoutModifier?>.Some(value);
+                    _modifier = value;
 
                     if (value != null) {
                         value.ModifierUpdatedEvent += HandleModifierUpdated;
@@ -65,7 +58,7 @@ namespace Reactive {
 
             private ILayoutDriver? _layoutDriver;
             private LayoutNodeState _layoutState;
-            private Optional<ILayoutModifier?> _modifier;
+            private ILayoutModifier? _modifier;
             private bool _beingApplied;
 
             public void AssignParent(ILayoutDriver? driver) {
