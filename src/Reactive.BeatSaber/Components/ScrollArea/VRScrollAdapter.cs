@@ -8,6 +8,9 @@ namespace Reactive.BeatSaber.Components {
     [DefaultExecutionOrder(-1000)]
     [RequireComponent(typeof(PointerEventsHandler))]
     internal class VRScrollAdapter : MonoBehaviour {
+        // The game's lists: the sqrMagnitude check in HMUI.ScrollView.CheckScrollInput
+        private const float DeadzoneSqr = 0.01f;
+
         private PointerEventsHandler _pointerEventsHandler = null!;
         private IVRPlatformHelper _platformHelper = null!;
         private float _multiplier;
@@ -24,7 +27,7 @@ namespace Reactive.BeatSaber.Components {
                 return;
             }
             var delta = _platformHelper.GetAnyJoystickMaxAxis();
-            if (Mathf.Approximately(delta.x, 0f) && Mathf.Approximately(delta.y, 0f)) {
+            if (delta.sqrMagnitude <= DeadzoneSqr) {
                 return;
             }
             var pointerEventData = new PointerEventData(EventSystem.current) {

@@ -51,6 +51,9 @@
         <Reference Include="UnityEngine.UnityWebRequestModule">
             <HintPath>$(UnityAssembliesDir)/UnityEngine.UnityWebRequestModule.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.VRModule">
+            <HintPath>$(UnityAssembliesDir)/UnityEngine.VRModule.dll</HintPath>
+        </Reference>
         <ProjectReference Include="../Reactive/Reactive.csproj" />
         <ProjectReference Include="../Reactive.Compiler/Reactive.Compiler.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer" />
     </ItemGroup>

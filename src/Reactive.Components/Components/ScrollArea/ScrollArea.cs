@@ -4,6 +4,7 @@ using Reactive.Compiler;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEngine.XR;
 
 namespace Reactive.Components.Basic {
     public enum ScrollOrientation {
@@ -58,6 +59,9 @@ namespace Reactive.Components.Basic {
         } = ScrollOrientation.Vertical;
 
         public float LineSize { get; set; } = 10f;
+
+        // The game's lists: HMUI.ScrollView._joystickScrollSpeed
+        public float JoystickScrollSpeed { get; set; } = 60f;
 
         public Func<ScrollContext, float>? FinalizeScroll { get; set; }
 
@@ -261,8 +265,9 @@ namespace Reactive.Components.Basic {
         #region Callbacks
 
         private void HandlePointerScroll(PointerEventsHandler handler, PointerEventData eventData) {
+            var multiplier = XRSettings.isDeviceActive ? JoystickScrollSpeed * Time.deltaTime : LineSize;
             var neg = ScrollOrientation is ScrollOrientation.Vertical ? -1 : 1;
-            var destinationPos = _destinationPos + eventData.scrollDelta.y * LineSize * neg;
+            var destinationPos = _destinationPos + eventData.scrollDelta.y * multiplier * neg;
 
             _lastScrollDeltaTime = Time.deltaTime;
 
