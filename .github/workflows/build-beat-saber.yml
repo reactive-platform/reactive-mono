@@ -25,10 +25,18 @@ jobs:
 
       - name: Build
         id: build
-        run: dotnet build -c Release "${{ github.workspace }}/src/Reactive.BeatSaber/Reactive.BeatSaber.csproj"
+        run: dotnet build -c "Beat Saber Release" "${{ github.workspace }}/Reactive.sln"
 
-      - name: Upload Artifact
+      - name: Upload library
         uses: actions/upload-artifact@v6
         with:
           name: ${{ steps.build.outputs.filename }}
           path: ${{ steps.build.outputs.artifactpath }}
+          if-no-files-found: error
+
+      - name: Upload compiler NuGet
+        uses: actions/upload-artifact@v7
+        with:
+          path: ${{ github.workspace }}/src/Reactive.Compiler/bin/Release/*.nupkg
+          archive: false
+          if-no-files-found: error
