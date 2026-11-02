@@ -163,7 +163,7 @@ namespace Reactive {
 
             public IReadOnlyCollection<IReactiveModule> Modules {
                 get {
-                    // Do not change as _modules ?? [] will produce a hashset instance instead of using Array.Empty<>
+                    // Do not change as _modules ?? [] will produce a list instance instead of using Array.Empty<>
                     if (_modules == null) {
                         return [];
                     }
@@ -172,10 +172,15 @@ namespace Reactive {
                 }
             }
 
-            private HashSet<IReactiveModule>? _modules;
+            private List<IReactiveModule>? _modules;
 
             public void BindModule(IReactiveModule module) {
                 _modules ??= new();
+
+                if (_modules.Contains(module)) {
+                    return;
+                }
+
                 _modules.Add(module);
                 module.OnBind();
             }
@@ -307,8 +312,8 @@ namespace Reactive {
                 }
 
                 if (_modules != null) {
-                    foreach (var module in _modules) {
-                        module.OnUpdate();
+                    for (var i = 0; i < _modules.Count; i++) {
+                        _modules[i].OnUpdate();
                     }
                 }
             }
