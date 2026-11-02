@@ -7,7 +7,8 @@
 
     <PropertyGroup>
         <BSMTProjectType>BSIPA</BSMTProjectType>
-        <GenerateManifest>false</GenerateManifest>
+        <GenerateManifest>true</GenerateManifest>
+        <DisableManifestEmbed Condition="$(Configuration.Contains('Editor'))">True</DisableManifestEmbed>
     </PropertyGroup>
 
     <ItemGroup>

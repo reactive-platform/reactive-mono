@@ -8,6 +8,26 @@
         <Configurations>Debug;Release;Debug Editor;Release Editor</Configurations>
         <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
+    
+    <PropertyGroup>
+        <PluginId>Reactive</PluginId>
+        <PluginName>Reactive</PluginName>
+        <Authors>Hermanest</Authors>
+        <Version>2.0.0</Version>
+        <Description>A set of SDKs built around the Reactive library.</Description>
+        <GameVersion>1.42.0</GameVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <DependsOn Include="BSIPA" Version="^4.2.2" />
+        <DependsOn Include="Yoga" Version="^3.2.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <RequiredFile Include="Libs/Reactive.dll" />
+        <RequiredFile Include="Libs/Reactive.Components.dll" />
+        <RequiredFile Include="Plugins/Reactive.BeatSaber.dll" />
+    </ItemGroup>
 
     <PropertyGroup Condition="$(Configuration.Contains('Editor'))">
         <DefineConstants>COMPILE_EDITOR</DefineConstants>
@@ -124,7 +144,6 @@
 
     <ItemGroup Condition="!$(Configuration.Contains('Editor'))">
         <EmbeddedResource Include="Resources/AssetBundles/asset_bundle"/>
-        <EmbeddedResource Include="manifest.json" />
     </ItemGroup>
 
     <ItemGroup>
