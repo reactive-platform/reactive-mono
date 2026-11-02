@@ -28,12 +28,15 @@ public class SharedModal<T> : ReactiveComponent where T : ModalBase, IPoolableCo
                 return;
             }
 
-            _isPushed = value;
-
             if (value) {
-                Acquire().IsPushed = true;
-            } else if (_modal != null) {
-                _modal.IsPushed = false;
+                // Acquired first, so a failed acquisition doesn't leave the state pushed without a modal
+                var modal = Acquire();
+
+                _isPushed = true;
+                modal.IsPushed = true;
+            } else {
+                _isPushed = false;
+                _modal?.IsPushed = false;
             }
         }
     }
