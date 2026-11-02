@@ -18,11 +18,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IncludeBuildOutput>false</IncludeBuildOutput>
         <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-        <!--
-            NU5128: an analyzer package has no lib folder by design.
-            NU5131: the models are a compile-only reference on purpose, adding them to lib/ would ship them at runtime
-        -->
-        <NoWarn>$(NoWarn);NU5128;NU5131</NoWarn>
+        <NoWarn>$(NoWarn);NU5128</NoWarn>
 
         <Description>Source generators and analyzers for Reactive.</Description>
         <RepositoryUrl>https://github.com/reactive-platform/reactive-mono</RepositoryUrl>
@@ -32,12 +28,6 @@
     <ItemGroup>
         <None Include="$(OutputPath)/$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="build/Reactive.Compiler.props" Pack="true" PackagePath="build" />
-        <None Include="../Reactive.Compiler.Models/bin/$(Configuration)/netstandard2.0/Reactive.Compiler.Models.dll" Pack="true" PackagePath="ref/netstandard2.0" Visible="false" />
-    </ItemGroup>
-
-    <!-- Built for packing only, the compiler embeds the models' sources itself -->
-    <ItemGroup>
-        <ProjectReference Include="../Reactive.Compiler.Models/Reactive.Compiler.Models.csproj" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
     <ItemGroup>
@@ -62,9 +52,8 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         
-        <Compile Include="../Reactive.Compiler.Models/**/*.cs"
-                 Exclude="../Reactive.Compiler.Models/obj/**;../Reactive.Compiler.Models/bin/**;../Reactive.Compiler.Models/Properties/AssemblyInfo.cs;../Reactive.Compiler.Models/AssemblyInfo.cs"
-                 LinkBase="Models"
+        <Compile Include="../Reactive/Compiler/Attributes/**/*.cs"
+                 LinkBase="Attributes"
                  Visible="false" />
     </ItemGroup>
 </Project>

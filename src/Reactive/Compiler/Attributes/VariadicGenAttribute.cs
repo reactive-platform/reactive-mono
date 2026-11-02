@@ -1,3 +1,6 @@
+using System;
+using System.Diagnostics;
+
 namespace Reactive.Compiler;
 
 /// <summary>
@@ -18,6 +21,7 @@ namespace Reactive.Compiler;
 /// public static void Log&lt;T1, T2, T3&gt;(IState&lt;T1&gt; state1, IState&lt;T2&gt; state2, IState&lt;T3&gt; state3) => Print(state1, state2, state3)
 /// </code>
 /// </example>
+[Conditional("REACTIVE_COMPILE_ONLY_ATTRIBUTES")]
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Struct)]
 public class VariadicGenAttribute : Attribute {
     /// <param name="maxArity">The largest number of instances an overload gets.</param>
