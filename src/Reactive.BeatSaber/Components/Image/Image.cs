@@ -90,6 +90,7 @@ public class Image : ReactiveComponent, IComponentHolder<Image>, ISkewedComponen
     Image IComponentHolder<Image>.Component => this;
 
     private FixedImageView _image = null!;
+    private Vector2 _lastPreferredSize;
 
     protected override void OnInstantiate() {
         PromoteLayoutComponent(this);
@@ -97,9 +98,19 @@ public class Image : ReactiveComponent, IComponentHolder<Image>, ISkewedComponen
 
     protected override void Construct(RectTransform rect) {
         _image = rect.gameObject.AddComponent<FixedImageView>();
-        _image.RegisterDirtyLayoutCallback(NotifyLayoutDataUpdated);
+        _image.RegisterDirtyLayoutCallback(HandleImageLayoutDirty);
 
         Material = GameResources.UINoGlowMaterial;
+    }
+
+    // Unity marks the layout dirty on every resize
+    private void HandleImageLayoutDirty() {
+        var size = new Vector2(_image.preferredWidth, _image.preferredHeight);
+
+        if (size != _lastPreferredSize) {
+            _lastPreferredSize = size;
+            NotifyLayoutDataUpdated();
+        }
     }
 
     public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
