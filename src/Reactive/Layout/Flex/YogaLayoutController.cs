@@ -445,8 +445,10 @@ namespace Reactive.Yoga {
                 return;
             }
 
+            node.MeasureTarget = child;
+
             if (!node.HasMeasureFunc()) {
-                node.SetMeasureFunc(CreateMeasureFunc(child));
+                node.SetMeasureFunc(sharedMeasureFunc);
             }
 
             node.MarkDirty();
@@ -473,21 +475,22 @@ namespace Reactive.Yoga {
             }
         }
 
-        private static YGMeasureFunc CreateMeasureFunc(ILayoutMeasurable item) {
-            return (_, width, widthMode, height, heightMode) => {
-                // An exception can't pass through the native code without crashing the process
-                try {
-                    var size = item.Measure(width, (Reactive.MeasureMode)widthMode, height, (Reactive.MeasureMode)heightMode);
+        // One delegate for every node, because Mono builds a native thunk for each delegate passed to native code
+        private static readonly YGMeasureFunc sharedMeasureFunc = MeasureNode;
 
-                    return new() {
-                        width = size.x,
-                        height = size.y
-                    };
-                } catch (Exception e) {
-                    Debug.LogException(e);
-                    return default;
-                }
-            };
+        private static YogaSize MeasureNode(IntPtr node, float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+            try {
+                var item = YogaNode.GetManagedOrThrow(node).MeasureTarget!;
+                var size = item.Measure(width, (Reactive.MeasureMode)widthMode, height, (Reactive.MeasureMode)heightMode);
+
+                return new() {
+                    width = size.x,
+                    height = size.y
+                };
+            } catch (Exception e) {
+                Debug.LogException(e);
+                return default;
+            }
         }
 
         #endregion

@@ -441,9 +441,15 @@ namespace Reactive.Yoga {
         // easily collect the delegate. This would cause a crash when native code attempts to call the delegate
         private YGMeasureFunc? _measureFunc;
 
+        public ILayoutMeasurable? MeasureTarget { get; set; }
+
         public void SetMeasureFunc(YGMeasureFunc? measureFunc) {
             _measureFunc = measureFunc;
             YogaNative.YGNodeSetMeasureFunc(NodePtr, measureFunc);
+
+            if (measureFunc == null) {
+                MeasureTarget = null;
+            }
         }
 
         public bool HasMeasureFunc() {
