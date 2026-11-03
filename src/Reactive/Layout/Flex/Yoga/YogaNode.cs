@@ -68,6 +68,7 @@ namespace Reactive.Yoga {
             managedNodes.Remove(_nodePtr);
             _nodePtr = IntPtr.Zero;
             _measureFunc = null;
+            MeasureTarget = null;
         }
 
         public bool Equals(YogaNode other) {
@@ -441,19 +442,47 @@ namespace Reactive.Yoga {
         // easily collect the delegate. This would cause a crash when native code attempts to call the delegate
         private YGMeasureFunc? _measureFunc;
 
-        public ILayoutMeasurable? MeasureTarget { get; set; }
+        // One delegate for every target, because Mono builds a native thunk for each delegate passed to native code
+        private static readonly YGMeasureFunc sharedMeasureFunc = MeasureTargetNode;
+
+        public ILayoutMeasurable? MeasureTarget { get; private set; }
 
         public void SetMeasureFunc(YGMeasureFunc? measureFunc) {
-            _measureFunc = measureFunc;
-            YogaNative.YGNodeSetMeasureFunc(NodePtr, measureFunc);
+            MeasureTarget = null;
+            SetMeasureFuncInternal(measureFunc);
+        }
 
-            if (measureFunc == null) {
-                MeasureTarget = null;
-            }
+        public void SetMeasureTarget(ILayoutMeasurable? target) {
+            MeasureTarget = target;
+            SetMeasureFuncInternal(target != null ? sharedMeasureFunc : null);
         }
 
         public bool HasMeasureFunc() {
-            return YogaNative.YGNodeHasMeasureFunc(NodePtr);
+            return _measureFunc != null;
+        }
+
+        private void SetMeasureFuncInternal(YGMeasureFunc? measureFunc) {
+            if (_measureFunc == measureFunc) {
+                return;
+            }
+            
+            _measureFunc = measureFunc;
+            YogaNative.YGNodeSetMeasureFunc(NodePtr, measureFunc);
+        }
+
+        private static YogaSize MeasureTargetNode(IntPtr node, float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+            try {
+                var target = GetManagedOrThrow(node).MeasureTarget!;
+                var size = target.Measure(width, (Reactive.MeasureMode)widthMode, height, (Reactive.MeasureMode)heightMode);
+
+                return new() {
+                    width = size.x,
+                    height = size.y
+                };
+            } catch (Exception e) {
+                Debug.LogException(e);
+                return default;
+            }
         }
 
         public bool HadOverflow() {

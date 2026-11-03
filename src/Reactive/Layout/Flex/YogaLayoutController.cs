@@ -391,7 +391,7 @@ namespace Reactive.Yoga {
             }
 
             foreach (var (child, context) in _nodes) {
-                context.YogaNode.SetMeasureFunc(null);
+                context.YogaNode.SetMeasureTarget(null);
                 child.AssignContext(null);
             }
 
@@ -441,14 +441,12 @@ namespace Reactive.Yoga {
             ApplyModifier(child, node);
 
             if (context.Controller != null) {
-                context.YogaNode.SetMeasureFunc(null);
+                context.YogaNode.SetMeasureTarget(null);
                 return;
             }
 
-            node.MeasureTarget = child;
-
             if (!node.HasMeasureFunc()) {
-                node.SetMeasureFunc(sharedMeasureFunc);
+                node.SetMeasureTarget(child);
             }
 
             node.MarkDirty();
@@ -472,24 +470,6 @@ namespace Reactive.Yoga {
             for (var edge = Edge.Left; edge <= Edge.Bottom; edge++) {
                 node.StyleSetPosition(edge, YogaValue.Undefined);
                 node.StyleSetMargin(edge, YogaValue.Undefined);
-            }
-        }
-
-        // One delegate for every node, because Mono builds a native thunk for each delegate passed to native code
-        private static readonly YGMeasureFunc sharedMeasureFunc = MeasureNode;
-
-        private static YogaSize MeasureNode(IntPtr node, float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
-            try {
-                var item = YogaNode.GetManagedOrThrow(node).MeasureTarget!;
-                var size = item.Measure(width, (Reactive.MeasureMode)widthMode, height, (Reactive.MeasureMode)heightMode);
-
-                return new() {
-                    width = size.x,
-                    height = size.y
-                };
-            } catch (Exception e) {
-                Debug.LogException(e);
-                return default;
             }
         }
 
