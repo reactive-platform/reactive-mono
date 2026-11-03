@@ -138,6 +138,13 @@ public static class ImageLoader {
         var source = new TaskCompletionSource<CachedImage?>();
 
         req.SendWebRequest().completed += _ => {
+            // Reading a failed request can throw here, and then the task would never complete
+            // ReSharper disable once AccessToDisposedClosure
+            if (req.result != UnityWebRequest.Result.Success) {
+                source.SetResult(null);
+                return;
+            }
+
             // ReSharper disable once AccessToDisposedClosure
             var tex = DownloadHandlerTexture.GetContent(req);
             var sprite = SpriteUtils.CreateSprite(tex);

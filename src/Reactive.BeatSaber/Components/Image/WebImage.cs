@@ -88,7 +88,6 @@ public class WebImage : Image {
         }
 
         CachedImage? image;
-        var failure = false;
 
         try {
             image = await task;
@@ -96,7 +95,6 @@ public class WebImage : Image {
             return;
         } catch (Exception ex) {
             image = null;
-            failure = true;
         }
 
         if (tokenSource.IsCancellationRequested || IsDestroyed) {
@@ -105,10 +103,10 @@ public class WebImage : Image {
 
         _tokenSource = null;
 
-        ShowImage(image, failure ? FallbackSprite : null);
+        ShowImage(image, FallbackSprite);
         SetOverlayShown(false);
 
-        if (failure) {
+        if (image == null) {
             Debug.LogError("Image loading has failed");
             OnLoadFailed?.Invoke();
         }
