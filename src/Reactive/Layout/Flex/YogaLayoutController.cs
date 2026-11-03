@@ -440,16 +440,16 @@ namespace Reactive.Yoga {
 
             ApplyModifier(child, node);
 
-            if (context.Controller != null) {
-                context.YogaNode.SetMeasureTarget(null);
+            if (node.MeasureTarget == child) {
                 return;
             }
-
-            if (!node.HasMeasureFunc()) {
+            
+            if (context.Controller != null || !child.HasIntrinsicContent) {
+                node.SetMeasureTarget(null);
+            } else {
                 node.SetMeasureTarget(child);
+                node.MarkDirty();
             }
-
-            node.MarkDirty();
         }
 
         private static void ApplyDefaultStyle(YogaNode node) {

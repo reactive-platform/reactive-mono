@@ -184,6 +184,8 @@ namespace Reactive {
 
         #region Layout Component
 
+        protected override bool PromotedHasIntrinsicContent => _layoutController != null;
+
         protected override void PromotedOnModifierUpdate() {
             if (_layoutController is { } layoutController && !LayoutTool.IsControlledByParent(this)) {
                 layoutController.UpdateSelf(this);

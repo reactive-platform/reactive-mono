@@ -89,6 +89,8 @@ public class Image : ReactiveComponent, IComponentHolder<Image>, ISkewedComponen
 
     Image IComponentHolder<Image>.Component => this;
 
+    protected override bool PromotedHasIntrinsicContent => true;
+
     private FixedImageView _image = null!;
     private Vector2 _lastPreferredSize;
 
@@ -125,7 +127,7 @@ public class Image : ReactiveComponent, IComponentHolder<Image>, ISkewedComponen
 
         return LayoutTool.MeasureNode(size, width, widthMode, height, heightMode);
     }
-    
+
     protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
         return Measure(width, widthMode, height, heightMode);
     }

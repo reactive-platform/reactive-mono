@@ -15,7 +15,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.text;
         set {
             _text.text = value;
-            
+
         }
     }
 
@@ -23,7 +23,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.richText;
         set {
             _text.richText = value;
-            
+
         }
     }
 
@@ -31,7 +31,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.fontSize;
         set {
             _text.fontSize = value;
-            
+
         }
     }
 
@@ -39,7 +39,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.fontSizeMin;
         set {
             _text.fontSizeMin = value;
-            
+
         }
     }
 
@@ -47,7 +47,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.fontSizeMax;
         set {
             _text.fontSizeMax = value;
-            
+
         }
     }
 
@@ -55,7 +55,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.enableAutoSizing;
         set {
             _text.enableAutoSizing = value;
-            
+
         }
     }
 
@@ -63,7 +63,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.fontStyle;
         set {
             _text.fontStyle = value;
-            
+
         }
     }
 
@@ -71,7 +71,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.font;
         set {
             _text.font = value;
-            
+
         }
     }
 
@@ -79,7 +79,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.material;
         set {
             _text.material = value;
-            
+
         }
     }
 
@@ -87,7 +87,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.enableWordWrapping;
         set {
             _text.enableWordWrapping = value;
-            
+
         }
     }
 
@@ -95,7 +95,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.overflowMode;
         set {
             _text.overflowMode = value;
-            
+
         }
     }
 
@@ -103,7 +103,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.alignment;
         set {
             _text.alignment = value;
-            
+
         }
     }
 
@@ -111,7 +111,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.color;
         set {
             _text.color = value;
-            
+
         }
     }
 
@@ -119,7 +119,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         get => _text.raycastTarget;
         set {
             _text.raycastTarget = value;
-            
+
         }
     }
 
@@ -158,10 +158,12 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         RequestLeafRecalculation();
     }
 
-    public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
-       _lastPreferredSize = _text.GetPreferredValues();
+    protected override bool PromotedHasIntrinsicContent => true;
 
-       return LayoutTool.MeasureNode(_lastPreferredSize, width, widthMode, height, heightMode); 
+    public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
+        _lastPreferredSize = _text.GetPreferredValues();
+
+        return LayoutTool.MeasureNode(_lastPreferredSize, width, widthMode, height, heightMode);
     }
 
     protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
@@ -174,9 +176,9 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         if (time == _lastRequestTime) {
             return;
         }
-        
+
         _lastRequestTime = time;
-        
+
         var size = _text.GetPreferredValues();
 
         if (size == _lastPreferredSize) {
@@ -195,7 +197,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
 
     private void RequestLeafRecalculation() {
         _lastPreferredSize = _text.GetPreferredValues();
-        
+
         NotifyLayoutDataUpdated();
     }
 }

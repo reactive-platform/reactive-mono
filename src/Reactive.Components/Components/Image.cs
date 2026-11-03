@@ -55,6 +55,8 @@ namespace Reactive.Components.Basic {
         }
 
         Image IComponentHolder<Image>.Component => this;
+        
+        protected override bool PromotedHasIntrinsicContent => true;
 
         private UnityEngine.UI.Image _image = null!;
 

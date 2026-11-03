@@ -95,6 +95,8 @@ namespace Reactive.Components.Basic {
             NotifyLayoutDataUpdated();
         }
 
+        protected override bool PromotedHasIntrinsicContent => true;
+
         protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
             var size = _text.GetPreferredValues();
 

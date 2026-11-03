@@ -35,6 +35,8 @@ namespace Reactive {
 
             public bool WithinLayout => !IsDestroyed && !IgnoreLayout && (gameObject.activeSelf || WithinLayoutIfDisabled);
 
+            public bool HasIntrinsicContent => _layoutComponent?.PromotedHasIntrinsicContent ?? false;
+
             public bool IsActiveInHierarchy => !IsDestroyed && gameObject.activeInHierarchy;
 
             public bool IgnoreLayout {
@@ -263,12 +265,18 @@ namespace Reactive {
                     return;
                 }
 
-                if (_contextMember != null) {
+                var hadIntrinsicContent = HasIntrinsicContent;
+                var hadContext = _contextMember != null;
+
+                if (hadContext) {
                     ReleaseLayoutContext();
-                    NotifyLayoutDataUpdated();
                 }
 
                 _layoutComponent = comp;
+
+                if (hadContext || hadIntrinsicContent != HasIntrinsicContent) {
+                    NotifyLayoutDataUpdated();
+                }
             }
 
             public void AddComponent(ReactiveComponent comp) {

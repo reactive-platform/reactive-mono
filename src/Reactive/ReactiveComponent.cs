@@ -87,8 +87,10 @@ namespace Reactive {
 
         public bool WithinLayout => Host.WithinLayout;
 
+        public bool HasIntrinsicContent => Host.HasIntrinsicContent;
+
         public bool IsActiveInHierarchy => Host.IsActiveInHierarchy;
-        
+
         public bool WithinLayoutIfDisabled {
             get => _reactiveHost!.WithinLayoutIfDisabled;
             set => _reactiveHost!.WithinLayoutIfDisabled = value;
@@ -170,6 +172,12 @@ namespace Reactive {
 
             Host.PromoteLayoutComponent(component);
         }
+
+        /// <summary>
+        /// Whether the host has content that defines its size. When false, <see cref="PromotedMeasure"/> must give
+        /// the same size as the default implementation, so controllers may skip calling it.
+        /// </summary>
+        protected virtual bool PromotedHasIntrinsicContent => true;
 
         /// <summary>
         /// Called on the layout component when the host is measured.

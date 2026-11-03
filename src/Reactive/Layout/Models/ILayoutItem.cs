@@ -43,6 +43,12 @@ namespace Reactive {
         bool WithinLayout { get; }
 
         /// <summary>
+        /// Whether this node has content that defines its size, like text or an image. False means this node
+        /// measures as an empty one, so controllers may skip calling <see cref="ILayoutMeasurable.Measure"/>.
+        /// </summary>
+        bool HasIntrinsicContent { get; }
+
+        /// <summary>
         /// Invoked when some values affecting layout have changed.
         /// <see cref="LayoutModifier"/> and <see cref="WithinLayout"/> are some of those.
         /// Tracked by <see cref="ILayoutDriver"/>, shouldn't be subscribed directly.
