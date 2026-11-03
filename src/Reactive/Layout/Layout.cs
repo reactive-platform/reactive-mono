@@ -87,7 +87,7 @@ namespace Reactive {
             _childrenOrdered.Add(item);
 
             if (layoutController != null && item.WithinLayout) {
-                layoutController.InsertChild(item, GetControllerIndex(item, layoutController));
+                layoutController.InsertChild(item, layoutController.ChildCount);
             }
 
             item.LayoutDataUpdatedEvent += HandleChildLayoutDataUpdated;
