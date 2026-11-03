@@ -11,6 +11,7 @@ namespace Reactive;
 [PublicAPI]
 public abstract class StateBase<T> : IState {
     private StateCallbacksList<T> _list;
+    private int _invalidatedIn;
 
     public bool IsDirty { get; private set; }
 
@@ -26,7 +27,21 @@ public abstract class StateBase<T> : IState {
     /// callbacks get the value when the state is flushed.
     /// </summary>
     protected void NotifyValueInvalidated() {
-        _list.InvokeInvalidation();
+        // A change reaches a state once for every path to it, but the state only has to pass it on once
+        if (StateInvalidation.Depth == 0) {
+            StateInvalidation.Walk = StateInvalidation.Walk == int.MaxValue ? 1 : StateInvalidation.Walk + 1;
+        } else if (_invalidatedIn == StateInvalidation.Walk) {
+            return;
+        }
+
+        _invalidatedIn = StateInvalidation.Walk;
+        StateInvalidation.Depth++;
+
+        try {
+            _list.InvokeInvalidation();
+        } finally {
+            StateInvalidation.Depth--;
+        }
 
         if (_list.HasCallbacks && !IsDirty) {
             IsDirty = true;
@@ -71,4 +86,9 @@ public abstract class StateBase<T> : IState {
     public bool RemoveCallback(in StateSubscription sub) {
         return _list.Remove(sub);
     }
+}
+
+internal static class StateInvalidation {
+    public static int Depth;
+    public static int Walk;
 }
