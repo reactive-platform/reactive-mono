@@ -15,9 +15,9 @@ public abstract class ModalBase : ReactiveComponent {
     public PlacementData PlacementData { get; set; } = new() { Placement = RelativePlacement.Center };
 
     /// <summary>
-    /// An anchor to place against. If not set, <see cref="PlacementData"/> won't do anything.
+    /// An anchor to place against. If not set or not bound yet, <see cref="PlacementData"/> won't do anything.
     /// </summary>
-    public RectTransform? PlacementAnchor { get; set; }
+    public Ref<RectTransform>? PlacementAnchor { get; set; }
 
     /// <summary>
     /// Called when user clicks outside the modal view.
@@ -165,11 +165,11 @@ public abstract class ModalBase : ReactiveComponent {
 
     private void HandleLayoutUpdated(ILayoutItem item) {
         // Placing while closing too, as the overlay is still pushed
-        if (!_overlay.IsPushed || PlacementAnchor == null) {
+        if (!_overlay.IsPushed || PlacementAnchor?.Value is not { } anchor) {
             return;
         }
 
-        PlacementTool.Place(_content.ContentTransform, PlacementAnchor, PlacementData);
+        PlacementTool.Place(_content.ContentTransform, anchor, PlacementData);
     }
 
     #endregion

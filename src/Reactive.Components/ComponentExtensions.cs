@@ -75,6 +75,16 @@ public static class ComponentExtensions {
     }
 
     /// <summary>
+    /// Binds a held component to a reference. Has less priority than basic Bind.
+    /// </summary>
+    /// <param name="holder">A holder to take the component from.</param>
+    /// <param name="reference">A reference to bind to.</param>
+    public static T Bind<T, TBind>(this T holder, Ref<TBind> reference, int _ = 0) where T : IComponentHolder<TBind>, IReactiveComponent where TBind : class {
+        reference.Value = holder.Component;
+        return holder;
+    }
+
+    /// <summary>
     /// Exports a held component to a variable. Has less priority than basic Export.
     /// </summary>
     /// <param name="holder">A holder to take the component from.</param>

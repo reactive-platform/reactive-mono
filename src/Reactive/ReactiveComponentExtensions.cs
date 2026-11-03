@@ -39,6 +39,16 @@ namespace Reactive {
             return comp;
         }
 
+        public static T Bind<T, TBind>(this T comp, Ref<TBind> reference) where T : TBind, IReactiveComponent where TBind : class {
+            reference.Value = comp;
+            return comp;
+        }
+
+        public static T Bind<T>(this T comp, Ref<RectTransform> reference) where T : IReactiveComponent {
+            reference.Value = comp.ContentTransform;
+            return comp;
+        }
+
         public static RectTransform Use(this ReactiveComponent comp, GameObject parent) {
             comp.Use(parent.GetOrAddComponent<RectTransform>());
             return comp.ContentTransform;

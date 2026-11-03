@@ -108,6 +108,14 @@ public partial class ReactiveComponent {
     protected static Lazy<T> Lazy<T>(Func<T> accessor, bool cacheLazyValue = true) {
         return new(accessor, cacheLazyValue);
     }
+
+    /// <summary>
+    /// Creates a reference that can be shared before the value is bound.
+    /// </summary>
+    /// <param name="value">An initial value, if any.</param>
+    protected static Ref<T> Ref<T>(T? value = null) where T : class {
+        return new(value);
+    }
     
     #endregion
 }

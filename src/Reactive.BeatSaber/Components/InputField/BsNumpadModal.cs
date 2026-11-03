@@ -28,7 +28,7 @@ public partial class BsNumpadModal : ReactiveComponent {
         }
     }
 
-    public RectTransform? PlacementAnchor {
+    public Ref<RectTransform>? PlacementAnchor {
         get;
         set {
             field = value;
