@@ -100,16 +100,6 @@ public partial class ReactiveComponent {
     protected RectTransform CanvasTransform => (RectTransform)Canvas!.transform;
 
     /// <summary>
-    /// Creates a lazy value from a delegate.
-    /// </summary>
-    /// <param name="accessor">An accessor delegate.</param>
-    /// <param name="cacheLazyValue">Should the lazy struct cache a value or not.
-    /// When False, the delegate will be evaluated each time Value property is called.</param>
-    protected static Lazy<T> Lazy<T>(Func<T> accessor, bool cacheLazyValue = true) {
-        return new(accessor, cacheLazyValue);
-    }
-
-    /// <summary>
     /// Creates a reference that can be shared before the value is bound.
     /// </summary>
     /// <param name="value">An initial value, if any.</param>
