@@ -440,10 +440,6 @@ namespace Reactive.Yoga {
 
             ApplyModifier(child, node);
 
-            if (node.MeasureTarget == child) {
-                return;
-            }
-            
             if (context.Controller != null || !child.HasIntrinsicContent) {
                 node.SetMeasureTarget(null);
             } else {
