@@ -315,6 +315,7 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
         }.Use();
     }
 
+    [StateGen]
     private static Background CreateButton(
         IState<BsSliderColors> colors,
         IState<bool> interactable,

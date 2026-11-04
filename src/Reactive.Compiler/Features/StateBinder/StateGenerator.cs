@@ -11,6 +11,8 @@ namespace Reactive.Compiler;
 
 [Generator]
 internal class StateGenerator : IIncrementalGenerator {
+    public const string GeneratorName = "Reactive_StateGenerator";
+
     public void Initialize(IncrementalGeneratorInitializationContext context) {
         // Every bindable property of an initialized type in Debug, so completion can suggest them before they're used
         var generateAll = BuildConfiguration.CreateIsDebugProvider(context);
@@ -108,32 +110,44 @@ internal class StateGenerator : IIncrementalGenerator {
                 continue;
             }
 
-            var statePropName = assignment.Left.ToString();
-            var position = assignment.Left.SpanStart;
-
-            foreach (var pattern in patterns) {
-                var rex = pattern.Replace("{}", "([A-Za-z0-9_]+)");
-                if (Regex.Match(statePropName, rex) is not { Success: true } match) {
-                    continue;
-                }
-
-                var matchedPropName = match.Groups[1].Value;
-
-                var symbols = semanticModel.LookupSymbols(
-                    position,
-                    type,
-                    matchedPropName,
-                    includeReducedExtensionMethods: true // CRUCIAL!! Captures extension properties
-                );
-
-                if (symbols.FirstOrDefault() is IPropertySymbol prop && IsBindable(prop, semanticModel)) {
-                    result.Add((prop.OriginalDefinition, statePropName));
-                    break;
-                }
+            if (MatchBinding(assignment, patterns, type, semanticModel) is { } prop) {
+                result.Add((prop.OriginalDefinition, assignment.Left.ToString()));
             }
         }
 
         return result;
+    }
+    
+    internal static IPropertySymbol? MatchBinding(
+        AssignmentExpressionSyntax assignment,
+        string[] patterns,
+        ITypeSymbol type,
+        SemanticModel semanticModel
+    ) {
+        var statePropName = assignment.Left.ToString();
+        var position = assignment.Left.SpanStart;
+
+        foreach (var pattern in patterns) {
+            var rex = pattern.Replace("{}", "([A-Za-z0-9_]+)");
+            if (Regex.Match(statePropName, rex) is not { Success: true } match) {
+                continue;
+            }
+
+            var matchedPropName = match.Groups[1].Value;
+
+            var symbols = semanticModel.LookupSymbols(
+                position,
+                type,
+                matchedPropName,
+                includeReducedExtensionMethods: true // CRUCIAL!! Captures extension properties
+            );
+
+            if (symbols.FirstOrDefault() is IPropertySymbol prop && IsBindable(prop, semanticModel)) {
+                return prop;
+            }
+        }
+
+        return null;
     }
     
     private static List<(ISymbol targetProp, string genName)> CollectAllProperties(
@@ -193,7 +207,7 @@ internal class StateGenerator : IIncrementalGenerator {
         return prop.GetDerivedAttribute<RawStateAttribute>(semanticModel) == null;
     }
 
-    private static string[]? GetPatterns(SyntaxNode node, SemanticModel semanticModel) {
+    internal static string[]? GetPatterns(SyntaxNode node, SemanticModel semanticModel) {
         if (node.GetEnclosingMember() is not { } methodSyntax) {
             return null;
         }
@@ -239,7 +253,7 @@ internal class StateGenerator : IIncrementalGenerator {
         }
 
         buffer.AppendLine("[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]");
-        buffer.AppendLine("[System.CodeDom.Compiler.GeneratedCode(\"Reactive_StateGenerator\", \"1.0\")]");
+        buffer.AppendLine($"[System.CodeDom.Compiler.GeneratedCode(\"{GeneratorName}\", \"1.0\")]");
         buffer.AppendLine($"internal static class Reactive_{typeIdentifier}_StateGenExt {{");
 
         buffer.Append($"    extension{genericArguments}({type} obj)");

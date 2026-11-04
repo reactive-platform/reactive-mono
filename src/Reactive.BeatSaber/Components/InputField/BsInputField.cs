@@ -213,6 +213,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
         return go;
     }
 
+    [StateGen]
     private static IReactiveComponent CreateCloseButton(
         IState<bool> enabled,
         Action onClick

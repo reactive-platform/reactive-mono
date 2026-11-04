@@ -1,6 +1,7 @@
 using System;
 using HMUI;
 using JetBrains.Annotations;
+using Reactive.Compiler;
 using Reactive.Components;
 using Reactive.Yoga;
 using UnityEngine;
@@ -217,6 +218,7 @@ namespace Reactive.BeatSaber.Components {
             };
         }
 
+        [StateGen]
         private static Image CreateCursor(Sprite sprite, IState<Color> background) {
             const float lightColorThreshold = 0.7f;
 
