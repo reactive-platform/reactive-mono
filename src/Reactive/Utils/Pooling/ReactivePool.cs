@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 
-namespace Reactive {
+namespace Reactive.Utils.Pooling {
     [PublicAPI]
     public class ReactivePool<TKey, T> where T : IReactiveComponent, new() {
         public IReadOnlyDictionary<TKey, T> SpawnedComponents => _keyedComponents;
