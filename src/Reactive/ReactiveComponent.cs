@@ -11,36 +11,6 @@ using Object = UnityEngine.Object;
 namespace Reactive {
     [PublicAPI]
     public partial class ReactiveComponent : IReactiveComponent {
-        #region Factory
-
-        [UsedImplicitly]
-        private ReactiveComponent(int _) { }
-
-        protected ReactiveComponent(bool constructImmediate) {
-            if (constructImmediate) {
-                ConstructAndInit();
-            }
-        }
-
-        public ReactiveComponent() {
-            ConstructAndInit();
-        }
-
-        private static ConstructorInfo? _lazyConstructor;
-        private static readonly object[] dummyParams = { 0 };
-
-        public static T LazyComponent<T>() where T : ReactiveComponent, new() {
-            _lazyConstructor ??= typeof(ReactiveComponent).GetConstructor(
-                ReflectionUtils.DefaultFlags,
-                null,
-                new[] { typeof(int) },
-                null
-            );
-            return (T)_lazyConstructor!.Invoke(dummyParams);
-        }
-
-        #endregion
-
         #region UI Props
 
         /// <summary>
