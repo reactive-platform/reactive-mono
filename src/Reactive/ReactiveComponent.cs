@@ -11,6 +11,20 @@ using Object = UnityEngine.Object;
 namespace Reactive {
     [PublicAPI]
     public partial class ReactiveComponent : IReactiveComponent {
+        #region Factory
+
+        protected ReactiveComponent(bool constructImmediate) {
+            if (constructImmediate) {
+                ConstructAndInit();
+            }
+        }
+
+        public ReactiveComponent() {
+            ConstructAndInit();
+        }
+
+        #endregion
+
         #region UI Props
 
         /// <summary>
