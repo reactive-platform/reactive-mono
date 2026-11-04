@@ -23,12 +23,6 @@ public class Sample : ReactiveComponent {
 
             Children = {
                 new Label {
-                    DoAll = [
-                        x => Debug.Log(x),
-                        x => Debug.Log(x),
-                        x => Debug.Log(x),
-                    ],
-
                     FlexItem = {
                         Size = new() { x = 10.pt }
                     },

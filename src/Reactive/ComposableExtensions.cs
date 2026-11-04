@@ -16,17 +16,5 @@ public static class ComposableExtensions {
         public Action<T> Do {
             set => value(comp);
         }
-
-        /// <summary>
-        /// Calls all provided callbacks immediately. This property accepts array
-        /// instead of <see cref="IEnumerator"/> so compiler can optimize the allocations out.
-        /// </summary>
-        public Action<T>[] DoAll {
-            set {
-                foreach (var item in value) {
-                    item(comp);
-                }
-            }
-        }
     }
 }
