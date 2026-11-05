@@ -116,7 +116,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
                 FlexController = {
                     JustifyContent = Justify.FlexStart,
                     AlignItems = Align.Stretch,
-                    Padding = new() { left = 1.pt, top = 1.5f.pt, bottom = 1.5f.pt },
+                    Padding = new() { left = 1.5f.pt, right = 2.pt },
                     Gap = 1.pt
                 },
 
@@ -142,6 +142,13 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
 
                     new Image {
                         Name = "Icon",
+
+                        FlexItem = {
+                            Size = new() { y = 62.5f.pct },
+                            AspectRatio = 1f,
+                            AlignSelf = Align.Center
+                        },
+
                         PreserveAspect = true,
                         sColor = _graphicState.MapColorSet(_colors, x => x.IconColors).In(),
                         sSprite = _icon.Where(x => x != null),
@@ -172,6 +179,11 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
                                 Alignment = TextAlignmentOptions.CaplineLeft,
                                 FontStyle = FontStyles.Italic,
 
+                                EnableWrapping = false,
+                                EnableAutoSizing = true,
+                                FontSizeMin = 2f,
+                                FontSizeMax = 4f,
+
                                 sText = RememberDerived(_text, _placeholder, (text, placeholder) => text ?? placeholder),
 
                                 sColor = RememberDerived(
@@ -198,8 +210,9 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
             Name = "Caret",
 
             ContentTransform = {
-                anchorMin = new(0f, 0.1f),
-                anchorMax = new(0f, 0.9f),
+                // 4pt in the default 8pt field, as the label spans the full height
+                anchorMin = new(0f, 0.25f),
+                anchorMax = new(0f, 0.75f),
                 pivot = new(0f, 0.5f),
                 sizeDelta = new(1f, 0f)
             },
@@ -223,8 +236,11 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
         return new Background {
             Name = "ClearButton",
 
+            // A square following the field height
             FlexItem = {
-                Size = new() { x = 8.pt }
+                Size = new() { y = 100.pct },
+                AspectRatio = 1f,
+                AlignSelf = Align.Center
             },
 
             FlexController = {
@@ -238,7 +254,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
             Children = {
                 new Background {
                     FlexItem = {
-                        Size = 4.pt
+                        Size = 50.pct
                     },
 
                     FlexController = {
@@ -312,7 +328,10 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
 
         if (text.Length > 0) {
             var measured = _label.Measure(float.MaxValue, MeasureMode.AtMost, float.MaxValue, MeasureMode.AtMost);
-            width = Mathf.Min(measured.x, _label.ContentTransform.rect.width);
+
+            // Measured at the max size, while auto sizing might have rendered it smaller
+            var scale = _label.FontSize / _label.FontSizeMax;
+            width = Mathf.Min(measured.x * scale, _label.ContentTransform.rect.width);
         }
 
         _caret.ContentTransform.anchoredPosition = new(width, 0f);

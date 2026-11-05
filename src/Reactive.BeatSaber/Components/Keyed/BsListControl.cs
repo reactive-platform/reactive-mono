@@ -161,11 +161,24 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent, IIn
             },
 
             FlexController = {
-                JustifyContent = Justify.Center
+                JustifyContent = Justify.Center,
+                AlignItems = Align.Center,
+                Padding = new() { left = 5.pt, right = 5.pt },
+                Gap = 0.5f.pt
             },
 
             Children = {
                 new Label {
+                    FlexItem = {
+                        FlexShrink = 1f
+                    },
+
+                    EnableWrapping = false,
+                    Overflow = TextOverflowModes.Ellipsis,
+                    EnableAutoSizing = true,
+                    FontSizeMin = 2f,
+                    FontSizeMax = 4f,
+
                     Alignment = TextAlignmentOptions.Capline,
                     sFontStyle = _skew.Map(x => x > 0 ? FontStyles.Italic : FontStyles.Normal),
 
@@ -176,7 +189,7 @@ public partial class BsListControl<T> : ReactiveComponent, ISkewedComponent, IIn
 
                 new BsImage {
                     FlexItem = {
-                        Margin = new() { top = 2.pt, bottom = 2.pt },
+                        Size = new() { y = 50.pct },
                         AspectRatio = 1f
                     },
 

@@ -141,9 +141,10 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
 
         return new Background {
             FlexController = {
-                Padding = new() { left = 2.pt, right = 2.pt },
-                Gap = 1.pt,
-                JustifyContent = Justify.Center
+                Padding = new() { left = 5.pt, right = 5.pt },
+                Gap = 0.5f.pt,
+                JustifyContent = Justify.Center,
+                AlignItems = Align.Center
             },
 
             FlexItem = {
@@ -174,6 +175,16 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
 
             Children = {
                 new Label {
+                    FlexItem = {
+                        FlexShrink = 1f
+                    },
+
+                    EnableWrapping = false,
+                    Overflow = TextOverflowModes.Ellipsis,
+                    EnableAutoSizing = true,
+                    FontSizeMin = 2f,
+                    FontSizeMax = 4f,
+
                     Alignment = TextAlignmentOptions.Capline,
                     sFontStyle = _skew.Map(x => x > 0 ? FontStyles.Italic : FontStyles.Normal),
 
@@ -184,11 +195,12 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
 
                 new Image {
                     FlexItem = {
-                        Margin = new() { top = 2.pt, bottom = 2.pt },
+                        Size = new() { y = 50.pct },
                         AspectRatio = 1f
                     },
 
                     PreserveAspect = true,
+                    sSkew = _skew,
 
                     sEnabled = item.Map(x => x?.Icon != null),
                     sSprite = item.Map(x => x?.Icon),
@@ -200,8 +212,9 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
 
                     FlexItem = {
                         PositionType = PositionType.Absolute,
-                        Size = new() { x = 2.7f.pt, y = 100.pct },
-                        Position = new() { top = 0.1f.pt, right = 2f.pt }
+                        Size = new() { y = 45.pct },
+                        AspectRatio = 1f,
+                        Position = new() { right = 2f.pt }
                     },
 
                     Sprite = GameResources.ArrowIcon,
