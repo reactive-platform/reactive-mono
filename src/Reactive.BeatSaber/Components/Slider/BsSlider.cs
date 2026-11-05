@@ -182,7 +182,7 @@ public class BsSlider : ReactiveComponent, IInteractableComponent {
 
         _valueText = RememberDerived(
             _value, _valueFormatter,
-            (value, formatter) => formatter != null ? formatter(value) : value.ToString(CultureInfo.CurrentCulture)
+            (value, formatter) => formatter != null ? formatter(value) : value.ToString("0.##", CultureInfo.CurrentCulture)
         );
 
         return new Layout {
