@@ -87,7 +87,7 @@ internal class StateGenerator : IIncrementalGenerator {
             ? CollectAllProperties(initializer, patterns, type, semanticModel)
             : CollectMatchingProperties(initializer, patterns, type, semanticModel);
     }
-    
+
     private static List<(ISymbol targetProp, string genName)> CollectMatchingProperties(
         InitializerExpressionSyntax initializer,
         string[] patterns,
@@ -100,7 +100,7 @@ internal class StateGenerator : IIncrementalGenerator {
             if (expression is not AssignmentExpressionSyntax { RawKind: (int)SyntaxKind.SimpleAssignmentExpression } assignment) {
                 continue;
             }
-            
+
             if (!assignment.Right.IsStateExpression(semanticModel)) {
                 continue;
             }
@@ -117,7 +117,7 @@ internal class StateGenerator : IIncrementalGenerator {
 
         return result;
     }
-    
+
     internal static IPropertySymbol? MatchBinding(
         AssignmentExpressionSyntax assignment,
         string[] patterns,
@@ -149,7 +149,7 @@ internal class StateGenerator : IIncrementalGenerator {
 
         return null;
     }
-    
+
     private static List<(ISymbol targetProp, string genName)> CollectAllProperties(
         InitializerExpressionSyntax initializer,
         string[] patterns,
@@ -177,15 +177,16 @@ internal class StateGenerator : IIncrementalGenerator {
 
         return result;
     }
-    
+
     private static bool IsBindable(IPropertySymbol prop, SemanticModel semanticModel) {
-        if (prop is not { IsStatic: false, IsIndexer: false, SetMethod: { IsInitOnly: false } setter }) {
+        // Needed because the prop can be in a generic extension. When it's not, simply returns the same symbol
+        var definition = prop.OriginalDefinition;
+
+        if (definition is not { IsStatic: false, IsIndexer: false, SetMethod: { IsInitOnly: false } setter }) {
             return false;
         }
 
-        // Extensions on a bare type parameter (e.g. `extension<T>(T comp)`) can't be targeted by a typed extension.
-        // Checking the original definition, as that's what gets generated and the lookup substitutes T
-        var containingType = prop.OriginalDefinition.ContainingType;
+        var containingType = definition.ContainingType;
         var receiver = containingType.IsExtension ? containingType.ExtensionParameter?.Type : containingType;
 
         if (receiver is not INamedTypeSymbol) {
@@ -199,12 +200,12 @@ internal class StateGenerator : IIncrementalGenerator {
 
         if (!compilation.IsSymbolAccessibleWithin(setter, assembly) ||
             !compilation.IsSymbolAccessibleWithin(receiver, assembly) ||
-            !compilation.IsSymbolAccessibleWithin(prop.Type, assembly)) {
+            !compilation.IsSymbolAccessibleWithin(definition.Type, assembly)) {
             return false;
         }
 
         // Raw states are excluded from the generation process
-        return prop.GetDerivedAttribute<RawStateAttribute>(semanticModel) == null;
+        return definition.GetDerivedAttribute<RawStateAttribute>(semanticModel) == null;
     }
 
     internal static string[]? GetPatterns(SyntaxNode node, SemanticModel semanticModel) {
