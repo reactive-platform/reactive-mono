@@ -50,6 +50,14 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
         }
     } = DefaultMaxVisibleRows;
 
+    public float Width {
+        get => _width.Value;
+        set {
+            _width.Value = value;
+            RefreshListSize();
+        }
+    }
+
     /// <summary>
     /// Called with the index of an item the user has clicked.
     /// </summary>
@@ -61,10 +69,12 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
 
     private const float RowHeight = 7f;
     private const int DefaultMaxVisibleRows = 5;
+    private const float DefaultWidth = 36f;
 
     private Table<int, IReactiveComponent> _table = null!;
     private State<IReadOnlyList<BsDropdownItem>> _items = null!;
     private State<BsDropdownColors> _colors = null!;
+    private State<float> _width = null!;
     private ScrollContext _scrollContext = null!;
     private bool _settingSelection;
     private int _pendingScrollIndex = -1;
@@ -72,6 +82,7 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
     protected override IReactiveComponent ConstructContent() {
         _items = Remember<IReadOnlyList<BsDropdownItem>>(Array.Empty<BsDropdownItem>());
         _colors = Remember(BeatSaberStyle.BsDropdownColors);
+        _width = Remember(DefaultWidth);
 
         var scrollContext = new ScrollContext();
         _scrollContext = scrollContext;
@@ -105,7 +116,7 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
                     Children = {
                         new Table<int, IReactiveComponent> {
                             FlexItem = {
-                                Size = new() { x = 36.pt, y = (RowHeight * DefaultMaxVisibleRows).pt },
+                                Size = new() { x = DefaultWidth.pt, y = (RowHeight * DefaultMaxVisibleRows).pt },
                                 Margin = new() { top = 1.pt, bottom = 1.pt }
                             },
 
@@ -158,7 +169,7 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
     private void RefreshListSize() {
         // The list fits its items and scrolls once there are more than fit
         var rows = Mathf.Clamp(Items.Count, 1, Mathf.Max(1, MaxVisibleRows));
-        _table.FlexItem.Size = new() { x = 36.pt, y = (RowHeight * rows).pt };
+        _table.FlexItem.Size = new() { x = Width.pt, y = (RowHeight * rows).pt };
     }
 
     [StateGen]
@@ -182,7 +193,7 @@ internal class BsDropdownModal : ModalBase, IPoolableComponent {
             },
 
             FlexItem = {
-                Size = new() { x = 36.pt, y = RowHeight.pt }
+                sSize = _width.Map(x => new YogaVector(x.pt, RowHeight.pt))
             },
 
             Do = x => x.WithPointerEvents(

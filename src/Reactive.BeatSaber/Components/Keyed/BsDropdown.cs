@@ -12,6 +12,17 @@ namespace Reactive.BeatSaber.Components;
 
 public record struct BsDropdownItem(string? Text, Sprite? Icon);
 
+public record struct BsDropdownModalParams {
+    public BsDropdownModalParams() { }
+    
+    public int MaxVisibleRows { get; init; } = 5;
+    public CompositionAnimParams CompositionAnimParams { get; init; } = new();
+
+    public YogaValue Width { get; init; } = YogaValue.Undefined;
+    public YogaValue MinWidth { get; init; } = 24.pt;
+    public YogaValue MaxWidth { get; init; } = 46.pt;
+}
+
 public record struct BsDropdownColors(
     ColorSet ButtonBackgroundColors,
     ColorSet ArrowColors,
@@ -68,15 +79,13 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
         }
     }
 
-    public CompositionAnimParams CompositionAnimation { get; set; } = new();
-
-    public int MaxVisibleRows {
+    public BsDropdownModalParams ModalParams {
         get;
         set {
             field = value;
             SyncModal();
         }
-    } = 5;
+    } = new();
 
     public Action<T>? OnKeyChanged { get; set; }
 
@@ -232,7 +241,6 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
 
     private void ApplyModalProps(BsDropdownModal modal) {
         modal.PlacementAnchor = ContentTransform;
-        modal.CompositionAnimation = CompositionAnimation;
         modal.OnClickOutside = () => _modalOpened.Value = false;
 
         modal.OnItemSelected = x => {
@@ -250,9 +258,27 @@ public partial class BsDropdown<T> : ReactiveComponent, ISkewedComponent, IInter
         }
     }
 
+    private float ResolveModalWidth() {
+        var width = ResolveWidth(ModalParams.Width, ContentTransform.rect.width);
+        var min = ResolveWidth(ModalParams.MinWidth, 0f);
+        var max = ResolveWidth(ModalParams.MaxWidth, float.PositiveInfinity);
+        
+        return Mathf.Max(min, Mathf.Min(width, max));
+    }
+
+    private float ResolveWidth(YogaValue value, float fallback) {
+        return value.unit switch {
+            Unit.Percent => ContentTransform.rect.width * value.value / 100f,
+            Unit.Point => value.value,
+            _ => fallback
+        };
+    }
+
     private void UpdateModal(BsDropdownModal modal) {
+        modal.CompositionAnimation = ModalParams.CompositionAnimParams;
         modal.Colors = _colors.Value;
-        modal.MaxVisibleRows = MaxVisibleRows;
+        modal.MaxVisibleRows = ModalParams.MaxVisibleRows;
+        modal.Width = ResolveModalWidth();
         modal.Items = _items == null ? [] : _keys.Select(x => _items[x]).ToArray();
         modal.SelectedIndex = _key.HasValue ? Array.IndexOf(_keys, _key.Value!) : -1;
     }
