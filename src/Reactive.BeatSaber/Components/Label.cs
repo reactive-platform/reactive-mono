@@ -163,7 +163,15 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
     public Vector2 Measure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
         _lastPreferredSize = _text.GetPreferredValues();
 
-        return LayoutTool.MeasureNode(_lastPreferredSize, width, widthMode, height, heightMode);
+        var size = _lastPreferredSize;
+        
+        // GetPreferredValues without args returns size as if it would be unconstrained, so when we
+        // have wrapping enabled and more than one line we need to remeasure with explicit constraints
+        if (_text.enableWordWrapping && widthMode != MeasureMode.Undefined && !float.IsNaN(width) && width < size.x) {
+            size = _text.GetPreferredValues(width, float.PositiveInfinity);
+        }
+
+        return LayoutTool.MeasureNode(size, width, widthMode, height, heightMode);
     }
 
     protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
