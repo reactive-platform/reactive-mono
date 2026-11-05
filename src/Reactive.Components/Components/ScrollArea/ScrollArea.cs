@@ -265,9 +265,18 @@ namespace Reactive.Components.Basic {
         #region Callbacks
 
         private void HandlePointerScroll(PointerEventsHandler handler, PointerEventData eventData) {
-            var multiplier = XRSettings.isDeviceActive ? JoystickScrollSpeed * Time.deltaTime : LineSize;
+            // Mathf.Sign treats zero as positive, which would scroll
+            if (eventData.scrollDelta.y == 0f) {
+                return;
+            }
+
             var neg = ScrollOrientation is ScrollOrientation.Vertical ? -1 : 1;
-            var destinationPos = _destinationPos + eventData.scrollDelta.y * multiplier * neg;
+            
+            var offset = XRSettings.isDeviceActive ?
+                eventData.scrollDelta.y * JoystickScrollSpeed * Time.deltaTime :
+                Mathf.Sign(eventData.scrollDelta.y) * LineSize;
+
+            var destinationPos = _destinationPos + offset * neg;
 
             _lastScrollDeltaTime = Time.deltaTime;
 

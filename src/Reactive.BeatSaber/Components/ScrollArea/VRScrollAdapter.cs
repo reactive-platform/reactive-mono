@@ -13,13 +13,11 @@ namespace Reactive.BeatSaber.Components {
 
         private PointerEventsHandler _pointerEventsHandler = null!;
         private IVRPlatformHelper _platformHelper = null!;
-        private float _multiplier;
 
         private void Awake() {
             _pointerEventsHandler = GetComponent<PointerEventsHandler>();
             var context = BeatSaberUtils.MenuContainer;
             _platformHelper = context.Resolve<IVRPlatformHelper>();
-            _multiplier = BeatSaberUtils.UsesFPFC ? 10f : 1f;
         }
 
         private void Update() {
@@ -31,7 +29,7 @@ namespace Reactive.BeatSaber.Components {
                 return;
             }
             var pointerEventData = new PointerEventData(EventSystem.current) {
-                scrollDelta = delta * _multiplier
+                scrollDelta = delta
             };
             _pointerEventsHandler.OnScroll(pointerEventData);
         }
