@@ -103,6 +103,16 @@ public class BsPrimaryTextButton : ReactiveComponent, ISkewedComponent, IInterac
             ConstructContent = (color, skew) => new Label {
                 Do = x => x.Bind(ref _label),
 
+                FlexItem = {
+                    FlexShrink = 1f
+                },
+
+                EnableWrapping = false,
+                Overflow = TextOverflowModes.Ellipsis,
+                EnableAutoSizing = true,
+                FontSizeMin = 2f,
+                FontSizeMax = 4f,
+
                 FontStyle = FontStyles.UpperCase,
                 sFontStyle = skew.Map(x => x > 0 ? FontStyle | FontStyles.Italic : FontStyle & ~FontStyles.Italic),
                 sColor = color.In()

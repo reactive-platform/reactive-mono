@@ -2,6 +2,7 @@ using System;
 using JetBrains.Annotations;
 using Reactive.Compiler;
 using Reactive.Components;
+using Reactive.Yoga;
 using UnityEngine;
 
 namespace Reactive.BeatSaber.Components;
@@ -80,6 +81,13 @@ public class BsPrimaryImageButton : ReactiveComponent, ISkewedComponent, IIntera
     protected override GameObject Construct() {
         return new BsPrimaryButton {
             ConstructContent = (color, skew) => new Image {
+                FlexItem = {
+                    Size = new() { y = 100.pct },
+                    AspectRatio = 1f,
+                    FlexShrink = 1f,
+                    AlignSelf = Align.Center
+                },
+
                 sSkew = skew.In(),
                 sColor = color.In(),
                 PreserveAspect = true
