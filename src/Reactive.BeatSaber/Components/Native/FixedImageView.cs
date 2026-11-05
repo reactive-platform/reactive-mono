@@ -9,7 +9,10 @@ namespace Reactive.BeatSaber.Components {
         public GradientDirection GradientDirection {
 #if !COMPILE_EDITOR
             get => _gradientDirection;
-            set => _gradientDirection = value;
+            set {
+                _gradientDirection = value;
+                __Refresh();
+            }
 #else
             get => GradientDirection.Vertical;
             set { }
