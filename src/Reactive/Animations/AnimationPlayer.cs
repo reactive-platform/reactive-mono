@@ -26,6 +26,11 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
     public bool IsPlaying => Animation != null;
 
     /// <summary>
+    /// The zero-based iteration being played.
+    /// </summary>
+    public int Iteration { get; private set; }
+
+    /// <summary>
     /// Plays the animation from the start. Stops the current one without finishing it.
     /// </summary>
     /// <param name="animation">The animation to play.</param>
@@ -34,6 +39,7 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
         Animation = animation;
         _onFinished = onFinished;
         _elapsedTime = 0f;
+        Iteration = 0;
 
         // Applying right away so the target doesn't keep the previous values for a frame
         Evaluate();
@@ -41,13 +47,20 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
 
     /// <summary>
     /// Jumps the current animation to its end, applying the final values and invoking the finish callback.
+    /// An infinite animation has no end, so it finishes the iteration being played instead.
     /// </summary>
     public void Finish() {
         if (Animation is not { } animation) {
             return;
         }
 
-        _elapsedTime = animation.Duration;
+        if (float.IsPositiveInfinity(animation.Iterations) && animation.Duration > 0f) {
+            Apply(animation, Iteration, 1f);
+            Complete();
+            return;
+        }
+
+        _elapsedTime = float.PositiveInfinity;
         Evaluate();
     }
 
@@ -68,14 +81,51 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
 
     private void Evaluate() {
         var animation = Animation!.Value;
-        var progress = animation.Duration > 0f ? Mathf.Clamp01(_elapsedTime / animation.Duration) : 1f;
+        var iterations = Mathf.Max(animation.Iterations, 0f);
 
-        animation.Track.Apply(Target, animation.Curve?.Evaluate(progress) ?? progress);
+        // Infinite iterations never finish unless there's nothing to play
+        var finished = animation.Duration <= 0f || _elapsedTime >= animation.Duration * iterations;
 
-        if (progress < 1f) {
+        if (!finished) {
+            var elapsedIterations = _elapsedTime / animation.Duration;
+            var iteration = Mathf.FloorToInt(elapsedIterations);
+
+            Apply(animation, iteration, elapsedIterations - iteration);
             return;
         }
 
+        // The end of the last iteration, which is only partially played when the count is fractional
+        if (iterations == 0f) {
+            Apply(animation, 0, 0f);
+        } else if (float.IsPositiveInfinity(iterations)) {
+            Apply(animation, 0, 1f);
+        } else {
+            var last = Mathf.CeilToInt(iterations) - 1;
+            Apply(animation, last, iterations - last);
+        }
+
+        Complete();
+    }
+
+    private void Apply(in Animation<T> animation, int iteration, float progress) {
+        Iteration = iteration;
+
+        var reversed = animation.Direction switch {
+            AnimationDirection.Reverse => true,
+            AnimationDirection.Alternate => iteration % 2 == 1,
+            AnimationDirection.AlternateReverse => iteration % 2 == 0,
+            _ => false
+        };
+
+        // The curve goes over the directed progress, so a reversed ease-in plays like an ease-out, as on the web
+        if (reversed) {
+            progress = 1f - progress;
+        }
+
+        animation.Track.Apply(Target, animation.Curve?.Evaluate(progress) ?? progress);
+    }
+
+    private void Complete() {
         var onFinished = _onFinished;
         Stop();
         onFinished?.Invoke();
