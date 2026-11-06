@@ -55,7 +55,7 @@ namespace Reactive {
 
         public bool IsFinished => _set;
 
-        public AnimationDuration Duration { get; set; }
+        public AnimationTiming Timing { get; set; }
         public AnimationCurve Curve { get; set; } = AnimationCurve.Linear;
 
         public Action<T>? OnFinish { get; set; }
@@ -98,17 +98,8 @@ namespace Reactive {
                 return;
             }
 
-            if (Duration.Unit is DurationUnit.Seconds) {
-                _elapsedTime += Time.deltaTime;
-                _linearProgress = Mathf.Clamp01(_elapsedTime / Duration);
-            } else {
-                _linearProgress = Mathf.Lerp(_linearProgress, 1f, Time.deltaTime * Duration);
-
-                // Factor-based progress only approaches 1, so snapping it at the end
-                if (Mathf.Approximately(1f, _linearProgress)) {
-                    _linearProgress = 1f;
-                }
-            }
+            _elapsedTime += Time.deltaTime;
+            _linearProgress = Timing.Advance(_linearProgress, _elapsedTime, Time.deltaTime);
 
             Progress = Curve.Evaluate(_linearProgress);
             // Finishing if needed

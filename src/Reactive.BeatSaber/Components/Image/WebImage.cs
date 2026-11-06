@@ -129,13 +129,13 @@ public class WebImage : Image {
 
     public static readonly Animation<WebImageAnimContext> DefaultStartAnimation = new(
         AnimationTracks.Fade(0f, 1f).For((WebImageAnimContext x) => x.Background),
-        0.2f,
+        200.ms,
         AnimationCurve.EaseInOut
     );
 
     public static readonly Animation<WebImageAnimContext> DefaultFinishAnimation = new(
         AnimationTracks.Fade(1f, 0f).For((WebImageAnimContext x) => x.Background),
-        0.2f,
+        200.ms,
         AnimationCurve.EaseInOut
     );
 

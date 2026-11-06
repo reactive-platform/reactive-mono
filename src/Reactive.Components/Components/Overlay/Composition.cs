@@ -104,7 +104,8 @@ public class Composition : MonoBehaviour {
     private void Update() {
         _elapsedTime += Time.deltaTime;
 
-        var progress = _params.Duration > 0f ? Mathf.Clamp01(_elapsedTime / _params.Duration) : 1f;
+        var duration = _params.Duration.Seconds;
+        var progress = duration > 0f ? Mathf.Clamp01(_elapsedTime / duration) : 1f;
         var curved = _params.Curve?.Evaluate(progress) ?? progress;
 
         _canvasGroup!.alpha = Mathf.LerpUnclamped(_startAlpha, TargetAlpha, curved);

@@ -54,7 +54,7 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
             return;
         }
 
-        if (float.IsPositiveInfinity(animation.Iterations) && animation.Duration > 0f) {
+        if (float.IsPositiveInfinity(animation.Iterations) && animation.Duration.Seconds > 0f) {
             Apply(animation, Iteration, 1f);
             Complete();
             return;
@@ -81,13 +81,14 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
 
     private void Evaluate() {
         var animation = Animation!.Value;
+        var duration = animation.Duration.Seconds;
         var iterations = Mathf.Max(animation.Iterations, 0f);
 
         // Infinite iterations never finish unless there's nothing to play
-        var finished = animation.Duration <= 0f || _elapsedTime >= animation.Duration * iterations;
+        var finished = duration <= 0f || _elapsedTime >= duration * iterations;
 
         if (!finished) {
-            var elapsedIterations = _elapsedTime / animation.Duration;
+            var elapsedIterations = _elapsedTime / duration;
             var iteration = Mathf.FloorToInt(elapsedIterations);
 
             Apply(animation, iteration, elapsedIterations - iteration);

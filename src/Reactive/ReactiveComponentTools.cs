@@ -46,48 +46,48 @@ public partial class ReactiveComponent {
 
     protected AnimatedState<Color> RememberAnimated(
         Color initialValue,
-        AnimationDuration animationDuration,
+        AnimationTiming timing,
         AnimationCurve? curve = null,
         Action<Color>? onFinish = null
     ) {
-        return StateUtils.RememberAnimatedColor(this, initialValue, animationDuration, curve, onFinish);
+        return StateUtils.RememberAnimatedColor(this, initialValue, timing, curve, onFinish);
     }
 
     protected AnimatedState<Vector2> RememberAnimated(
         Vector2 initialValue,
-        AnimationDuration animationDuration,
+        AnimationTiming timing,
         AnimationCurve? curve = null,
         Action<Vector2>? onFinish = null
     ) {
-        return StateUtils.RememberAnimatedVector(this, initialValue, animationDuration, curve, onFinish);
+        return StateUtils.RememberAnimatedVector(this, initialValue, timing, curve, onFinish);
     }
 
     protected AnimatedState<Vector3> RememberAnimated(
         Vector3 initialValue,
-        AnimationDuration animationDuration,
+        AnimationTiming timing,
         AnimationCurve? curve = null,
         Action<Vector3>? onFinish = null
     ) {
-        return StateUtils.RememberAnimatedVector(this, initialValue, animationDuration, curve, onFinish);
+        return StateUtils.RememberAnimatedVector(this, initialValue, timing, curve, onFinish);
     }
 
     protected AnimatedState<float> RememberAnimated(
         float initialValue,
-        AnimationDuration animationDuration,
+        AnimationTiming timing,
         AnimationCurve? curve = null,
         Action<float>? onFinish = null
     ) {
-        return StateUtils.RememberAnimatedFloat(this, initialValue, animationDuration, curve, onFinish);
+        return StateUtils.RememberAnimatedFloat(this, initialValue, timing, curve, onFinish);
     }
 
     protected AnimatedState<TValue> RememberAnimated<TValue>(
         TValue initialValue,
         IValueInterpolator<TValue> interpolator,
-        AnimationDuration duration,
+        AnimationTiming timing,
         AnimationCurve? curve = null,
         Action<TValue>? onFinish = null
     ) {
-        return StateUtils.RememberAnimated(this, initialValue, interpolator, duration, curve, onFinish);
+        return StateUtils.RememberAnimated(this, initialValue, interpolator, timing, curve, onFinish);
     }
 
     #endregion

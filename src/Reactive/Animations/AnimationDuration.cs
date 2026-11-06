@@ -1,22 +1,19 @@
-﻿namespace Reactive {
-    public struct AnimationDuration {
-        public AnimationDuration(float value, DurationUnit unit) {
-            Value = value;
-            Unit = unit;
-        }
-        
-        /// <summary>
-        /// Represents duration of the animation either as seconds or multiplier.
-        /// </summary>
-        public float Value;
+using JetBrains.Annotations;
 
-        /// <summary>
-        /// Represents unit of the value.
-        /// </summary>
-        public DurationUnit Unit;
-        
-        public static implicit operator float(AnimationDuration duration) {
-            return duration.Value;
-        }
+namespace Reactive;
+
+/// <summary>
+/// A fixed length of an animation.
+/// </summary>
+[PublicAPI]
+public readonly record struct AnimationDuration(float Seconds) {
+    public int Milliseconds { get; } = (int)(Seconds * 1000);
+
+    public static AnimationDuration Sec(float seconds) {
+        return new(seconds);
+    }
+
+    public static AnimationDuration Ms(int millis) {
+        return new(millis / 1000f);
     }
 }

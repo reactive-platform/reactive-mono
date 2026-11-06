@@ -1,6 +1,6 @@
 namespace Reactive;
 
-public enum DurationUnit {
-    Seconds,
+public enum TimingUnit {
+    Time,
     TimeDeltaFactor
 }

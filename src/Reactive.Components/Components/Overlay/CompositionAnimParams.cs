@@ -20,9 +20,9 @@ public readonly record struct CompositionAnimParams {
     public float DimmedAlpha { get; init; } = 0.2f;
 
     /// <summary>
-    /// The duration of the dimming transition in seconds. Used for both dimming and restoring.
+    /// The duration of the dimming transition. Used for both dimming and restoring.
     /// </summary>
-    public float Duration { get; init; } = 0.15f;
+    public AnimationDuration Duration { get; init; } = 150.ms;
 
     /// <summary>
     /// A curve applied to the transition progress. Linear if not set.

@@ -16,7 +16,7 @@ public static class ModalAnimations {
     /// </summary>
     public static readonly Animation<IReactiveComponent> JumpOpen = new() {
         Track = new JumpTrack(false), 
-        Duration = 0.15f
+        Duration = 150.ms
     };
 
     /// <summary>
@@ -24,7 +24,7 @@ public static class ModalAnimations {
     /// </summary>
     public static readonly Animation<IReactiveComponent> JumpClose = new() {
         Track = new JumpTrack(true), 
-        Duration = 0.12f
+        Duration = 120.ms
     };
 }
 

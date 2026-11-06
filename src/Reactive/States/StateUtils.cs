@@ -28,12 +28,12 @@ namespace Reactive {
             IReactiveModuleBinder binder,
             T initialValue,
             IValueInterpolator<T> interpolator,
-            AnimationDuration duration,
+            AnimationTiming timing,
             AnimationCurve? curve = null,
             Action<T>? onFinish = null
         ) {
             var value = new AnimatedState<T>(initialValue, interpolator) {
-                Duration = duration,
+                Timing = timing,
                 OnFinish = onFinish,
                 Curve = curve ?? AnimationCurve.Linear
             };
@@ -44,7 +44,7 @@ namespace Reactive {
         public static AnimatedState<Color> RememberAnimatedColor(
             IReactiveModuleBinder binder,
             Color initialValue,
-            AnimationDuration duration,
+            AnimationTiming timing,
             AnimationCurve? curve = null,
             Action<Color>? onFinish = null
         ) {
@@ -52,7 +52,7 @@ namespace Reactive {
                 binder,
                 initialValue,
                 ColorValueInterpolator.Instance,
-                duration,
+                timing,
                 curve,
                 onFinish
             );
@@ -61,7 +61,7 @@ namespace Reactive {
         public static AnimatedState<Vector2> RememberAnimatedVector(
             IReactiveModuleBinder binder,
             Vector2 initialValue,
-            AnimationDuration duration,
+            AnimationTiming timing,
             AnimationCurve? curve = null,
             Action<Vector2>? onFinish = null
         ) {
@@ -69,7 +69,7 @@ namespace Reactive {
                 binder,
                 initialValue,
                 Vector2ValueInterpolator.Instance,
-                duration,
+                timing,
                 curve,
                 onFinish
             );
@@ -78,7 +78,7 @@ namespace Reactive {
         public static AnimatedState<Vector3> RememberAnimatedVector(
             IReactiveModuleBinder binder,
             Vector3 initialValue,
-            AnimationDuration duration,
+            AnimationTiming timing,
             AnimationCurve? curve = null,
             Action<Vector3>? onFinish = null
         ) {
@@ -86,7 +86,7 @@ namespace Reactive {
                 binder,
                 initialValue,
                 Vector3ValueInterpolator.Instance,
-                duration,
+                timing,
                 curve,
                 onFinish
             );
@@ -95,7 +95,7 @@ namespace Reactive {
         public static AnimatedState<float> RememberAnimatedFloat(
             IReactiveModuleBinder binder,
             float initialValue,
-            AnimationDuration duration,
+            AnimationTiming timing,
             AnimationCurve? curve = null,
             Action<float>? onFinish = null
         ) {
@@ -103,7 +103,7 @@ namespace Reactive {
                 binder,
                 initialValue,
                 SingleValueInterpolator.Instance,
-                duration,
+                timing,
                 curve,
                 onFinish
             );
