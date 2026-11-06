@@ -23,11 +23,14 @@
         <Description>Source generators and analyzers for Reactive.</Description>
         <RepositoryUrl>https://github.com/reactive-platform/reactive-mono</RepositoryUrl>
         <PackageTags>reactive;roslyn;analyzer;source-generator</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
     <ItemGroup>
         <None Include="$(OutputPath)/$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
         <None Include="build/Reactive.Compiler.props" Pack="true" PackagePath="build" />
+        <None Include="README.md" Pack="true" PackagePath="/" />
     </ItemGroup>
 
     <ItemGroup>
