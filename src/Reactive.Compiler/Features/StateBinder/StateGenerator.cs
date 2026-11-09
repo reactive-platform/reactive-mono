@@ -189,7 +189,7 @@ internal class StateGenerator : IIncrementalGenerator {
         var containingType = definition.ContainingType;
         var receiver = containingType.IsExtension ? containingType.ExtensionParameter?.Type : containingType;
 
-        if (receiver is not INamedTypeSymbol) {
+        if (receiver is not INamedTypeSymbol { IsValueType: false }) {
             return false;
         }
 
