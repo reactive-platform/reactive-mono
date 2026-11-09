@@ -143,6 +143,12 @@ namespace Reactive {
         protected void ClaimLayoutContext(IContextMember? member) => Host.ClaimLayoutContext(this, member);
 
         /// <summary>
+        /// Whether the host claimed the context assigned by the parent, so it's a part of the parent's tree
+        /// rather than measured by it.
+        /// </summary>
+        protected bool SharesParentLayoutContext => Host.SharesParentLayoutContext;
+
+        /// <summary>
         /// Promotes the specified component to the layout component of the host. The host proxies measuring
         /// and layout application to it, and only it can claim the own layout context.
         /// Only one component can be promoted, so the previous one gets demoted.

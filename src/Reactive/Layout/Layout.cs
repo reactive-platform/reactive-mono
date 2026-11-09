@@ -18,13 +18,13 @@ namespace Reactive {
 
                 if (oldController != null) {
                     oldController.RemoveAllChildren();
-                    oldController.LayoutControllerUpdatedEvent -= ScheduleLayoutRecalculation;
+                    oldController.LayoutControllerUpdatedEvent -= HandleLayoutControllerUpdated;
                 }
 
                 _layoutController = value;
 
                 if (value != null) {
-                    value.LayoutControllerUpdatedEvent += ScheduleLayoutRecalculation;
+                    value.LayoutControllerUpdatedEvent += HandleLayoutControllerUpdated;
                 }
 
                 ClaimLayoutContext(value);
@@ -46,6 +46,17 @@ namespace Reactive {
 
         public new void ScheduleLayoutRecalculation() {
             base.ScheduleLayoutRecalculation();
+        }
+
+        private void HandleLayoutControllerUpdated() {
+            ScheduleLayoutRecalculation();
+            NotifyMeasuringParent();
+        }
+        
+        private void NotifyMeasuringParent() {
+            if (!SharesParentLayoutContext) {
+                NotifyLayoutDataUpdated();
+            }
         }
 
         private int GetControllerIndex(ILayoutItem item, ILayoutController controller) {
@@ -93,6 +104,7 @@ namespace Reactive {
             item.LayoutDataUpdatedEvent += HandleChildLayoutDataUpdated;
 
             ScheduleLayoutRecalculation();
+            NotifyMeasuringParent();
             OnChildrenUpdated();
         }
 
@@ -106,6 +118,7 @@ namespace Reactive {
             item.AssignParent(null);
 
             ScheduleLayoutRecalculation();
+            NotifyMeasuringParent();
             OnChildrenUpdated();
         }
 
@@ -134,6 +147,7 @@ namespace Reactive {
             }
 
             ScheduleLayoutRecalculation();
+            NotifyMeasuringParent();
         }
 
         protected virtual void OnChildrenUpdated() { }

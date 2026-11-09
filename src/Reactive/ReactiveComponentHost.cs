@@ -199,6 +199,8 @@ namespace Reactive {
             // Own context has higher priority
             public object? LayoutContext => _ownContext ?? _assignedContext;
 
+            public bool SharesParentLayoutContext => _ownContext != null && _ownContext == _assignedContext;
+
             private object? _assignedContext;
             private object? _ownContext;
             private IContextMember? _contextMember;
