@@ -4,13 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reactive.Compiler;
 
 internal static class StateGeneratorUtils {
-    public const string StateType = "IState";
-    public const string StateNamespace = "Reactive";
-
-    public const string StatePath = $"{StateNamespace}.{StateType}";
-    public const string StateBinderPath = "Reactive.Compiler.StateBinder";
-    public const string AttributePath = "Reactive.Compiler.StateGenAttribute";
-
     public static ITypeSymbol? GetStateTargetType(ITypeSymbol symbol) {
         INamedTypeSymbol? type;
 
@@ -31,11 +24,9 @@ internal static class StateGeneratorUtils {
             .Any(x => x.IsStateType());
     }
 
-    public const string LifetimeProviderPath = "Reactive.ILifetimeProvider";
-
     public static bool IsLifetimeProvider(ITypeSymbol symbol) {
-        return symbol.ToDisplayString() == LifetimeProviderPath ||
-            symbol.AllInterfaces.Any(x => x.ToDisplayString() == LifetimeProviderPath);
+        return symbol.ToDisplayString() == TypeConstants.LifetimeProvider ||
+            symbol.AllInterfaces.Any(x => x.ToDisplayString() == TypeConstants.LifetimeProvider);
     }
     
     public static string GetBinderMethod(ITypeSymbol symbol) {
@@ -51,7 +42,7 @@ internal static class StateGeneratorUtils {
         var current = symbol;
         
         while (current != null) {
-            if (current.ToDisplayString() == "UnityEngine.Object") {
+            if (current.ToDisplayString() == TypeConstants.UnityObject) {
                 return true;
             }
 
@@ -66,6 +57,6 @@ internal static class StateGeneratorUtils {
     }
 
     private static bool IsStateTypeSelf(ITypeSymbol symbol) {
-        return symbol.ContainingNamespace?.ToString() == StateNamespace && symbol.Name == StateType;
+        return symbol.ContainingNamespace?.ToString() == TypeConstants.ReactiveNamespace && symbol.Name == TypeConstants.StateName;
     }
 }

@@ -46,7 +46,7 @@ public class StatePatternAnalyzer : DiagnosticAnalyzer {
         }
 
         var symbol = context.SemanticModel.GetSymbolInfo(name).Symbol;
-        if (symbol?.ContainingType.ToString() != StateGeneratorUtils.AttributePath) {
+        if (symbol?.ContainingType.ToString() != typeof(StateGenAttribute).FullName) {
             return;
         }
 

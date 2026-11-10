@@ -10,8 +10,6 @@ namespace Reactive.Compiler.OtherAnalyzers;
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal class IntentAntipatternAnalyzer : DiagnosticAnalyzer {
-    private const string ReactiveComponentName = "Reactive.ReactiveComponent";
-
     private static readonly DiagnosticDescriptor PublicMethodRule = new(
         "RV109",
         "Reactive component exposes a public method",
@@ -29,7 +27,7 @@ internal class IntentAntipatternAnalyzer : DiagnosticAnalyzer {
 
         context.RegisterCompilationStartAction(static startContext => {
             // Nothing to check when Reactive isn't referenced
-            if (startContext.Compilation.GetTypeByMetadataName(ReactiveComponentName) is not { } componentType) {
+            if (startContext.Compilation.GetTypeByMetadataName(TypeConstants.ReactiveComponent) is not { } componentType) {
                 return;
             }
 

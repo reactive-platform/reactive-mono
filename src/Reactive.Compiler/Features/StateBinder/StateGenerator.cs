@@ -294,7 +294,7 @@ internal class StateGenerator : IIncrementalGenerator {
     private static void AppendProp(StringBuilder buffer, ITypeSymbol stateType, string propName, string sourcePropName, string binderMethodName) {
         const string Indent = "        ";
 
-        var binderType = $"{StateGeneratorUtils.StateBinderPath}<{stateType}, {StateGeneratorUtils.StatePath}<{stateType}>>";
+        var binderType = $"{TypeConstants.StateBinder}<{stateType}, {TypeConstants.State}<{stateType}>>";
 
         buffer.AppendLine($"{Indent}[Reactive.Compiler.SetsRequiredAttribute(Names = [\"{sourcePropName}\"])]");
         buffer.AppendLine($"{Indent}public {binderType} {propName} {{");
