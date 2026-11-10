@@ -70,27 +70,15 @@ namespace Reactive {
         private float _elapsedTime;
         private bool _set;
 
-        public void SetValueImmediate(T value, bool silent = false) {
+        public void SetValueImmediate(T value) {
             _set = true;
             _startValue = value;
             _targetValue = value;
             _targetValue = _valueInterpolator.Lerp(_startValue, _targetValue, 1f);
             _linearProgress = 1f;
 
-            if (!silent) {
-                Progress = 1f;
-                FinishAnimation();
-            } else {
-                _progress = 1f;
-            }
-        }
-
-        /// <summary>
-        /// Evaluates the animation on the next frame. Use this to provide default values to subscribers.
-        /// If called when the animation is running, nothing will happen.
-        /// </summary>
-        public void EvaluateNextFrame() {
-            _set = false;
+            Progress = 1f;
+            FinishAnimation();
         }
 
         void IReactiveModule.OnUpdate() {
