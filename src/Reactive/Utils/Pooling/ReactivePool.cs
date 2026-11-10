@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using JetBrains.Annotations;
 
 namespace Reactive {
@@ -101,12 +100,6 @@ namespace Reactive {
             foreach (var comp in _spawnedComponents.ToArray()) {
                 DespawnInternal(comp);
             }
-        }
-
-        public void DespawnLast() {
-            if (_spawnedComponents.Count == 0) return;
-            var last = _spawnedComponents.Last();
-            Despawn(last);
         }
 
         public void Despawn(T comp) {
