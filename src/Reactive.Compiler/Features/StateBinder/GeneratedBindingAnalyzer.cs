@@ -11,7 +11,7 @@ namespace Reactive.Compiler;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class GeneratedBindingAnalyzer : DiagnosticAnalyzer {
     private static readonly DiagnosticDescriptor BindingOutOfContextRule = new(
-        "RV006",
+        "RV041",
         "Generated binding is used outside of its generation context",
         "'{0}' is a generated binding, but this usage doesn't generate it, so it depends on another usage to exist. Assign a state to it inside an object initializer of a [StateGen] member instead.",
         "Usage",

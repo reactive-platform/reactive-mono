@@ -7,7 +7,7 @@ namespace Reactive.Compiler.OtherAnalyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal class MemberAntipatternAnalyzer : DiagnosticAnalyzer {
     private static readonly DiagnosticDescriptor PublicMethodRule = new(
-        "RV109",
+        "RV201",
         "Reactive component exposes a public method",
         "'{0}' is a public method of a reactive component. Expose its effect as a property instead.",
         "Design",
@@ -16,7 +16,7 @@ internal class MemberAntipatternAnalyzer : DiagnosticAnalyzer {
     );
 
     private static readonly DiagnosticDescriptor PublicEventRule = new(
-        "RV110",
+        "RV202",
         "Reactive component exposes a public event",
         "'{0}' is a public event of a reactive component. Declare it as a delegate property instead.",
         "Design",

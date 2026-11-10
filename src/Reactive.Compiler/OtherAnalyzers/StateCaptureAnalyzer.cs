@@ -11,7 +11,7 @@ namespace Reactive.Compiler.OtherAnalyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal class StateCaptureAnalyzer : DiagnosticAnalyzer {
     private static readonly DiagnosticDescriptor StateCapturedRule = new(
-        "RV108",
+        "RV061",
         "State is captured instead of being passed as a dependency",
         "'{0}' is a state captured by the closure, pass it as a dependency instead so its changes are tracked",
         "Usage",

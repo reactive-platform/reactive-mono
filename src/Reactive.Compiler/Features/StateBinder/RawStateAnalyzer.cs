@@ -9,7 +9,7 @@ namespace Reactive.Compiler;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RawStateAnalyzer : DiagnosticAnalyzer {
     private static readonly DiagnosticDescriptor RawStateAgreementRule = new(
-        "RV004",
+        "RV021",
         "By defining a raw state you take the responsibility of binding and unbinding passed state objects properly",
         "Property {0} is a raw state and won't be used by the state generator. Please note that by defining a raw state you take the responsibility of binding and unbinding passed state objects properly.",
         "Usage",
@@ -18,7 +18,7 @@ public class RawStateAnalyzer : DiagnosticAnalyzer {
     );
 
     private static readonly DiagnosticDescriptor RawStateInvalidTypeRule = new(
-        "RV005",
+        "RV022",
         "Raw states must be of type IState<T>",
         "Defining a raw state requires the property to implement IState<T>",
         "Usage",
