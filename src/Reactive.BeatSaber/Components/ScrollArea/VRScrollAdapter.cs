@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 namespace Reactive.BeatSaber.Components {
     [DefaultExecutionOrder(-1000)]
     [RequireComponent(typeof(PointerEventsHandler))]
-    internal class VRScrollAdapter : MonoBehaviour {
+    public class VRScrollAdapter : MonoBehaviour {
         // The game's lists: the sqrMagnitude check in HMUI.ScrollView.CheckScrollInput
         private const float DeadzoneSqr = 0.01f;
 
