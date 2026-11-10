@@ -23,7 +23,15 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
     /// </summary>
     public Animation<T>? Animation { get; private set; }
 
-    public bool IsPlaying => Animation != null;
+    /// <summary>
+    /// Whether the animation advances. False when nothing is set or the animation is paused.
+    /// </summary>
+    public bool IsPlaying { get; private set; }
+
+    /// <summary>
+    /// The time since the animation started, in seconds.
+    /// </summary>
+    public float Time => _elapsedTime;
 
     /// <summary>
     /// The zero-based iteration being played.
@@ -37,11 +45,42 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
     /// <param name="onFinished">Called once the animation is finished. Not called if the animation gets cancelled.</param>
     public void Play(in Animation<T> animation, Action? onFinished = null) {
         Animation = animation;
+        IsPlaying = true;
         _onFinished = onFinished;
         _elapsedTime = 0f;
         Iteration = 0;
 
         // Applying right away so the target doesn't keep the previous values for a frame
+        if (Evaluate()) {
+            End();
+        }
+    }
+
+    /// <summary>
+    /// Pauses the current animation, leaving it on the target so it can be resumed or seeked.
+    /// </summary>
+    public void Pause() {
+        IsPlaying = false;
+    }
+
+    /// <summary>
+    /// Resumes the current animation from where it was paused. Does nothing when no animation is set.
+    /// </summary>
+    public void Resume() {
+        IsPlaying = Animation != null;
+    }
+
+    /// <summary>
+    /// Jumps the animation to the given time in seconds.
+    /// </summary>
+    public void Seek(float time) {
+        if (Animation is not { } animation) {
+            return;
+        }
+
+        var length = animation.Duration.Seconds * animation.Iterations.Count;
+        _elapsedTime = Mathf.Clamp(time, 0f, length);
+
         Evaluate();
     }
 
@@ -61,6 +100,7 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
 
         _elapsedTime = float.PositiveInfinity;
         Evaluate();
+        End();
     }
 
     /// <summary>
@@ -68,6 +108,7 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
     /// </summary>
     public void Cancel() {
         Animation = null;
+        IsPlaying = false;
         _onFinished = null;
     }
 
@@ -78,7 +119,11 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
     private Action? _onFinished;
     private float _elapsedTime;
 
-    private void Evaluate() {
+    /// <summary>
+    /// Applies the animation at the elapsed time.
+    /// </summary>
+    /// <returns>Whether the animation has reached its end.</returns>
+    private bool Evaluate() {
         var animation = Animation!.Value;
         var duration = animation.Duration.Seconds;
         var iterations = animation.Iterations;
@@ -91,7 +136,7 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
             var iteration = Mathf.FloorToInt(elapsedIterations);
 
             Apply(animation, iteration, elapsedIterations - iteration);
-            return;
+            return false;
         }
 
         // The end of the last iteration, which is only partially played when the count is fractional
@@ -104,7 +149,7 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
             Apply(animation, last, iterations.Count - last);
         }
 
-        End();
+        return true;
     }
 
     private void Apply(in Animation<T> animation, int iteration, float progress) {
@@ -132,12 +177,15 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
     }
 
     void IReactiveModule.OnUpdate() {
-        if (Animation == null) {
+        if (Animation == null || !IsPlaying) {
             return;
         }
 
-        _elapsedTime += Time.deltaTime;
-        Evaluate();
+        _elapsedTime += UnityEngine.Time.deltaTime;
+
+        if (Evaluate()) {
+            End();
+        }
     }
 
     void IReactiveModule.OnBind() { }
