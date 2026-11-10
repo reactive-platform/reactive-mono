@@ -51,3 +51,4 @@ A binding is generated when it's assigned inside a member marked with `[StateGen
 | RV107 | Error    | A required property isn't initialized in the parameterless ctor     |
 | RV108 | Warning  | A state is captured by a closure instead of passed as a dependency  |
 | RV109 | Warning  | A reactive component exposes a public method                        |
+| RV110 | Warning  | A reactive component exposes a public event                         |
