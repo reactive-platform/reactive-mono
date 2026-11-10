@@ -180,7 +180,7 @@ public class WebImage : Image {
         if ((show ? StartAnimation : FinishAnimation) is { } anim) {
             _overlayPlayer.Play(anim);
         } else {
-            _overlayPlayer.Stop();
+            _overlayPlayer.Cancel();
             _overlayPlayer.Target.BackgroundGroup.alpha = show ? 1f : 0f;
         }
     }

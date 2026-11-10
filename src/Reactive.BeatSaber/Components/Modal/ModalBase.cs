@@ -49,7 +49,7 @@ public abstract class ModalBase : ReactiveComponent {
             _overlay.Animated = value;
 
             if (!value) {
-                _animationPlayer.Finish();
+                _animationPlayer.Complete();
             }
         }
     }
@@ -84,13 +84,13 @@ public abstract class ModalBase : ReactiveComponent {
                 if (Animated && OpenAnimation is { } openAnimation) {
                     _animationPlayer.Play(openAnimation);
                 } else {
-                    _animationPlayer.Stop();
+                    _animationPlayer.Cancel();
                 }
             } else if (Animated && CloseAnimation is { } closeAnimation) {
                 // The overlay is popped once the animation finishes
                 _animationPlayer.Play(closeAnimation, HandleCloseAnimationFinished);
             } else {
-                _animationPlayer.Stop();
+                _animationPlayer.Cancel();
                 _overlay.IsPushed = false;
             }
         }

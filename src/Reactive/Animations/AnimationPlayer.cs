@@ -31,10 +31,10 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
     public int Iteration { get; private set; }
 
     /// <summary>
-    /// Plays the animation from the start. Stops the current one without finishing it.
+    /// Plays the animation from the start. Cancels the current one without completing it.
     /// </summary>
     /// <param name="animation">The animation to play.</param>
-    /// <param name="onFinished">Called once the animation is finished. Not called if the animation gets stopped.</param>
+    /// <param name="onFinished">Called once the animation is finished. Not called if the animation gets cancelled.</param>
     public void Play(in Animation<T> animation, Action? onFinished = null) {
         Animation = animation;
         _onFinished = onFinished;
@@ -46,17 +46,16 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
     }
 
     /// <summary>
-    /// Jumps the current animation to its end, applying the final values and invoking the finish callback.
-    /// An infinite animation has no end, so it finishes the iteration being played instead.
+    /// Jumps to the end and invokes the finish callback. An infinite animation completes its current iteration.
     /// </summary>
-    public void Finish() {
+    public void Complete() {
         if (Animation is not { } animation) {
             return;
         }
 
         if (animation.Iterations.IsInfinite && animation.Duration.Seconds > 0f) {
             Apply(animation, Iteration, 1f);
-            Complete();
+            End();
             return;
         }
 
@@ -65,9 +64,9 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
     }
 
     /// <summary>
-    /// Stops the current animation, leaving the target as it is.
+    /// Cancels the current animation, leaving the target as it is. The finish callback never runs.
     /// </summary>
-    public void Stop() {
+    public void Cancel() {
         Animation = null;
         _onFinished = null;
     }
@@ -105,7 +104,7 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
             Apply(animation, last, iterations.Count - last);
         }
 
-        Complete();
+        End();
     }
 
     private void Apply(in Animation<T> animation, int iteration, float progress) {
@@ -126,9 +125,9 @@ public sealed class AnimationPlayer<T> : IReactiveModule {
         animation.Track.Apply(Target, animation.Curve?.Evaluate(progress) ?? progress);
     }
 
-    private void Complete() {
+    private void End() {
         var onFinished = _onFinished;
-        Stop();
+        Cancel();
         onFinished?.Invoke();
     }
 
