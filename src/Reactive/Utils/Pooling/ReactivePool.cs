@@ -11,7 +11,7 @@ namespace Reactive {
             get => _reactivePool.Construct;
             set => _reactivePool.Construct = value;
         }
-        
+
         public bool DetachOnDespawn {
             get => _reactivePool.DetachOnDespawn;
             set => _reactivePool.DetachOnDespawn = value;
@@ -74,13 +74,13 @@ namespace Reactive {
             if (count <= 0) {
                 return;
             }
-            
+
             for (var i = 0; i < count; i++) {
                 var comp = ConstructComponent();
                 _reservedComponents.Push(comp);
             }
         }
-        
+
         public T Spawn(bool enable = true) {
             if (!_reservedComponents.TryPop(out var comp)) {
                 comp = ConstructComponent();
@@ -89,7 +89,7 @@ namespace Reactive {
                 return Spawn();
             }
             _spawnedComponents.Add(comp);
-            
+
             if (enable) {
                 comp.Enabled = true;
             }
@@ -97,25 +97,35 @@ namespace Reactive {
         }
 
         public void DespawnAll() {
-            foreach (var comp in _spawnedComponents.ToArray()) {
+            while (_spawnedComponents.Count > 0) {
+                var index = _spawnedComponents.Count - 1;
+                var comp = _spawnedComponents[index];
+
+                _spawnedComponents.RemoveAt(index);
                 DespawnInternal(comp);
             }
         }
 
         public void Despawn(T comp) {
-            if (!_spawnedComponents.Contains(comp)) {
+            if (!_spawnedComponents.Remove(comp)) {
                 throw new InvalidOperationException("Cannot despawn an item that does not belong to the pool");
             }
+
             DespawnInternal(comp);
         }
 
         private void DespawnInternal(T comp) {
-            if (!comp.IsDestroyed) {
-                comp.Enabled = false;
-                if (DetachOnDespawn) comp.Use(null);
-                _reservedComponents.Push(comp);
+            if (comp.IsDestroyed) {
+                return;
             }
-            _spawnedComponents.Remove(comp);
+
+            comp.Enabled = false;
+
+            if (DetachOnDespawn) {
+                comp.Use(null);
+            }
+
+            _reservedComponents.Push(comp);
         }
 
         private T ConstructComponent() {
