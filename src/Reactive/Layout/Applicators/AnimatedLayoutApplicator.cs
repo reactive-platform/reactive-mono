@@ -27,32 +27,32 @@ public sealed class AnimatedLayoutApplicator : LayoutApplicator {
     /// The animation of the left offset. Applied instantly if not set.
     /// </summary>
     public LayoutAnimation? PosX {
-        get => _x.Animation;
-        set => _x.Animation = value;
+        get;
+        set => SetAnimationValues(ref _x, field = value);
     }
 
     /// <summary>
     /// The animation of the top offset. Applied instantly if not set.
     /// </summary>
     public LayoutAnimation? PosY {
-        get => _y.Animation;
-        set => _y.Animation = value;
+        get;
+        set => SetAnimationValues(ref _y, field = value);
     }
 
     /// <summary>
     /// The animation of the width. Applied instantly if not set.
     /// </summary>
     public LayoutAnimation? SizeX {
-        get => _width.Animation;
-        set => _width.Animation = value;
+        get;
+        set => SetAnimationValues(ref _width, field = value);
     }
 
     /// <summary>
     /// The animation of the height. Applied instantly if not set.
     /// </summary>
     public LayoutAnimation? SizeY {
-        get => _height.Animation;
-        set => _height.Animation = value;
+        get;
+        set => SetAnimationValues(ref _height, field = value);
     }
 
     /// <summary>
@@ -116,82 +116,54 @@ public sealed class AnimatedLayoutApplicator : LayoutApplicator {
 
     #region Apply
 
-    private Anim _x;
-    private Anim _y;
-    private Anim _width;
-    private Anim _height;
+    private AnimatedValue<float> _x = new() { Interpolator = SingleValueInterpolator.Instance };
+    private AnimatedValue<float> _y = new() { Interpolator = SingleValueInterpolator.Instance };
+    private AnimatedValue<float> _width = new() { Interpolator = SingleValueInterpolator.Instance };
+    private AnimatedValue<float> _height = new() { Interpolator = SingleValueInterpolator.Instance };
+    private LayoutDimensions _target;
     private int _advancedFrame = -1;
 
     public override bool Apply(LayoutDimensions current, LayoutDimensions target, out LayoutDimensions dimensions) {
-        // A new target can come in a frame that was advanced already, then only the changed values restart
+        if (_target != target) {
+            _target = target;
+
+            Retarget(ref _y, PosY != null, current.TopOffset, target.TopOffset);
+            Retarget(ref _x, PosX != null, current.LeftOffset, target.LeftOffset);
+            Retarget(ref _width, SizeX != null, current.Width, target.Width);
+            Retarget(ref _height, SizeY != null, current.Height, target.Height);
+        }
+
+        // A new target can come in a frame that was advanced already
         var frame = Time.frameCount;
         var deltaTime = frame == _advancedFrame ? 0f : Time.deltaTime;
         _advancedFrame = frame;
 
-        dimensions = new(
-            _y.Evaluate(current.TopOffset, target.TopOffset, deltaTime),
-            _x.Evaluate(current.LeftOffset, target.LeftOffset, deltaTime),
-            _width.Evaluate(current.Width, target.Width, deltaTime),
-            _height.Evaluate(current.Height, target.Height, deltaTime)
-        );
+        _x.Advance(deltaTime);
+        _y.Advance(deltaTime);
+        _width.Advance(deltaTime);
+        _height.Advance(deltaTime);
 
-        return _x.Running || _y.Running || _width.Running || _height.Running;
+        dimensions = new(_y.Value, _x.Value, _width.Value, _height.Value);
+
+        return _x.IsRunning || _y.IsRunning || _width.IsRunning || _height.IsRunning;
     }
 
-    // TODO: move logic from AnimatedState into a shared struct and put it here
-    private struct Anim {
-        public LayoutAnimation? Animation;
-        public bool Running;
-
-        private float _value;
-        private float _from;
-        private float _to;
-        private float _elapsedTime;
-        private float _progress;
-
-        public float Evaluate(float current, float target, float deltaTime) {
-            if (Animation is not { } animation) {
-                return Snap(target);
-            }
-
-            // The same target keeps the animation going, unless the item was moved outside the applicator
-            if (Running && Mathf.Approximately(_to, target) && Mathf.Approximately(_value, current)) {
-                return Advance(animation, deltaTime);
-            }
-
-            if (Mathf.Approximately(current, target)) {
-                return Snap(target);
-            }
-
-            // A new target starts a new animation from where the item is
-            _from = current;
-            _to = target;
-            _elapsedTime = 0f;
-            _progress = 0f;
-            Running = true;
-
-            return _value = current;
+    private static void Retarget(ref AnimatedValue<float> value, bool animated, float current, float target) {
+        if (!animated) {
+            value.Set(target);
+            return;
         }
 
-        private float Advance(LayoutAnimation animation, float deltaTime) {
-            _elapsedTime += deltaTime;
-            _progress = animation.Timing.Advance(_progress, _elapsedTime, deltaTime);
-
-            // The clock decides when it's finished, the value may pass the target on the way
-            if (_progress >= 1f) {
-                return Snap(_to);
-            }
-
-            // Unclamped, so curves can overshoot
-            return _value = Mathf.LerpUnclamped(_from, _to, animation.Curve?.Evaluate(_progress) ?? _progress);
+        if (!value.IsRunning) {
+            value.Set(current);
         }
 
-        private float Snap(float value) {
-            _to = value;
-            Running = false;
+        value.Retarget(target);
+    }
 
-            return _value = value;
-        }
+    private static void SetAnimationValues(ref AnimatedValue<float> value, LayoutAnimation? animation) {
+        value.Timing = animation?.Timing ?? default;
+        value.Curve = animation?.Curve;
     }
 
     #endregion

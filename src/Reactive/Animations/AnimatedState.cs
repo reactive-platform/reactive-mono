@@ -10,101 +10,64 @@ namespace Reactive {
     [PublicAPI]
     public class AnimatedState<T> : StateBase<T>, IState<T>, IReactiveModule {
         public AnimatedState(T initialValue, IValueInterpolator<T> valueInterpolator) {
-            _startValue = initialValue;
-            _targetValue = initialValue;
-            _valueInterpolator = valueInterpolator;
-            _set = true;
-            _progress = 1f;
-            _elapsedTime = 0f;
-            Value = _valueInterpolator.Lerp(_startValue, _targetValue, _progress);
+            _animation.Interpolator = valueInterpolator;
+            _animation.Set(valueInterpolator.Lerp(initialValue, initialValue, 1f));
         }
 
         public T TargetValue {
-            get => _targetValue;
+            get => _animation.To;
             set {
-                if (_valueInterpolator.Equals(_targetValue, value)) {
-                    return;
-                }
+                var shouldNotify = _animation.IsRunning;
 
-                _startValue = Value;
-                _targetValue = value;
-
-                _elapsedTime = 0f;
-                _progress = 0f;
-                _linearProgress = 0f;
-
-                var shouldNotify = !_set;
-                _set = false;
-
-                if (shouldNotify) {
+                if (_animation.Retarget(value) && shouldNotify) {
                     OnStart?.Invoke(Value);
                 }
             }
         }
 
-        public float Progress {
-            get => _progress;
-            private set {
-                _progress = value;
-                Value = _valueInterpolator.Lerp(_startValue, _targetValue, _progress);
-                NotifyValueInvalidated();
-            }
+        public float Progress => _animation.Progress;
+
+        public T Value => _animation.Value;
+
+        public bool IsFinished => !_animation.IsRunning;
+
+        public AnimationTiming Timing {
+            get => _animation.Timing;
+            set => _animation.Timing = value;
         }
 
-        public T Value { get; private set; }
-
-        public bool IsFinished => _set;
-
-        public AnimationTiming Timing { get; set; }
-        public AnimationCurve Curve { get; set; } = AnimationCurve.Linear;
+        public AnimationCurve Curve {
+            get => _animation.Curve ?? AnimationCurve.Linear;
+            set => _animation.Curve = value;
+        }
 
         public Action<T>? OnFinish { get; set; }
         public Action<T>? OnStart { get; set; }
 
-        private readonly IValueInterpolator<T> _valueInterpolator;
-        private T _targetValue;
-        private T _startValue;
-
-        private float _progress;
-        private float _linearProgress = 1f;
-        private float _elapsedTime;
-        private bool _set;
+        private AnimatedValue<T> _animation;
 
         public void SetValueImmediate(T value) {
-            _set = true;
-            _startValue = value;
-            _targetValue = value;
-            _targetValue = _valueInterpolator.Lerp(_startValue, _targetValue, 1f);
-            _linearProgress = 1f;
+            _animation.Set(value);
 
-            Progress = 1f;
-            FinishAnimation();
+            NotifyValueInvalidated();
+            OnFinish?.Invoke(Value);
         }
 
         void IReactiveModule.OnUpdate() {
-            if (_set) {
+            if (!_animation.IsRunning) {
                 return;
             }
 
-            _elapsedTime += Time.deltaTime;
-            _linearProgress = Timing.Advance(_linearProgress, _elapsedTime, Time.deltaTime);
+            _animation.Advance(Time.deltaTime);
+            NotifyValueInvalidated();
 
-            Progress = Curve.Evaluate(_linearProgress);
-            // Finishing if needed
-            if (_linearProgress >= 1f) {
-                FinishAnimation();
+            if (!_animation.IsRunning) {
+                OnFinish?.Invoke(Value);
             }
         }
 
         void IReactiveModule.OnBind() { }
         void IReactiveModule.OnUnbind() { }
-
-        private void FinishAnimation() {
-            _set = true;
-            _elapsedTime = 0f;
-
-            OnFinish?.Invoke(Value);
-        }
 
         public static implicit operator T(AnimatedState<T> state) {
             return state.Value;
