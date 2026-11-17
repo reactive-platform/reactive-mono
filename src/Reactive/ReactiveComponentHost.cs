@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Reactive {
     public partial class ReactiveComponent {
         [RequireComponent(typeof(RectTransform))]
-        private class ReactiveHost : MonoBehaviour, ILayoutItem, IReactiveModuleBinder {
+        private class ReactiveHost : MonoBehaviour, ILayoutItem, IPostLayoutHandler, IReactiveModuleBinder {
             #region LayoutItem
 
             public ILayoutDriver? LayoutDriver => _layoutDriver;
@@ -68,6 +68,11 @@ namespace Reactive {
                 _layoutState.QueuedFor = 0;
                 _layoutState.HasApplied = false;
 
+                // The dimensions belong to the previous parent, so there's nothing to continue from
+                _hasDimensions = false;
+                _hasPendingDimensions = false;
+                _applicatorUpdating = false;
+
                 if (driver == null) {
                     _layoutComponent?.PromotedOnModifierUpdate();
                 }
@@ -92,21 +97,7 @@ namespace Reactive {
                 ref var state = ref _layoutState;
 
                 if (!state.HasApplied || state.LastApplied != dimensions) {
-                    _beingApplied = true;
-
-                    try {
-                        // Only the parent's controller positions the item, otherwise the position is left to the user
-                        if (LayoutTool.IsControlledByParent(this)) {
-                            _rectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, dimensions.TopOffset, dimensions.Height);
-                            _rectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, dimensions.LeftOffset, dimensions.Width);
-                        } else {
-                            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, dimensions.Width);
-                            _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, dimensions.Height);
-                        }
-                    }
-                    finally {
-                        _beingApplied = false;
-                    }
+                    ApplyDimensions(dimensions);
 
                     state.LastApplied = dimensions;
                     state.HasApplied = true;
@@ -145,6 +136,105 @@ namespace Reactive {
 
             public bool EqualsToLayoutItem(ILayoutItem item) {
                 return item.GetLayoutItemHashCode() == GetLayoutItemHashCode();
+            }
+
+            #endregion
+
+            #region Layout Applicator
+
+            public LayoutApplicator? LayoutApplicator {
+                get => _applicator;
+                set {
+                    if (_applicator == value) {
+                        return;
+                    }
+
+                    _applicator = value;
+                    _applicatorUpdating = false;
+                    _hasPendingDimensions = false;
+
+                    // The previous applicator could leave the item halfway, so the new one has to apply it again
+                    _layoutState.HasApplied = false;
+                    ScheduleLayoutRecalculation();
+                }
+            }
+
+            private LayoutApplicator? _applicator;
+            private LayoutDimensions _targetDimensions;
+            private LayoutDimensions _dimensions;
+            private bool _applicatorUpdating;
+            private bool _hasDimensions;
+            private bool _hasPendingDimensions;
+
+            private void ApplyDimensions(LayoutDimensions target) {
+                if (!_applicatorUpdating || _targetDimensions != target) {
+                    _targetDimensions = target;
+                    AdvanceApplicator();
+                }
+
+                _hasPendingDimensions = false;
+                WriteDimensions(_dimensions);
+            }
+
+            private void AdvanceApplicatorIfNeeded() {
+                if (!_applicatorUpdating) {
+                    return;
+                }
+
+                AdvanceApplicator();
+
+                if (!_hasPendingDimensions) {
+                    _hasPendingDimensions = true;
+                    ReactiveScheduler.PostLayout.Schedule(this);
+                }
+            }
+
+            private void AdvanceApplicator() {
+                var target = _targetDimensions;
+                var dimensions = target;
+
+                _applicatorUpdating = false;
+
+                if (_applicator != null) {
+                    try {
+                        _applicatorUpdating = _applicator.Apply(_hasDimensions ? _dimensions : target, target, out dimensions);
+                    } catch (Exception e) {
+                        Debug.LogException(e);
+
+                        _applicatorUpdating = false;
+                        dimensions = target;
+                    }
+                }
+
+                _dimensions = dimensions;
+                _hasDimensions = true;
+            }
+
+            void IPostLayoutHandler.OnPostLayout() {
+                if (this == null || IsDestroyed || !_hasPendingDimensions) {
+                    return;
+                }
+
+                _hasPendingDimensions = false;
+                WriteDimensions(_dimensions);
+            }
+
+            private void WriteDimensions(LayoutDimensions dimensions) {
+                _beingApplied = true;
+
+                try {
+                    // Only the parent's controller positions the item, otherwise the position is left to the user
+                    if (LayoutTool.IsControlledByParent(this)) {
+                        _rectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Top, dimensions.TopOffset, dimensions.Height);
+                        _rectTransform.SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, dimensions.LeftOffset, dimensions.Width);
+                    } else {
+                        _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, dimensions.Width);
+                        _rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, dimensions.Height);
+                    }
+                }
+                finally {
+                    _beingApplied = false;
+                }
             }
 
             #endregion
@@ -326,6 +416,8 @@ namespace Reactive {
                         _modules[i].OnUpdate();
                     }
                 }
+
+                AdvanceApplicatorIfNeeded();
             }
 
             private void LateUpdate() {

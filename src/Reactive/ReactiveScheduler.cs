@@ -18,6 +18,7 @@ public static class ReactiveScheduler {
 
     public static readonly StateLayer State = new();
     public static readonly LayoutLayer Layout = new();
+    public static readonly PostLayoutLayer PostLayout = new();
 
     private static bool _running;
 
@@ -29,7 +30,7 @@ public static class ReactiveScheduler {
     /// Runs both layers until neither has work. Does nothing when called while a layer runs.
     /// </summary>
     public static void Run() {
-        if (_running || State.IsRunning || Layout.IsRunning) {
+        if (_running || State.IsRunning || Layout.IsRunning || PostLayout.IsRunning) {
             return;
         }
 
@@ -45,6 +46,8 @@ public static class ReactiveScheduler {
                 State.Run();
                 Layout.Run();
             }
+
+            PostLayout.Run();
         }
         finally {
             _running = false;
@@ -152,7 +155,7 @@ public static class ReactiveScheduler {
 
                 for (var i = 0; i < _roots.Count; i++) {
                     var root = _roots[i];
-                    
+
                     if (!root.IsActiveInHierarchy) {
                         root.LayoutState.QueuedFor = CurrentRun;
                         continue;
@@ -197,6 +200,42 @@ public static class ReactiveScheduler {
 
             rootState.RootFor = run;
             _roots.Add(node);
+        }
+    }
+
+    [PublicAPI]
+    public sealed class PostLayoutLayer {
+        private readonly Queue<IPostLayoutHandler> _queue = new();
+
+        internal PostLayoutLayer() { }
+
+        public bool HasWork => _queue.Count > 0;
+
+        internal bool IsRunning { get; private set; }
+
+        public void Schedule(IPostLayoutHandler handler) {
+            _queue.Enqueue(handler);
+        }
+
+        public void Run() {
+            if (IsRunning || _queue.Count == 0) {
+                return;
+            }
+
+            IsRunning = true;
+
+            try {
+                for (var count = _queue.Count; count > 0; count--) {
+                    try {
+                        _queue.Dequeue().OnPostLayout();
+                    } catch (Exception e) {
+                        Debug.LogException(e);
+                    }
+                }
+            }
+            finally {
+                IsRunning = false;
+            }
         }
     }
 }

@@ -80,6 +80,11 @@ namespace Reactive {
             set => _reactiveHost!.WithinLayoutIfDisabled = value;
         }
 
+        public LayoutApplicator? LayoutApplicator {
+            get => Host.LayoutApplicator;
+            set => Host.LayoutApplicator = value;
+        }
+
         public event Action<ILayoutItem>? LayoutDataUpdatedEvent {
             add => Host.LayoutDataUpdatedEvent += value;
             remove => Host.LayoutDataUpdatedEvent -= value;
