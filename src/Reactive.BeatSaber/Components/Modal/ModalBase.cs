@@ -24,6 +24,14 @@ public abstract class ModalBase : ReactiveComponent {
     /// </summary>
     public Action? OnClickOutside { get; set; }
 
+    public bool BlocksOutside {
+        get;
+        set {
+            field = value;
+            _blocker.RaycastTarget = IsPushed && value;
+        }
+    } = true;
+
     #endregion
 
     #region Overlay API
@@ -75,7 +83,7 @@ public abstract class ModalBase : ReactiveComponent {
             }
 
             field = value;
-            _blocker.RaycastTarget = value;
+            _blocker.RaycastTarget = value && BlocksOutside;
 
             if (value) {
                 // Might still be pushed if opened again while closing
@@ -116,6 +124,7 @@ public abstract class ModalBase : ReactiveComponent {
         PlacementData = new() { Placement = RelativePlacement.Center };
         PlacementAnchor = null;
         OnClickOutside = null;
+        BlocksOutside = true;
         OnPushed = null;
         ZIndex = 0;
         CompositionAnimation = new();
