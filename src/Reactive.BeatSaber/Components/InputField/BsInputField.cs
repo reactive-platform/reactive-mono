@@ -101,8 +101,10 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
             Skew = 0f,
 
             OnClick = () => {
-                _focused.Value = true;
-                Context.Focused = true;
+                var focused = !Context.Focused;
+
+                _focused.Value = focused;
+                Context.Focused = focused;
             },
 
             Do = x => x.WithPointerEvents(
@@ -337,6 +339,14 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
         }
 
         _caret.ContentTransform.anchoredPosition = new(width, 0f);
+    }
+
+    #endregion
+
+    #region Focus
+
+    protected override void OnDisable() {
+        Context?.Focused = false;
     }
 
     #endregion

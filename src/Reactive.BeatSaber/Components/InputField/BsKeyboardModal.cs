@@ -97,6 +97,16 @@ public partial class BsKeyboardModal : ReactiveComponent {
             _modal.Modal?.ShowNumbersRow = value;
         }
     }
+    
+    public bool ShowDetachButton {
+        get;
+        set {
+            field = value;
+            _modal.Modal?.ShowDetachButton = value;
+        }
+    } = true;
+
+    public bool DetachedByDefault { get; set; }
 
     #endregion
 
@@ -121,6 +131,8 @@ public partial class BsKeyboardModal : ReactiveComponent {
         modal.ShowBackground = ShowBackground;
         modal.KeyboardColors = KeyboardColors;
         modal.ShowNumbersRow = ShowNumbersRow;
+        modal.ShowDetachButton = ShowDetachButton;
+        modal.Detached = DetachedByDefault;
         modal.Context = _context;
     }
 

@@ -22,6 +22,10 @@ public class BsInputFieldContext : StateBase<BsInputFieldContext>, IState<BsInpu
     public bool Focused {
         get;
         set {
+            if (field == value) {
+                return;
+            }
+
             field = value;
             NotifyValueInvalidated();
         }
