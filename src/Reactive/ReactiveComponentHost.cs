@@ -449,30 +449,26 @@ namespace Reactive {
                     ScheduleLayoutRecalculation();
                 }
 
-                if (!_wasActuallyDisabled) {
-                    return;
+                if (_wasActuallyDisabled) {
+                    ScheduleLayoutRecalculation();
+                    NotifyLayoutDataUpdated();
+                    _wasActuallyDisabled = false;
                 }
-
-                ScheduleLayoutRecalculation();
-                NotifyLayoutDataUpdated();
 
                 for (var i = 0; i < _components.Count; i++) {
                     _components[i].OnEnable();
                 }
-                _wasActuallyDisabled = false;
             }
 
             private void OnDisable() {
-                if (gameObject.activeSelf) {
-                    return;
+                if (!gameObject.activeSelf) {
+                    NotifyLayoutDataUpdated();
+                    _wasActuallyDisabled = true;
                 }
-
-                NotifyLayoutDataUpdated();
 
                 for (var i = 0; i < _components.Count; i++) {
                     _components[i].OnDisable();
                 }
-                _wasActuallyDisabled = true;
             }
 
             private void OnRectTransformDimensionsChange() {
