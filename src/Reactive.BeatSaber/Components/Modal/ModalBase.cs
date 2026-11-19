@@ -165,11 +165,15 @@ public abstract class ModalBase : ReactiveComponent {
 
     private void HandleLayoutUpdated(ILayoutItem item) {
         // Placing while closing too, as the overlay is still pushed
-        if (!_overlay.IsPushed || PlacementAnchor?.Value is not { } anchor) {
-            return;
+        if (_overlay.IsPushed) {
+            PlaceContent(_content.ContentTransform);
         }
+    }
 
-        PlacementTool.Place(_content.ContentTransform, anchor, PlacementData);
+    protected virtual void PlaceContent(RectTransform content) {
+        if (PlacementAnchor?.Value is { } anchor) {
+            PlacementTool.Place(content, anchor, PlacementData);
+        }
     }
 
     #endregion
