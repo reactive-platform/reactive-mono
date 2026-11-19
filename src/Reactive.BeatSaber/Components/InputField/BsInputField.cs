@@ -116,7 +116,7 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
                 FlexController = {
                     JustifyContent = Justify.FlexStart,
                     AlignItems = Align.Stretch,
-                    Padding = new() { left = 1.5f.pt, right = 2.pt },
+                    Padding = new() { left = 1.5f.pt },
                     Gap = 1.pt
                 },
 
@@ -158,8 +158,10 @@ public partial class BsInputField : ReactiveComponent, IGraphic, IInteractableCo
                     new Layout {
                         Name = "Rail",
 
+                        // The clear button keeps its own space, so the text only needs one from the edge without it
                         FlexItem = {
-                            Flex = 1
+                            Flex = 1,
+                            sMargin = closeButtonEnabled.Map(static x => new YogaFrame { right = x ? 0.pt : 2.pt })
                         },
 
                         FlexController = {
