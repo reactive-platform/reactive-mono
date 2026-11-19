@@ -112,6 +112,16 @@ public sealed class AnimatedLayoutApplicator : LayoutApplicator {
         }
     }
 
+    /// <summary>
+    /// Completes the ongoing animation immediately.
+    /// </summary>
+    public void Complete(LayoutAxis axes = LayoutAxis.All) {
+        if ((axes & LayoutAxis.PosX) != 0) _x.Set(_x.To);
+        if ((axes & LayoutAxis.PosY) != 0) _y.Set(_y.To);
+        if ((axes & LayoutAxis.SizeX) != 0) _width.Set(_width.To);
+        if ((axes & LayoutAxis.SizeY) != 0) _height.Set(_height.To);
+    }
+
     #endregion
 
     #region Apply
