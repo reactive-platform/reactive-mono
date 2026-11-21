@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using HMUI;
 using JetBrains.Annotations;
 using Reactive.Components;
@@ -136,7 +135,6 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
 
     private TextMeshProUGUI _text = null!;
     private Vector2 _lastPreferredSize;
-    private float _lastRequestTime;
 
     protected override void OnInstantiate() {
         PromoteLayoutComponent(this);
@@ -177,30 +175,11 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
     protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
         return Measure(width, widthMode, height, heightMode);
     }
-
+    
     private void RequestLeafRecalculationOnDirty() {
-        var time = Time.time;
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (time == _lastRequestTime) {
-            return;
-        }
-
-        _lastRequestTime = time;
-
-        var size = _text.GetPreferredValues();
-
-        if (size == _lastPreferredSize) {
-            // We didn't find a better way to track when the text got actually recalculated,
-            // so we use this workaround as a temporary fix
-            StartCoroutine(RequestLeafRecalculationNextFrame());
-        } else {
+        if (_text.GetPreferredValues() != _lastPreferredSize) {
             RequestLeafRecalculation();
         }
-    }
-
-    private IEnumerator RequestLeafRecalculationNextFrame() {
-        yield return new WaitForEndOfFrame();
-        RequestLeafRecalculation();
     }
 
     private void RequestLeafRecalculation() {

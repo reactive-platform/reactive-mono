@@ -75,6 +75,7 @@ namespace Reactive.Components.Basic {
         Label IComponentHolder<Label>.Component => this;
 
         private TextMeshProUGUI _text = null!;
+        private Vector2 _lastPreferredSize;
 
         protected override void OnInstantiate() {
             PromoteLayoutComponent(this);
@@ -82,7 +83,7 @@ namespace Reactive.Components.Basic {
 
         protected override void Construct(RectTransform rect) {
             _text = rect.gameObject.AddComponent<TextMeshProUGUI>();
-            _text.RegisterDirtyLayoutCallback(NotifyLayoutDataUpdated);
+            _text.RegisterDirtyLayoutCallback(RequestLeafRecalculationOnDirty);
         }
 
         protected override void OnInitialize() {
@@ -98,9 +99,16 @@ namespace Reactive.Components.Basic {
         protected override bool PromotedHasIntrinsicContent => true;
 
         protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
-            var size = _text.GetPreferredValues();
+            _lastPreferredSize = _text.GetPreferredValues();
 
-            return LayoutTool.MeasureNode(size, width, widthMode, height, heightMode);
+            return LayoutTool.MeasureNode(_lastPreferredSize, width, widthMode, height, heightMode);
+        }
+
+        // TMP also calls this when the rect gets resized, so only notifying when the size actually changes
+        private void RequestLeafRecalculationOnDirty() {
+            if (_text.GetPreferredValues() != _lastPreferredSize) {
+                NotifyLayoutDataUpdated();
+            }
         }
     }
 }
