@@ -153,7 +153,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
     }
 
     protected override void OnStart() {
-        RequestLeafRecalculation();
+        NotifyLayoutDataUpdated();
     }
 
     protected override bool PromotedHasIntrinsicContent => true;
@@ -162,7 +162,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
         _lastPreferredSize = _text.GetPreferredValues();
 
         var size = _lastPreferredSize;
-        
+
         // GetPreferredValues without args returns size as if it would be unconstrained, so when we
         // have wrapping enabled and more than one line we need to remeasure with explicit constraints
         if (_text.enableWordWrapping && widthMode != MeasureMode.Undefined && !float.IsNaN(width) && width < size.x) {
@@ -175,16 +175,10 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
     protected override Vector2 PromotedMeasure(float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
         return Measure(width, widthMode, height, heightMode);
     }
-    
+
     private void RequestLeafRecalculationOnDirty() {
         if (_text.GetPreferredValues() != _lastPreferredSize) {
-            RequestLeafRecalculation();
+            NotifyLayoutDataUpdated();
         }
-    }
-
-    private void RequestLeafRecalculation() {
-        _lastPreferredSize = _text.GetPreferredValues();
-
-        NotifyLayoutDataUpdated();
     }
 }
