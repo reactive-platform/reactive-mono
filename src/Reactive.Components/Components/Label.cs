@@ -1,6 +1,4 @@
-﻿using System;
-using JetBrains.Annotations;
-using Reactive.Yoga;
+﻿using JetBrains.Annotations;
 using TMPro;
 using UnityEngine;
 
@@ -105,7 +103,7 @@ namespace Reactive.Components.Basic {
 
             // GetPreferredValues without args returns size as if it would be unconstrained, so when we
             // have wrapping enabled and more than one line we need to remeasure with explicit constraints
-            if (_text.enableWordWrapping && widthMode != MeasureMode.Undefined && !float.IsNaN(width) && width < size.x) {
+            if (EnableWrapping && widthMode != MeasureMode.Undefined && !float.IsNaN(width) && width < size.x) {
                 size = _text.GetPreferredValues(width, float.PositiveInfinity);
             }
 

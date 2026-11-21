@@ -1,8 +1,6 @@
-using System;
 using HMUI;
 using JetBrains.Annotations;
 using Reactive.Components;
-using Reactive.Yoga;
 using TMPro;
 using UnityEngine;
 
@@ -12,114 +10,72 @@ namespace Reactive.BeatSaber.Components;
 public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
     public string Text {
         get => _text.text;
-        set {
-            _text.text = value;
-
-        }
+        set => _text.text = value;
     }
 
     public bool RichText {
         get => _text.richText;
-        set {
-            _text.richText = value;
-
-        }
+        set => _text.richText = value;
     }
 
     public float FontSize {
         get => _text.fontSize;
-        set {
-            _text.fontSize = value;
-
-        }
+        set => _text.fontSize = value;
     }
 
     public float FontSizeMin {
         get => _text.fontSizeMin;
-        set {
-            _text.fontSizeMin = value;
-
-        }
+        set => _text.fontSizeMin = value;
     }
 
     public float FontSizeMax {
         get => _text.fontSizeMax;
-        set {
-            _text.fontSizeMax = value;
-
-        }
+        set => _text.fontSizeMax = value;
     }
 
     public bool EnableAutoSizing {
         get => _text.enableAutoSizing;
-        set {
-            _text.enableAutoSizing = value;
-
-        }
+        set => _text.enableAutoSizing = value;
     }
 
     public FontStyles FontStyle {
         get => _text.fontStyle;
-        set {
-            _text.fontStyle = value;
-
-        }
+        set => _text.fontStyle = value;
     }
 
     public TMP_FontAsset Font {
         get => _text.font;
-        set {
-            _text.font = value;
-
-        }
+        set => _text.font = value;
     }
 
     public Material Material {
         get => _text.material;
-        set {
-            _text.material = value;
-
-        }
+        set => _text.material = value;
     }
 
     public bool EnableWrapping {
         get => _text.enableWordWrapping;
-        set {
-            _text.enableWordWrapping = value;
-
-        }
+        set => _text.enableWordWrapping = value;
     }
 
     public TextOverflowModes Overflow {
         get => _text.overflowMode;
-        set {
-            _text.overflowMode = value;
-
-        }
+        set => _text.overflowMode = value;
     }
 
     public TextAlignmentOptions Alignment {
         get => _text.alignment;
-        set {
-            _text.alignment = value;
-
-        }
+        set => _text.alignment = value;
     }
 
     public Color Color {
         get => _text.color;
-        set {
-            _text.color = value;
-
-        }
+        set => _text.color = value;
     }
 
     public bool RaycastTarget {
         get => _text.raycastTarget;
-        set {
-            _text.raycastTarget = value;
-
-        }
+        set => _text.raycastTarget = value;
     }
 
     float ISkewedComponent.Skew {
@@ -165,7 +121,7 @@ public class Label : ReactiveComponent, ISkewedComponent, IGraphic {
 
         // GetPreferredValues without args returns size as if it would be unconstrained, so when we
         // have wrapping enabled and more than one line we need to remeasure with explicit constraints
-        if (_text.enableWordWrapping && widthMode != MeasureMode.Undefined && !float.IsNaN(width) && width < size.x) {
+        if (EnableWrapping && widthMode != MeasureMode.Undefined && !float.IsNaN(width) && width < size.x) {
             size = _text.GetPreferredValues(width, float.PositiveInfinity);
         }
 
