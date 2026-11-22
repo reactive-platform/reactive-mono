@@ -219,7 +219,7 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
                             FlexItem = {
                                 Size = new() { y = 50.pct },
                                 AlignSelf = Align.Center,
-                                AspectRatio = 1f
+                                FlexShrink = 1f
                             },
 
                             PreserveAspect = true,
