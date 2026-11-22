@@ -90,6 +90,52 @@ public partial class ReactiveComponent {
         return StateUtils.RememberAnimated(this, initialValue, interpolator, timing, curve, onFinish);
     }
 
+    protected AnimatedDerivedState<Color> RememberAnimated(
+        IState<Color> source,
+        AnimationTiming timing,
+        AnimationCurve? curve = null,
+        Action<Color>? onFinish = null
+    ) {
+        return StateUtils.RememberAnimatedColor(this, source, timing, curve, onFinish);
+    }
+
+    protected AnimatedDerivedState<Vector2> RememberAnimated(
+        IState<Vector2> source,
+        AnimationTiming timing,
+        AnimationCurve? curve = null,
+        Action<Vector2>? onFinish = null
+    ) {
+        return StateUtils.RememberAnimatedVector(this, source, timing, curve, onFinish);
+    }
+
+    protected AnimatedDerivedState<Vector3> RememberAnimated(
+        IState<Vector3> source,
+        AnimationTiming timing,
+        AnimationCurve? curve = null,
+        Action<Vector3>? onFinish = null
+    ) {
+        return StateUtils.RememberAnimatedVector(this, source, timing, curve, onFinish);
+    }
+
+    protected AnimatedDerivedState<float> RememberAnimated(
+        IState<float> source,
+        AnimationTiming timing,
+        AnimationCurve? curve = null,
+        Action<float>? onFinish = null
+    ) {
+        return StateUtils.RememberAnimatedFloat(this, source, timing, curve, onFinish);
+    }
+
+    protected AnimatedDerivedState<TValue> RememberAnimated<TValue>(
+        IState<TValue> source,
+        IValueInterpolator<TValue> interpolator,
+        AnimationTiming timing,
+        AnimationCurve? curve = null,
+        Action<TValue>? onFinish = null
+    ) {
+        return StateUtils.RememberAnimated(this, source, interpolator, timing, curve, onFinish);
+    }
+
     #endregion
 
     #region Other

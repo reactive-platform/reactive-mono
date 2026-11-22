@@ -109,6 +109,63 @@ namespace Reactive {
             );
         }
 
+        public static AnimatedDerivedState<T> RememberAnimated<T>(
+            IReactiveModuleBinder binder,
+            IState<T> source,
+            IValueInterpolator<T> interpolator,
+            AnimationTiming timing,
+            AnimationCurve? curve = null,
+            Action<T>? onFinish = null
+        ) {
+            var value = new AnimatedDerivedState<T>(source, interpolator) {
+                Timing = timing,
+                OnFinish = onFinish,
+                Curve = curve ?? AnimationCurve.Linear
+            };
+            binder.BindModule(value);
+            return value;
+        }
+
+        public static AnimatedDerivedState<Color> RememberAnimatedColor(
+            IReactiveModuleBinder binder,
+            IState<Color> source,
+            AnimationTiming timing,
+            AnimationCurve? curve = null,
+            Action<Color>? onFinish = null
+        ) {
+            return RememberAnimated(binder, source, ColorValueInterpolator.Instance, timing, curve, onFinish);
+        }
+
+        public static AnimatedDerivedState<Vector2> RememberAnimatedVector(
+            IReactiveModuleBinder binder,
+            IState<Vector2> source,
+            AnimationTiming timing,
+            AnimationCurve? curve = null,
+            Action<Vector2>? onFinish = null
+        ) {
+            return RememberAnimated(binder, source, Vector2ValueInterpolator.Instance, timing, curve, onFinish);
+        }
+
+        public static AnimatedDerivedState<Vector3> RememberAnimatedVector(
+            IReactiveModuleBinder binder,
+            IState<Vector3> source,
+            AnimationTiming timing,
+            AnimationCurve? curve = null,
+            Action<Vector3>? onFinish = null
+        ) {
+            return RememberAnimated(binder, source, Vector3ValueInterpolator.Instance, timing, curve, onFinish);
+        }
+
+        public static AnimatedDerivedState<float> RememberAnimatedFloat(
+            IReactiveModuleBinder binder,
+            IState<float> source,
+            AnimationTiming timing,
+            AnimationCurve? curve = null,
+            Action<float>? onFinish = null
+        ) {
+            return RememberAnimated(binder, source, SingleValueInterpolator.Instance, timing, curve, onFinish);
+        }
+
         #endregion
     }
 }
