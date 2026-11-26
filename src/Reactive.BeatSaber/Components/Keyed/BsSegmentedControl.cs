@@ -123,7 +123,7 @@ public partial class BsSegmentedControl<T> : ReactiveComponent, ISkewedComponent
             FlexController = {
                 FlexDirection = FlexDirection.Row,
                 FlexWrap = Wrap.NoWrap,
-                Gap = 1.pt
+                Gap = 0.5f.pt
             },
 
             FlexItem = {
