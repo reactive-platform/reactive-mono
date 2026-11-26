@@ -351,7 +351,7 @@ namespace Reactive.Components.GIF {
                 return;
             int trColor = -1;
             int bgColorIndex = -1;
-            bool useBKColor = graphicControl.DisposalMethod == EDisposalMethod.RestoreBackgroundColor;
+            bool useBKColor = graphicControl != null && graphicControl.DisposalMethod == EDisposalMethod.RestoreBackgroundColor;
 
             if (Parent.screen.HasGlobalColorTable) {
                 bgColorIndex = Parent.screen.bgColorIndex;
@@ -361,7 +361,7 @@ namespace Reactive.Components.GIF {
             }
             if (IsInterlaced)
                 CalcInterlacedLimits();
-            var bgColor = Parent.screen.globalColorTable[bgColorIndex];
+            var bgColor = bgColorIndex >= 0 ? Parent.screen.globalColorTable[bgColorIndex] : new Color32(0, 0, 0, 0);
             if (Parent.BackgroundTransparent)
                 bgColor.a = 0;
             var pixels = data;
@@ -389,7 +389,7 @@ namespace Reactive.Components.GIF {
         }
 
         public void Dispose(Color32[] aData, int aWidth, int aHeight, int aXOffset, int aYOffset) {
-            if (graphicControl.DisposalMethod == EDisposalMethod.RestoreBackgroundColor && Parent.screen.HasGlobalColorTable) {
+            if (graphicControl != null && graphicControl.DisposalMethod == EDisposalMethod.RestoreBackgroundColor && Parent.screen.HasGlobalColorTable) {
                 var col = Parent.screen.globalColorTable[Parent.screen.bgColorIndex];
                 if (Parent.BackgroundTransparent)
                     col.a = 0;
